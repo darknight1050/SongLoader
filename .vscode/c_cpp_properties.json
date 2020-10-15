@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "defines": [
+        "__GNUC__",
+        "__aarch64__",
+        "VERSION=\"0.1.3\""
+      ],
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/shared/**",
+        "${workspaceFolder}/extern/**",
+        "${workspaceFolder}/extern/codegen/include/**",
+        "C:/Development/Tools/android-ndk-r21d/**"
+      ],
+      "name": "Quest",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "clang-x64"
+    }
+  ],
+  "version": 4
+}
