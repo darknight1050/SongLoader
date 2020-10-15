@@ -57,54 +57,8 @@
 #include "System/Collections/Generic/HashSet_1.hpp"
 #include "System/Collections/Generic/Dictionary_2.hpp"
 
-
-#include "GlobalNamespace/BeatmapLevelsModel.hpp"
-#include "GlobalNamespace/LevelFilteringNavigationController.hpp"
-#include "GlobalNamespace/LevelFilteringNavigationController_TabBarData.hpp"
-#include "GlobalNamespace/IBeatmapLevelPackCollection.hpp"
-#include "GlobalNamespace//BeatmapLevelPackCollectionSO.hpp"
-#include "System/Threading/Tasks/Task.hpp"
-#include "GlobalNamespace/BeatmapLevelPackSO.hpp"
-#include "GlobalNamespace/PreviewBeatmapLevelPackSO.hpp"
-#include "GlobalNamespace/IBeatmapLevelPack.hpp"
-#include "GlobalNamespace/BeatmapLevelsModel.hpp"
-#include "GlobalNamespace/CustomBeatmapLevelCollection.hpp"
-#include "GlobalNamespace/CustomBeatmapLevelPack.hpp"
-#include "GlobalNamespace/IBeatmapLevelCollection.hpp"
-#include "GlobalNamespace/BeatmapLevelCollectionSO.hpp"
-#include "GlobalNamespace/IAnnotatedBeatmapLevelCollection.hpp"
-#include "GlobalNamespace/AlwaysOwnedContentContainerSO.hpp"
-#include "GlobalNamespace/AdditionalContentModel.hpp"
-#include "UnityEngine/ScriptableObject.hpp"
-#include "System/Collections/Generic/HashSet_1.hpp"
-#include "System/Uri.hpp"
-#include "System/UriKind.hpp"
-#include "GlobalNamespace/FileHelpers.hpp"
-#include "UnityEngine/Networking/UnityWebRequest.hpp"
-#include "System/Collections/Generic/Dictionary_2.hpp"
-#include "GlobalNamespace/HMCache_2.hpp"
-#include "GlobalNamespace/StandardLevelDetailView.hpp"
-#include "HMUI/ViewController.hpp"
-#include "HMUI/ViewController_ActivationType.hpp"
-#include "UnityEngine/UI/Toggle.hpp"
-#include "HMUI/ToggleBinder.hpp"
-#include "GlobalNamespace/PlayerData.hpp"
-#include "GlobalNamespace/LevelParamsPanel.hpp"
-#include "TMPro/TextMeshProUGUI.hpp"
-#include "GlobalNamespace/BeatmapLevelDataExtensions.hpp"
-#include "GlobalNamespace/BeatmapCharacteristicSegmentedControlController.hpp"
-#include "GlobalNamespace/BeatmapDifficultySegmentedControlController.hpp"
-#include "UnityEngine/GameObject.hpp"
-#include "UnityEngine/Object.hpp"
-#include "GlobalNamespace/PlayerLevelStatsData.hpp"
-#include "Polyglot/Localization.hpp"
-#include "GlobalNamespace/RankModel.hpp"
-#include "GlobalNamespace/LevelCollectionViewController.hpp"
-#include "GlobalNamespace/StandardLevelDetailViewController.hpp"
-#include "GlobalNamespace/PlayerDataModel.hpp"
-
-
 #include "customlogger.hpp"
+#include "vorbisLib/stb_vorbis.h"
 
 #include <map>
 //TODO: REMOVE TABS
@@ -210,8 +164,8 @@ CustomBeatmapLevelPack* LoadCustomBeatmapLevelPackAsync(Il2CppString* customLeve
     CustomBeatmapLevelCollection* customBeatmapLevelCollection = LoadCustomBeatmapLevelCollectionAsync(customLevelPackPath);
     if (customBeatmapLevelCollection->get_beatmapLevels()->Length() == 0)
         return nullptr;
-    //Sprite* coverImage = Sprite::Create(_defaultPackCoverTexture2D, UnityEngine::Rect(0.0f, 0.0f, (float)_defaultPackCoverTexture2D->get_width(), (float)_defaultPackCoverTexture2D->get_height()), UnityEngine::Vector2(0.5f, 0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
-    return CustomBeatmapLevelPack::New_ctor(il2cpp_utils::createcsstr("custom_levelpack_" + to_utf8(csstrtostr(customLevelPackPath))), packName, packName, nullptr, customBeatmapLevelCollection);
+    Sprite* coverImage = nullptr;//Sprite::Create(_defaultPackCoverTexture2D, UnityEngine::Rect(0.0f, 0.0f, (float)_defaultPackCoverTexture2D->get_width(), (float)_defaultPackCoverTexture2D->get_height()), UnityEngine::Vector2(0.5f, 0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
+    return CustomBeatmapLevelPack::New_ctor(il2cpp_utils::createcsstr("custom_levelpack_" + to_utf8(csstrtostr(customLevelPackPath))), packName, packName, coverImage, customBeatmapLevelCollection);
 }
 
 bool CheckPathExists(Il2CppString* path) {
@@ -263,7 +217,7 @@ BeatmapData* LoadBeatmapDataBeatmapData(Il2CppString* customLevelPath, Il2CppStr
     if (File::Exists(path))
     {
         Il2CppString* json = File::ReadAllText(path);
-        data = BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
+        data = _beatmapDataLoader->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
     }
     getLogger().info("LoadBeatmapDataBeatmapData Stop");
     return data;
@@ -308,6 +262,46 @@ Array<IDifficultyBeatmapSet*>* LoadDifficultyBeatmapSetsAsync(Il2CppString* cust
     getLogger().info("LoadDifficultyBeatmapSetsAsync Stop");
     return difficultyBeatmapSets;
 }
+
+/*AudioClip* GetPreviewAudioClipAsync(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
+    getLogger().info("GetPreviewAudioClipAsync Start %p", customPreviewBeatmapLevel->previewAudioClip);
+    if (!customPreviewBeatmapLevel->previewAudioClip && !System::String::IsNullOrEmpty(customPreviewBeatmapLevel->standardLevelInfoSaveData->songFilename))
+    {
+        Il2CppString* path = Path::Combine(customPreviewBeatmapLevel->customLevelPath, customPreviewBeatmapLevel->standardLevelInfoSaveData->songFilename);
+        std::string filePath = to_utf8(csstrtostr(path));
+        getLogger().info("Sound file: %s", filePath.c_str());
+        short* data;
+		int sampleRate;
+		int channels;
+        int dataLength = stb_vorbis_decode_filename(filePath.c_str(), &channels, &sampleRate, &data);
+        if(dataLength > 0)
+        {
+            getLogger().info("Sound file decoded into data");
+            int trueLength = dataLength * channels;
+
+            Array<float>* samples = Array<float>::NewLength(trueLength);
+            
+            for (int i = 0; i < trueLength; i++)
+            {
+                short sample = data[i];
+                samples->values[i] = (float) ((double) sample) / SHRT_MAX;
+            }
+
+            free(data);
+            getLogger().info("channels: %d", channels);
+            getLogger().info("sampleRate: %d", sampleRate);
+            getLogger().info("amount of samples: %d, true data length: %d", dataLength, trueLength);
+
+            getLogger().info("Sound file decoded into C# float array");
+            customPreviewBeatmapLevel->previewAudioClip = UnityEngine::AudioClip::Create(customPreviewBeatmapLevel->customLevelPath, dataLength, channels, sampleRate, false);
+            getLogger().info("clip created");
+            customPreviewBeatmapLevel->previewAudioClip->SetData(samples, 0);
+            getLogger().info("Data set on clip");
+        }
+    }
+    getLogger().info("GetPreviewAudioClipAsync Stop %p", customPreviewBeatmapLevel->previewAudioClip);
+    return customPreviewBeatmapLevel->previewAudioClip;
+}*/
 
 AudioClip* GetPreviewAudioClipAsync(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
     getLogger().info("GetPreviewAudioClipAsync Start %p", customPreviewBeatmapLevel->previewAudioClip);

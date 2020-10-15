@@ -51,6 +51,7 @@ LOCAL_MODULE := songloader_0_1_0
 LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.c)
+LOCAL_SRC_FILES += $(call rwildcard,extern/vorbisLib,*.c)
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_0_7_1
 LOCAL_SHARED_LIBRARIES += codegen_0_2_6
