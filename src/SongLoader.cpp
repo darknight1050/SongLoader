@@ -438,11 +438,8 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, Task_1<BeatmapLeve
     getLogger().info("BeatmapLevelsModel_GetBeatmapLevelAsync Stop");
     return result;
 }
-void AddRange(List<IBeatmapLevelPack*>* list, Array<GlobalNamespace::IBeatmapLevelPack*>* array){
-    
-}
 
-MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, BeatmapLevelsModel* self) {
+/*MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, BeatmapLevelsModel* self) {
     getLogger().info("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Start");
     List<IBeatmapLevelPack*>* list = List<IBeatmapLevelPack*>::New_ctor();
     list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks()));
@@ -453,7 +450,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, 
     }
     self->allLoadedBeatmapLevelPackCollection = BeatmapLevelPackCollection::New_ctor(reinterpret_cast<Array<GlobalNamespace::IBeatmapLevelPack*>*>(list->ToArray()));
     getLogger().info("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Stop");
-}
+}*/
 
 MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, void, Il2CppObject* self, bool hideIfOneOrNoPacks, bool enableCustomLevels, Il2CppObject* selectedAnnotatedBeatmapLevelCollection) {
     getLogger().info("LevelFilteringNavigationController_Setup");
@@ -511,7 +508,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ClearLoadedBeatmapLevelsCaches", 0));
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_GetCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetCustomLevelPackCollectionAsync", 1));
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetBeatmapLevelAsync", 2));
-    INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
+    //INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
     INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 3));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
     INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_LoadBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "LoadBeatmapLevelAsync", 0));
