@@ -523,7 +523,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
     INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 3));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
-    INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_LoadBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "LoadBeatmapLevelAsync", 0));
+    //INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_LoadBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "LoadBeatmapLevelAsync", 0));
     //INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_ShowContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "ShowContent", 4));
     //INSTALL_HOOK_OFFSETLESS(DifficultyBeatmapSerializedMethods_SerializedName, il2cpp_utils::FindMethodUnsafe("", "DifficultyBeatmapSerializedMethods", "SerializedName", 1));
     getLogger().info("Successfully installed SongLoader!");
