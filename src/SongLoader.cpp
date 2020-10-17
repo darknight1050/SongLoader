@@ -1,6 +1,7 @@
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
+#include "GlobalNamespace/CustomLevelLoader.hpp"
 #include "GlobalNamespace/PlayerData.hpp"
 #include "GlobalNamespace/PlayerDataModel.hpp"
 #include "GlobalNamespace/StandardLevelDetailViewController.hpp"
@@ -81,9 +82,7 @@ using namespace System::Threading;
 using namespace Tasks;
 
 std::string baseProjectPath = "/sdcard";
-Texture2D* _defaultPackCoverTexture2D = nullptr;
-BeatmapCharacteristicCollectionSO* _beatmapCharacteristicCollection = nullptr;
-EnvironmentsListSO* _environmentSceneInfoCollection = nullptr;
+CustomLevelLoader* customLevelLoader = nullptr;
 CachedMediaAsyncLoader* _cachedMediaAsyncLoader = nullptr;
 AlwaysOwnedContentContainerSO* _alwaysOwnedContentContainer = nullptr;
 
@@ -99,9 +98,10 @@ StandardLevelInfoSaveData* LoadCustomLevelInfoSaveData(Il2CppString* customLevel
 
 EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections)
 {
-    EnvironmentInfoSO* environmentInfoSO = _environmentSceneInfoCollection->GetEnviromentInfoBySerializedName(environmentName);
-    //if (environmentInfoSO == nullptr)
-    //    environmentInfoSO = (allDirections ? _defaultAllDirectionsEnvironmentInfo : _defaultEnvironmentInfo);
+    EnvironmentInfoSO* environmentInfoSO = customLevelLoader->enviromentSceneInfoColection->GetEnviromentInfoBySerializedName(environmentName);
+    if (!environmentInfoSO)
+        environmentInfoSO = (allDirections ? customLevelLoader->defaultAllDirectionsEnvironmentInfo : customLevelLoader->defaultEnviromentInfo);
+    getLogger().info("LoadEnvironmentInfo: %p", environmentInfoSO);
     return environmentInfoSO;
 }
 
@@ -134,15 +134,14 @@ CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* cust
 
     EnvironmentInfoSO* environmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->environmentName, false);
     EnvironmentInfoSO* allDirectionsEnvironmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->allDirectionsEnvironmentName, true);
-    List_1<PreviewDifficultyBeatmapSet*>* list = List<PreviewDifficultyBeatmapSet*>::New_ctor();
+    List_1<PreviewDifficultyBeatmapSet*>* list = List_1<PreviewDifficultyBeatmapSet*>::New_ctor();
     Array<StandardLevelInfoSaveData::DifficultyBeatmapSet*>* difficultyBeatmapSets = standardLevelInfoSaveData->difficultyBeatmapSets;
     for (int i = 0;i<difficultyBeatmapSets->Length();i++)
     {
         StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet = difficultyBeatmapSets->values[i];
-        BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = _beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
+        BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = customLevelLoader->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
         if (beatmapCharacteristicBySerializedName)
         {
-                
             Array<BeatmapDifficulty>* array = Array<BeatmapDifficulty>::NewLength(difficultyBeatmapSet->difficultyBeatmaps->Length());
             for (int j = 0; j < difficultyBeatmapSet->difficultyBeatmaps->Length(); j++)
             {
@@ -153,7 +152,7 @@ CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* cust
             list->Add(PreviewDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName, array));
         }
     }
-    return CustomPreviewBeatmapLevel::New_ctor(_defaultPackCoverTexture2D, standardLevelInfoSaveData, customLevelPath, _cachedMediaAsyncLoader, _cachedMediaAsyncLoader, levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    return CustomPreviewBeatmapLevel::New_ctor(customLevelLoader->defaultPackCoverTexture2D, standardLevelInfoSaveData, customLevelPath, _cachedMediaAsyncLoader, _cachedMediaAsyncLoader, levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
 }
 
 Array<CustomPreviewBeatmapLevel*>* LoadCustomPreviewBeatmapLevelsAsync(Il2CppString* customLevelPackPath) {
@@ -251,7 +250,7 @@ CustomDifficultyBeatmap* LoadDifficultyBeatmapAsync(Il2CppString* customLevelPat
 IDifficultyBeatmapSet* LoadDifficultyBeatmapSetAsync(Il2CppString* customLevelPath, CustomBeatmapLevel* customBeatmapLevel, StandardLevelInfoSaveData* standardLevelInfoSaveData, StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSetSaveData)
 {
     getLogger().info("LoadDifficultyBeatmapSetAsync Start");
-    BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = _beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSetSaveData->beatmapCharacteristicName);
+    BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = customLevelLoader->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSetSaveData->beatmapCharacteristicName);
     
     Array<CustomDifficultyBeatmap*>* difficultyBeatmaps = Array<CustomDifficultyBeatmap*>::NewLength(difficultyBeatmapSetSaveData->difficultyBeatmaps->Length());
     CustomDifficultyBeatmapSet* difficultyBeatmapSet = CustomDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName);
@@ -323,7 +322,7 @@ AudioClip* GetPreviewAudioClipAsync(CustomPreviewBeatmapLevel* customPreviewBeat
     if (!customPreviewBeatmapLevel->previewAudioClip && !System::String::IsNullOrEmpty(customPreviewBeatmapLevel->standardLevelInfoSaveData->songFilename))
     {
         Il2CppString* path = Path::Combine(customPreviewBeatmapLevel->customLevelPath, customPreviewBeatmapLevel->standardLevelInfoSaveData->songFilename);
-        AudioType audioType = (to_utf8(csstrtostr(((System::String*)Path::GetExtension(path))->ToLower())) == ".wav") ? AudioType::WAV : AudioType::OGGVORBIS;
+        AudioType audioType = (to_utf8(csstrtostr(Path::GetExtension(path)->ToLower())) == ".wav") ? AudioType::WAV : AudioType::OGGVORBIS;
         UnityWebRequest* www = UnityWebRequestMultimedia::GetAudioClip(FileHelpers::GetEscapedURLForFilePath(path), audioType);
         ((DownloadHandlerAudioClip*)www->m_DownloadHandler)->set_streamAudio(true);
         UnityWebRequestAsyncOperation* request = www->SendWebRequest();
@@ -344,7 +343,7 @@ BeatmapLevelData* LoadBeatmapLevelDataAsync(Il2CppString* customLevelPath, Custo
 {
     getLogger().info("LoadBeatmapLevelDataAsync Start");
     Array<IDifficultyBeatmapSet*>* difficultyBeatmapSets = LoadDifficultyBeatmapSetsAsync(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
-    AudioClip* audioClip = GetPreviewAudioClipAsync(((CustomPreviewBeatmapLevel*)customBeatmapLevel));
+    AudioClip* audioClip = GetPreviewAudioClipAsync(reinterpret_cast<CustomPreviewBeatmapLevel*>(customBeatmapLevel));
     if (!audioClip)
         return nullptr;
     getLogger().info("LoadBeatmapLevelDataAsync Stop");
@@ -378,12 +377,10 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches, void, Be
 MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetCustomLevelPackCollectionAsync, Task_1<IBeatmapLevelPackCollection*>*, BeatmapLevelsModel* self, CancellationToken cancellationToken) {
     getLogger().info("BeatmapLevelsModel_GetCustomLevelPackCollectionAsync Start");
     //Array<IBeatmapLevelPack*>* beatmapLevelPacks = Resources::FindObjectsOfTypeAll<BeatmapLevelPackCollectionSO*>()->values[0]->get_beatmapLevelPacks();
-    _defaultPackCoverTexture2D = Texture2D::get_whiteTexture();
-    _beatmapCharacteristicCollection = Resources::FindObjectsOfTypeAll<BeatmapCharacteristicCollectionSO*>()->values[0];
-    _environmentSceneInfoCollection = Resources::FindObjectsOfTypeAll<EnvironmentsListSO*>()->values[0];
+    customLevelLoader = Resources::FindObjectsOfTypeAll<CustomLevelLoader*>()->values[0];
     _cachedMediaAsyncLoader = Resources::FindObjectsOfTypeAll<CachedMediaAsyncLoader*>()->values[0];
     _alwaysOwnedContentContainer = Resources::FindObjectsOfTypeAll<AlwaysOwnedContentContainerSO*>()->values[0];
-    
+
     std::vector<CustomPackFolderInfo> folders = GetSubFoldersInfosAsync("BeatSaberSongs");
     folders.push_back(CustomPackFolderInfo{il2cpp_utils::createcsstr("BeatSaberSongs"), il2cpp_utils::createcsstr("Custom Levels")});
     Array<CustomBeatmapLevelPack*>* beatmapLevelPacks = LoadCustomPreviewBeatmapLevelPacksAsync(folders);
@@ -422,13 +419,15 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, Task_1<BeatmapLeve
         if(previewBeatmapLevel) {
             if (il2cpp_functions::class_is_subclass_of(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class((Il2CppObject*)previewBeatmapLevel), true))
             {
-                CustomBeatmapLevel* customBeatmapLevel = LoadCustomBeatmapLevelAsync((CustomPreviewBeatmapLevel*)previewBeatmapLevel, cancellationToken);
+                CustomBeatmapLevel* customBeatmapLevel = LoadCustomBeatmapLevelAsync(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel), cancellationToken);
                 getLogger().info("BeatmapLevelsModel_GetBeatmapLevelAsync");
-                if (!customBeatmapLevel || !customBeatmapLevel->get_beatmapLevelData())
-                    return Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor(BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr));
-                getLogger().info("BeatmapLevelsModel_GetBeatmapLevelAsync get_levelID %s", to_utf8(csstrtostr(((CustomPreviewBeatmapLevel*)customBeatmapLevel)->get_levelID())).c_str());
-                self->loadedBeatmapLevels->PutToCache(levelID, (IBeatmapLevel*)customBeatmapLevel);
-                return Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor(BeatmapLevelsModel::GetBeatmapLevelResult(false, (IBeatmapLevel*)customBeatmapLevel));
+                if (!customBeatmapLevel || !customBeatmapLevel->get_beatmapLevelData()){
+                    getLogger().info("BeatmapLevelsModel_GetBeatmapLevelAsync Stop");
+                
+                }
+                self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                getLogger().info("BeatmapLevelsModel_GetBeatmapLevelAsync Stop");
+                return Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor(BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel)));
             }
         }
     }
@@ -457,24 +456,28 @@ MAKE_HOOK_OFFSETLESS(StandardLevelDetailViewController_LoadBeatmapLevelAsync, vo
     }
     self->loadingLevelCancellationTokenSource = new CancellationTokenSource();
     CancellationToken cancellationToken = self->loadingLevelCancellationTokenSource->get_Token();
-    getLogger().info("get_levelID 1");
     Il2CppString* levelID = self->previewBeatmapLevel->get_levelID();
     BeatmapLevelsModel::GetBeatmapLevelResult getBeatmapLevelResult = self->beatmapLevelsModel->GetBeatmapLevelAsync(levelID, cancellationToken)->get_Result();
-    getLogger().info("getBeatmapLevelResult %d %p", getBeatmapLevelResult.isError, getBeatmapLevelResult.beatmapLevel);
+    getLogger().info("StandardLevelDetailViewController_LoadBeatmapLevelAsync getBeatmapLevelResult %d %p", getBeatmapLevelResult.isError, getBeatmapLevelResult.beatmapLevel);
     if (getBeatmapLevelResult.isError || !getBeatmapLevelResult.beatmapLevel)
     {
         self->ShowContent(StandardLevelDetailViewController::ContentType::Error, il2cpp_utils::createcsstr("ERROR"), 0.0f, il2cpp_utils::createcsstr(""));
     }
     else
     {
-        if (((CustomPreviewBeatmapLevel*)getBeatmapLevelResult.beatmapLevel)->get_levelID() == self->previewBeatmapLevel->get_levelID())
-        {
+        if(reinterpret_cast<CustomPreviewBeatmapLevel*>(getBeatmapLevelResult.beatmapLevel)->get_levelID() == levelID)
             self->beatmapLevel = getBeatmapLevelResult.beatmapLevel;
-        }
+        getLogger().info("StandardLevelDetailViewController_LoadBeatmapLevelAsync get_songName %s", to_utf8(csstrtostr(reinterpret_cast<CustomPreviewBeatmapLevel*>(getBeatmapLevelResult.beatmapLevel)->get_songName())).c_str());
         self->standardLevelDetailView->SetContent(self->beatmapLevel, self->playerDataModel->playerData->lastSelectedBeatmapDifficulty, self->playerDataModel->playerData->lastSelectedBeatmapCharacteristic, self->playerDataModel->playerData, self->showPlayerStats);
         self->ShowContent(StandardLevelDetailViewController::ContentType::OwnedAndReady, il2cpp_utils::createcsstr(""), 0.0f, il2cpp_utils::createcsstr(""));
     }
     getLogger().info("StandardLevelDetailViewController_LoadBeatmapLevelAsync Stop");
+}
+
+MAKE_HOOK_OFFSETLESS(StandardLevelDetailViewController_ShowContent, void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType type, Il2CppString* s1, float f, Il2CppString* s2)
+{
+    getLogger().info("StandardLevelDetailViewController_ShowContent");
+    //StandardLevelDetailViewController_ShowContent(self, type, s1, f, s2);
 }
 
 extern "C" void setup(ModInfo& info) {
@@ -491,5 +494,6 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 3));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
     INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_LoadBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "LoadBeatmapLevelAsync", 0));
+    INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_ShowContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "ShowContent", 4));
     getLogger().info("Successfully installed SongLoader!");
 }
