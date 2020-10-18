@@ -60,9 +60,10 @@
 #include "System/IO/DirectoryInfo.hpp"
 #include "System/Collections/Generic/HashSet_1.hpp"
 #include "System/Collections/Generic/Dictionary_2.hpp"
+#include "System/Security/Cryptography/SHA1.hpp"
+#include "System/BitConverter.hpp"
 
 #include "customlogger.hpp"
-#include "vorbisLib/stb_vorbis.h"
 #include <unistd.h>
 
 static ModInfo modInfo;
@@ -84,6 +85,53 @@ std::string baseProjectPath = "/sdcard";
 CustomLevelLoader* customLevelLoader = nullptr;
 CachedMediaAsyncLoader* _cachedMediaAsyncLoader = nullptr;
 AlwaysOwnedContentContainerSO* _alwaysOwnedContentContainer = nullptr;
+
+std::string GetCustomLevelHash(GlobalNamespace::StandardLevelInfoSaveData* level, std::string customLevelPath)
+{
+    getLogger().info("GetCustomLevelHash Start");
+    std::string actualPath = customLevelPath + "/Info.dat";
+    if (!fileexists(actualPath)) actualPath = customLevelPath + "/info.dat";
+        
+    std::string hash = "";
+
+    getLogger().info("GetCustomLevelHash Reading all bytes from %s", actualPath.c_str());
+
+    std::vector<char> bytesAsChar = readbytes(actualPath);
+    getLogger().info("GetCustomLevelHash Starting reading beatmaps");
+    for (int i = 0; i < level->get_difficultyBeatmapSets()->Length(); i++)
+    {
+        for (int j = 0; j < level->get_difficultyBeatmapSets()->values[i]->get_difficultyBeatmaps()->Length(); j++)
+        {
+            std::string diffFile = to_utf8(csstrtostr(level->get_difficultyBeatmapSets()->values[i]->get_difficultyBeatmaps()->values[j]->get_beatmapFilename()));
+            if (!fileexists(customLevelPath + "/" + diffFile))
+            {
+                getLogger().error("GetCustomLevelHash File %s did not exist", (customLevelPath + "/" + diffFile).c_str());
+                continue;
+            } 
+
+            std::vector<char> currentDiff = readbytes(customLevelPath + "/" + diffFile);
+
+            for (auto c : currentDiff)
+            {
+                bytesAsChar.push_back(c);
+            }
+        }
+    }
+    std::vector<uint8_t> bytesVector;
+    for (auto c : bytesAsChar)
+    {
+        bytesVector.push_back(c);
+    }
+    Array<uint8_t>* bytes = il2cpp_utils::vectorToArray(bytesVector);
+    auto sha1_algorithm = System::Security::Cryptography::SHA1::Create();
+    getLogger().info("GetCustomLevelHash computing Hash, found %d bytes", bytes->Length());
+    hash = to_utf8(csstrtostr(System::BitConverter::ToString(sha1_algorithm->ComputeHash(bytes))));
+
+    hash.erase(std::remove(hash.begin(), hash.end(), '-'), hash.end());
+        
+    getLogger().info("GetCustomLevelHash Stop %s", hash.c_str());
+    return hash;
+}
 
 StandardLevelInfoSaveData* LoadCustomLevelInfoSaveData(Il2CppString* customLevelPath)
 {
@@ -107,7 +155,7 @@ EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDi
 CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* customLevelPath, StandardLevelInfoSaveData* standardLevelInfoSaveData)
 {
     getLogger().info("LoadCustomPreviewBeatmapLevelAsync StandardLevelInfoSaveData: ");
-    Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + to_utf8(csstrtostr(DirectoryInfo::New_ctor(customLevelPath)->get_Name())));
+    Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + GetCustomLevelHash(standardLevelInfoSaveData, to_utf8(csstrtostr(customLevelPath))));
     _alwaysOwnedContentContainer->alwaysOwnedBeatmapLevelIds->Add(levelID);
     Il2CppString* songName = standardLevelInfoSaveData->songName;
     Il2CppString* songSubName = standardLevelInfoSaveData->songSubName;
