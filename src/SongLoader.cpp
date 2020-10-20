@@ -65,6 +65,7 @@
 
 #include "customlogger.hpp"
 #include <unistd.h>
+#include <chrono>
 
 static ModInfo modInfo;
 
@@ -110,20 +111,14 @@ std::string GetCustomLevelHash(GlobalNamespace::StandardLevelInfoSaveData* level
             } 
 
             std::vector<char> currentDiff = readbytes(customLevelPath + "/" + diffFile);
-
-            for (auto c : currentDiff)
-            {
-                bytesAsChar.push_back(c);
-            }
+            bytesAsChar.insert(bytesAsChar.end(), currentDiff.begin(), currentDiff.end());
         }
     }
-    std::vector<uint8_t> bytesVector;
-    for (auto c : bytesAsChar)
-    {
-        bytesVector.push_back(c);
+    Array<uint8_t>* bytes = Array<uint8_t>::NewLength(bytesAsChar.size());
+    for(int i = 0;i<bytes->Length();i++){
+        bytes->values[i] = bytesAsChar[i];
     }
-    Array<uint8_t>* bytes = il2cpp_utils::vectorToArray(bytesVector);
-    auto sha1_algorithm = System::Security::Cryptography::SHA1::Create();
+    System::Security::Cryptography::SHA1* sha1_algorithm = System::Security::Cryptography::SHA1::Create();
     getLogger().info("GetCustomLevelHash computing Hash, found %d bytes", bytes->Length());
     hash = to_utf8(csstrtostr(System::BitConverter::ToString(sha1_algorithm->ComputeHash(bytes))));
 
@@ -390,8 +385,11 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetCustomLevelPackCollectionAsync, Task_
 
     std::vector<CustomPackFolderInfo> folders = GetSubFoldersInfosAsync("BeatSaberSongs");
     folders.push_back(CustomPackFolderInfo{il2cpp_utils::createcsstr("BeatSaberSongs"), il2cpp_utils::createcsstr("Custom Levels")});
+    auto start = std::chrono::high_resolution_clock::now(); 
     Array<CustomBeatmapLevelPack*>* beatmapLevelPacks = LoadCustomPreviewBeatmapLevelPacksAsync(folders);
-    auto iBeatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(beatmapLevelPacks->Length());
+    std::chrono::microseconds duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start); 
+    getLogger().info("BeatmapLevelsModel_GetCustomLevelPackCollectionAsync Loading time %d", duration);
+    Array<IBeatmapLevelPack*>* iBeatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(beatmapLevelPacks->Length());
     for(int i = 0;i<beatmapLevelPacks->Length();i++) {
         iBeatmapLevelPacks->values[i] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPacks->values[i]);
     }
