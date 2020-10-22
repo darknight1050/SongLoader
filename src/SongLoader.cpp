@@ -52,7 +52,6 @@
 #include "UnityEngine/Resources.hpp"
 #include "UnityEngine/Sprite.hpp"
 #include "UnityEngine/SpriteMeshType.hpp"
-#include "UnityEngine/Texture2D.hpp"
 #include "System/String.hpp"
 #include "System/Threading/CancellationToken.hpp"
 #include "System/Threading/CancellationTokenSource.hpp"
@@ -418,7 +417,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, Ta
     customLevelLoader = Resources::FindObjectsOfTypeAll<CustomLevelLoader*>()->values[0];
     _cachedMediaAsyncLoader = Resources::FindObjectsOfTypeAll<CachedMediaAsyncLoader*>()->values[0];
     _alwaysOwnedContentContainer = Resources::FindObjectsOfTypeAll<AlwaysOwnedContentContainerSO*>()->values[0];
-    SetupCustomCharacteristics();
+    //SetupCustomCharacteristics();
 
     std::vector<CustomPackFolderInfo> folders = GetSubFoldersInfosAsync(CUSTOMSONGS_FOLDER);
     folders.push_back(CustomPackFolderInfo{il2cpp_utils::createcsstr(CUSTOMSONGS_FOLDER), il2cpp_utils::createcsstr("Custom Levels")});
@@ -472,14 +471,8 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, 
 
 MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, void, LevelFilteringNavigationController* self, SongPackMask* songPackMask, IBeatmapLevelPack* levelPackToBeSelectedAfterPresent, SelectLevelCategoryViewController::LevelCategory startLevelCategory, bool hidePacksIfOneOrNone, bool enableCustomLevels) {
     LOG_DEBUG("LevelFilteringNavigationController_Setup");
-    LevelFilteringNavigationController_Setup(self, songPackMask, levelPackToBeSelectedAfterPresent, startLevelCategory, hidePacksIfOneOrNone, true);
-}
-
-MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_UpdateSecondChildControllerContent, void, LevelFilteringNavigationController* self, SelectLevelCategoryViewController::LevelCategory levelCategory)
-{
-    LOG_DEBUG("LevelFilteringNavigationController_UpdateSecondChildControllerContent");
-    LevelFilteringNavigationController_UpdateSecondChildControllerContent(self, levelCategory);
-    self->UpdateCustomSongs();
+    LevelFilteringNavigationController_Setup(self, songPackMask, levelPackToBeSelectedAfterPresent, startLevelCategory, hidePacksIfOneOrNone, enableCustomLevels);
+    self->enableCustomLevels = true;
 }
 
 MAKE_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, Il2CppString*, Il2CppString* filePath)
@@ -501,7 +494,6 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetBeatmapLevelAsync", 2));
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
     INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 5));
-    INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_UpdateSecondChildControllerContent, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "UpdateSecondChildControllerContent", 1));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
     LOG_INFO("Successfully installed SongLoader!");
 }
