@@ -188,7 +188,7 @@ CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* cust
 {
     if(!standardLevelInfoSaveData) return nullptr;
     LOG_DEBUG("LoadCustomPreviewBeatmapLevelAsync StandardLevelInfoSaveData: ");
-    Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + GetCustomLevelHash(standardLevelInfoSaveData, to_utf8(csstrtostr(customLevelPath))));
+    Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + GetCustomLevelHash(standardLevelInfoSaveData, to_utf8(csstrtostr(customLevelPath))))->ToLower();
     _alwaysOwnedContentContainer->alwaysOwnedBeatmapLevelIds->Add(levelID);
     Il2CppString* songName = standardLevelInfoSaveData->songName;
     Il2CppString* songSubName = standardLevelInfoSaveData->songSubName;
