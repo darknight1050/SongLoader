@@ -183,6 +183,7 @@ EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDi
 
 CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* customLevelPath, StandardLevelInfoSaveData* standardLevelInfoSaveData)
 {
+    if(!standardLevelInfoSaveData) return nullptr;
     LOG_DEBUG("LoadCustomPreviewBeatmapLevelAsync StandardLevelInfoSaveData: ");
     Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + GetCustomLevelHash(standardLevelInfoSaveData, to_utf8(csstrtostr(customLevelPath))));
     _alwaysOwnedContentContainer->alwaysOwnedBeatmapLevelIds->Add(levelID);
