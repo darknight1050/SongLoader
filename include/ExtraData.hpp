@@ -46,7 +46,7 @@ struct MapColorSet
 
 struct DifficultyData
 {
-	std::string _beatmapCharacteristicName;
+    std::string _beatmapCharacteristicName;
 	GlobalNamespace::BeatmapDifficulty _difficulty;
     std::string _difficultyLabel;
     //RequirementData additionalDifficultyData;
