@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "CodegenIncludes.hpp"
+#include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
 #include "UnityEngine/Sprite.hpp"
 
 namespace CustomCharacteristics {
