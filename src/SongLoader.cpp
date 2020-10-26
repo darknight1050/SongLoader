@@ -1,81 +1,16 @@
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/shared/config/config-utils.hpp"
+#include "beatsaber-hook/shared/config/rapidjson-utils.hpp"
 
-#include "GlobalNamespace/LevelFilteringNavigationController.hpp"
-#include "GlobalNamespace/SongPackMask.hpp"
-#include "GlobalNamespace/SelectLevelCategoryViewController.hpp"
-#include "GlobalNamespace/CustomLevelLoader.hpp"
-#include "GlobalNamespace/PlayerData.hpp"
-#include "GlobalNamespace/PlayerDataModel.hpp"
-#include "GlobalNamespace/StandardLevelDetailViewController.hpp"
-#include "GlobalNamespace/StandardLevelDetailView.hpp"
-#include "GlobalNamespace/FileHelpers.hpp"
-#include "GlobalNamespace/AlwaysOwnedContentContainerSO.hpp"
-#include "GlobalNamespace/BeatmapLevelsModel.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/PreviewDifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/BeatmapData.hpp"
-#include "GlobalNamespace/BeatmapLevelData.hpp"
-#include "GlobalNamespace/IDifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/BeatmapDifficulty.hpp"
-#include "GlobalNamespace/BeatmapDifficultySerializedMethods.hpp"
-#include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
-#include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
-#include "GlobalNamespace/CustomBeatmapLevel.hpp"
-#include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
-#include "GlobalNamespace/CustomDifficultyBeatmap.hpp"
-#include "GlobalNamespace/CustomDifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/CustomBeatmapLevelPack.hpp"
-#include "GlobalNamespace/CustomBeatmapLevelCollection.hpp"
-#include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
-#include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
-#include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
-#include "GlobalNamespace/BeatmapDataLoader.hpp"
-#include "GlobalNamespace/EnvironmentInfoSO.hpp"
-#include "GlobalNamespace/EnvironmentsListSO.hpp"
-#include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
-#include "GlobalNamespace/IAudioClipAsyncLoader.hpp"
-#include "GlobalNamespace/ISpriteAsyncLoader.hpp"
-#include "GlobalNamespace/HMCache_2.hpp"
-#include "UnityEngine/Networking/UnityWebRequestAsyncOperation.hpp"
-#include "UnityEngine/Networking/UnityWebRequest.hpp"
-#include "UnityEngine/Networking/UnityWebRequestMultimedia.hpp"
-#include "UnityEngine/Networking/DownloadHandlerAudioClip.hpp"
-#include "UnityEngine/AudioType.hpp"
-#include "UnityEngine/AudioClip.hpp"
-#include "UnityEngine/Vector2.hpp"
-#include "UnityEngine/Vector3.hpp"
-#include "UnityEngine/Vector4.hpp"
-#include "UnityEngine/Rect.hpp"
-#include "UnityEngine/Resources.hpp"
-#include "UnityEngine/Sprite.hpp"
-#include "UnityEngine/SpriteMeshType.hpp"
-#include "System/String.hpp"
-#include "System/Threading/CancellationToken.hpp"
-#include "System/Threading/CancellationTokenSource.hpp"
-#include "System/Threading/Tasks/Task.hpp"
-#include "System/Threading/Tasks/Task_1.hpp"
-#include "System/Threading/Tasks/TaskStatus.hpp"
-#include "System/IO/Path.hpp"
-#include "System/IO/File.hpp"
-#include "System/IO/Directory.hpp"
-#include "System/IO/DirectoryInfo.hpp"
-#include "System/Collections/Generic/HashSet_1.hpp"
-#include "System/Collections/Generic/Dictionary_2.hpp"
-#include "System/Security/Cryptography/SHA1.hpp"
-#include "System/BitConverter.hpp"
-#include "System/Convert.hpp"
-#include "System/Collections/Generic/List_1.hpp"
-#include "System/Linq/Enumerable.hpp"
-#include "UnityEngine/Texture2D.hpp"
-#include "UnityEngine/TextureFormat.hpp"
-#include "UnityEngine/ImageConversion.hpp"
-
+#include "CodegenIncludes.hpp"
+#include "ArrayUtil.hpp"
 #include "customlogger.hpp"
 #include "CustomCharacteristics.hpp"
+#include "ExtraData.hpp"
 #include "Sprites.hpp"
+
+#include <map>
 
 #include <unistd.h>
 #include <chrono>
@@ -84,11 +19,14 @@
 #define CUSTOMSONGS_FOLDER "BeatSaberSongs"
 
 static ModInfo modInfo;
+rapidjson::Document d;
 
 const Logger& getLogger() {
     static const Logger logger(modInfo, LoggerOptions(false, false));
     return logger;
 }
+//Hash,ExtraSongData
+std::map<std::string, ExtraSongData> DataCache;
 
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -98,6 +36,7 @@ using namespace System::Collections;
 using namespace System::IO;
 using namespace System::Threading;
 using namespace Tasks;
+
 
 Il2CppString* baseProjectPath = nullptr;
 CustomLevelLoader* customLevelLoader = nullptr;
@@ -169,9 +108,15 @@ StandardLevelInfoSaveData* LoadCustomLevelInfoSaveData(Il2CppString* customLevel
 {
     Il2CppString* path = Path::Combine(customLevelPath, il2cpp_utils::createcsstr("Info.dat"));
     if (!File::Exists(path))
+    {
         path = Path::Combine(customLevelPath, il2cpp_utils::createcsstr("info.dat"));
+    }
     if (File::Exists(path))
-        return StandardLevelInfoSaveData::DeserializeFromJSONString(File::ReadAllText(path));
+    {
+        Il2CppString* str = File::ReadAllText(path);
+        return StandardLevelInfoSaveData::DeserializeFromJSONString(str);        
+    }
+
     return nullptr;
 }
 
@@ -187,6 +132,27 @@ EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDi
 CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevelAsync(Il2CppString* customLevelPath, StandardLevelInfoSaveData* standardLevelInfoSaveData)
 {
     if(!standardLevelInfoSaveData) return nullptr;
+    Il2CppString* path = Path::Combine(customLevelPath, il2cpp_utils::createcsstr("Info.dat"));
+    Il2CppString* str = File::ReadAllText(path);
+    d.Parse(to_utf8(csstrtostr(str)).c_str());
+    auto arr = d["_difficultyBeatmapSets"].GetArray();
+    for(int i = 0; i > arr.Size(); i++)
+    {
+        rapidjson::Value obj = arr[i].GetObject();
+        if(obj.HasMember("_customData")) 
+        {
+            if(obj["_customData"].GetObject().HasMember("_requirements"))
+            {  
+                auto arr2 = obj["_customData"]["_requirements"].GetArray();
+                for (int i = 0; i > arr2.Size(); i++)
+                {
+                    rapidjson::Value Requirement = arr2[i].GetObject();
+                    std::string req = Requirement.GetString();
+                    if(req == "Noodle Extensions") return nullptr;
+                }
+            }
+        }
+    }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevelAsync StandardLevelInfoSaveData: ");
     Il2CppString* levelID = il2cpp_utils::createcsstr("custom_level_" + GetCustomLevelHash(standardLevelInfoSaveData, to_utf8(csstrtostr(customLevelPath))))->ToLower();
     _alwaysOwnedContentContainer->alwaysOwnedBeatmapLevelIds->Add(levelID);
@@ -495,6 +461,164 @@ MAKE_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicB
     return result;
 }
 
+
+
+void AddSong(std::string levelID, std::string path)
+{
+    if (!DataCache.contains(levelID))
+        DataCache[levelID] = ExtraSongData(levelID, path);
+}
+
+ExtraSongData RetrieveExtraSongData(std::string levelID, std::string loadIfNullPath)
+{
+    if(DataCache.contains(levelID))
+        return DataCache.at(levelID);
+
+    AddSong(levelID, loadIfNullPath);
+
+    if(DataCache.contains(levelID))
+        return DataCache.at(levelID);
+
+    return ExtraSongData();
+}
+
+
+DifficultyData RetrieveDifficultyData(CustomDifficultyBeatmap* beatmap)
+{
+    ExtraSongData songData;
+    CustomBeatmapLevel* level = reinterpret_cast<CustomBeatmapLevel*>(beatmap->get_level());
+    if (level)
+    {
+        songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
+    }
+    CustomDifficultyBeatmapSet* ParentSet = reinterpret_cast<CustomDifficultyBeatmapSet*>(beatmap->parentDifficultyBeatmapSet);
+    std::vector<DifficultyData>::iterator it = std::find_if (songData._difficulties.begin(), songData._difficulties.end(), [ParentSet, beatmap](DifficultyData x) { return x._difficulty == beatmap->get_difficulty() && (x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_characteristicNameLocalizationKey())) || x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_serializedName())));});
+    return *it;
+}
+
+struct OverrideLabels
+{
+    std::string EasyOverride = "";
+    std::string NormalOverride = "";
+    std::string HardOverride = "";
+    std::string ExpertOverride = "";
+    std::string ExpertPlusOverride = "";
+    OverrideLabels()
+    {
+
+    };
+};
+
+static std::map<std::string, OverrideLabels> levelLabels;
+
+static OverrideLabels currentLabels = OverrideLabels();
+
+static void SetCurrentLabels(OverrideLabels labels)
+{
+    currentLabels.EasyOverride = labels.EasyOverride;
+    currentLabels.NormalOverride = labels.NormalOverride;
+    currentLabels.HardOverride = labels.HardOverride;
+    currentLabels.ExpertOverride = labels.ExpertOverride;
+    currentLabels.ExpertPlusOverride = labels.ExpertPlusOverride;
+}
+
+static void clearOverrideLabels()
+{
+    currentLabels.EasyOverride = "";
+    currentLabels.NormalOverride = "";
+    currentLabels.HardOverride = "";
+    currentLabels.ExpertOverride = "";
+    currentLabels.ExpertPlusOverride = "";
+}
+
+MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevelDetailView* self)
+{
+    StandardLevelDetailView_RefreshContent(self);
+    CustomPreviewBeatmapLevel* level = reinterpret_cast<CustomPreviewBeatmapLevel*>(reinterpret_cast<CustomDifficultyBeatmap*>(self->get_selectedDifficultyBeatmap())->get_level()); 
+
+    
+    if(level)
+    {
+        ExtraSongData songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
+
+        CustomDifficultyBeatmap* selectedDiff = reinterpret_cast<CustomDifficultyBeatmap*>(self->get_selectedDifficultyBeatmap());
+
+        DifficultyData diffData = RetrieveDifficultyData(selectedDiff);
+
+        levelLabels.clear();
+        std::string currentCharacteristic = "";
+        for(DifficultyData diffLevel : songData._difficulties)
+        {
+            auto difficulty = diffLevel._difficulty;
+            std::string characteristic = diffLevel._beatmapCharacteristicName;
+            CustomDifficultyBeatmapSet* ParentSet = reinterpret_cast<CustomDifficultyBeatmapSet*>(selectedDiff->parentDifficultyBeatmapSet);
+            if(characteristic == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->serializedName)))
+                currentCharacteristic = characteristic;
+            if (!levelLabels.contains(characteristic))
+                levelLabels.emplace(characteristic, OverrideLabels());
+                OverrideLabels charLabels = levelLabels[characteristic];
+            switch (difficulty)
+            {
+                case BeatmapDifficulty::Easy:
+                    charLabels.EasyOverride = diffLevel._difficultyLabel;
+                    break;
+                case BeatmapDifficulty::Normal:
+                    charLabels.NormalOverride = diffLevel._difficultyLabel;
+                    break;
+                case BeatmapDifficulty::Hard:
+                    charLabels.HardOverride = diffLevel._difficultyLabel;
+                    break;
+                case BeatmapDifficulty::Expert:
+                    charLabels.ExpertOverride = diffLevel._difficultyLabel;
+                    break;
+                case BeatmapDifficulty::ExpertPlus:
+                    charLabels.ExpertPlusOverride = diffLevel._difficultyLabel;
+                    break;
+            }
+            SetCurrentLabels(levelLabels[currentCharacteristic]);
+        }
+    }
+    
+}
+
+MAKE_HOOK_OFFSETLESS(StandardLevelDetailViewController_UpdateActionButtonIntractability, void, StandardLevelDetailViewController* self)
+{
+
+}
+
+MAKE_HOOK_OFFSETLESS(BeatmapDifficultyMethods_Name, Il2CppString*, BeatmapDifficulty difficulty)
+{
+    using namespace il2cpp_utils;
+    Il2CppString* Result = BeatmapDifficultyMethods_Name(difficulty);
+
+    if (difficulty == BeatmapDifficulty::Easy)
+    {
+        if (currentLabels.EasyOverride != "")
+            Result = createcsstr(currentLabels.EasyOverride);
+    }
+    if (difficulty == BeatmapDifficulty::Normal)
+    {
+        if (currentLabels.NormalOverride != "")
+            Result = createcsstr(currentLabels.NormalOverride);
+    }
+    if (difficulty == BeatmapDifficulty::Hard)
+    {
+        if (currentLabels.HardOverride != "")
+            Result = createcsstr(currentLabels.HardOverride);
+    }
+    if (difficulty == BeatmapDifficulty::Expert)
+    {
+        if (currentLabels.ExpertOverride != "")
+            Result = createcsstr(currentLabels.ExpertOverride);
+    }
+    if (difficulty == BeatmapDifficulty::ExpertPlus)
+    {
+        if (currentLabels.ExpertPlusOverride != "")
+            Result = createcsstr(currentLabels.ExpertPlusOverride);
+    }
+    return Result;
+}
+
 extern "C" void setup(ModInfo& info) {
     modInfo.id = "SongLoader";
     modInfo.version = VERSION;
@@ -511,6 +635,9 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 5));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
     INSTALL_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, il2cpp_utils::FindMethodUnsafe("", "BeatmapCharacteristicCollectionSO", "GetBeatmapCharacteristicBySerializedName", 1));
+    INSTALL_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailView", "RefreshContent", 0));
+    INSTALL_HOOK_OFFSETLESS(StandardLevelDetailViewController_UpdateActionButtonIntractability, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailViewController", "UpdateActionButtonIntractability", 0));
+    INSTALL_HOOK_OFFSETLESS(BeatmapDifficultyMethods_Name, il2cpp_utils::FindMethodUnsafe("", "BeatmapDifficultyMethods", "Name", 1));
     baseProjectPath = il2cpp_utils::createcsstr(BASEPATH, il2cpp_utils::StringType::Manual);
     LOG_INFO("Successfully installed SongLoader!");
 }
