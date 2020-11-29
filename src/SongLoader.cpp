@@ -380,7 +380,7 @@ AudioClip* GetPreviewAudioClipAsync(CustomPreviewBeatmapLevel* customPreviewBeat
         while (!request->get_isDone())
         {
             LOG_DEBUG("GetPreviewAudioClipAsync Delay");
-            usleep(100* 1000);
+            usleep(1 * 1000);
         }
         LOG_DEBUG("GetPreviewAudioClipAsync ErrorStatus %d %d", www->get_isHttpError(), www->get_isNetworkError());
         if(!www->get_isHttpError() && !www->get_isNetworkError())
