@@ -433,10 +433,11 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, 
     LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Stop");
 }
 
-MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, void, LevelFilteringNavigationController* self, SongPackMask* songPackMask, IBeatmapLevelPack* levelPackToBeSelectedAfterPresent, SelectLevelCategoryViewController::LevelCategory startLevelCategory, bool hidePacksIfOneOrNone, bool enableCustomLevels) {
-    LOG_DEBUG("LevelFilteringNavigationController_Setup");
-    LevelFilteringNavigationController_Setup(self, songPackMask, levelPackToBeSelectedAfterPresent, startLevelCategory, hidePacksIfOneOrNone, enableCustomLevels);
+MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_SetupBeatmapLevelPacks, void, LevelFilteringNavigationController* self) {
+    LOG_DEBUG("LevelFilteringNavigationController_SetupBeatmapLevelPacks");
     self->enableCustomLevels = true;
+    LevelFilteringNavigationController_Setup(self);
+    
     SetupCustomCharacteristics();
 }
 
@@ -632,7 +633,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ReloadCustomLevelPackCollectionAsync", 1));
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetBeatmapLevelAsync", 2));
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
-    INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_Setup, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "Setup", 5));
+    INSTALL_HOOK_OFFSETLESS(LevelFilteringNavigationController_SetupBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "LevelFilteringNavigationController", "SetupBeatmapLevelPacks", 0));
     INSTALL_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, il2cpp_utils::FindMethodUnsafe("", "FileHelpers", "GetEscapedURLForFilePath", 1));
     INSTALL_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, il2cpp_utils::FindMethodUnsafe("", "BeatmapCharacteristicCollectionSO", "GetBeatmapCharacteristicBySerializedName", 1));
     INSTALL_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailView", "RefreshContent", 0));
