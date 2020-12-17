@@ -436,7 +436,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, 
 MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_SetupBeatmapLevelPacks, void, LevelFilteringNavigationController* self) {
     LOG_DEBUG("LevelFilteringNavigationController_SetupBeatmapLevelPacks");
     self->enableCustomLevels = true;
-    LevelFilteringNavigationController_Setup(self);
+    LevelFilteringNavigationController_SetupBeatmapLevelPacks(self);
     
     SetupCustomCharacteristics();
 }
@@ -535,9 +535,17 @@ static void clearOverrideLabels()
 MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevelDetailView* self)
 {
     StandardLevelDetailView_RefreshContent(self);
-    CustomPreviewBeatmapLevel* level = reinterpret_cast<CustomPreviewBeatmapLevel*>(reinterpret_cast<CustomDifficultyBeatmap*>(self->get_selectedDifficultyBeatmap())->get_level()); 
 
-    
+    auto originalDifficultyBeatmap = self->get_selectedDifficultyBeatmap();
+    auto originalDifficultyBeatmapClass = il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(originalDifficultyBeatmap));
+    if (!il2cpp_functions::class_is_assignable_from(classof(CustomDifficultyBeatmap*), originalDifficultyBeatmapClass)) {
+        return;
+    }
+
+    getLogger().info("Refreshing custom level content...");
+    auto customDifficultyBeatmap = reinterpret_cast<CustomDifficultyBeatmap*>(originalDifficultyBeatmap);
+    CustomPreviewBeatmapLevel* level = reinterpret_cast<CustomPreviewBeatmapLevel*>(customDifficultyBeatmap->get_level());
+
     if(level)
     {
         ExtraSongData songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
