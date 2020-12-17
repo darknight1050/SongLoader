@@ -1,4 +1,6 @@
 # SongLoader
+Proof of concept for Runtime Song Loading on Quest.
+This will get a rewrite.
 
 ## Credits
 
