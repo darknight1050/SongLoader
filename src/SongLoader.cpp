@@ -436,7 +436,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, 
 MAKE_HOOK_OFFSETLESS(LevelFilteringNavigationController_SetupBeatmapLevelPacks, void, LevelFilteringNavigationController* self) {
     LOG_DEBUG("LevelFilteringNavigationController_SetupBeatmapLevelPacks");
     self->enableCustomLevels = true;
-    LevelFilteringNavigationController_Setup(self);
+    LevelFilteringNavigationController_SetupBeatmapLevelPacks(self);
     
     SetupCustomCharacteristics();
 }
@@ -486,14 +486,31 @@ ExtraSongData RetrieveExtraSongData(std::string levelID, std::string loadIfNullP
 
 DifficultyData RetrieveDifficultyData(CustomDifficultyBeatmap* beatmap)
 {
-    ExtraSongData songData;
     CustomBeatmapLevel* level = reinterpret_cast<CustomBeatmapLevel*>(beatmap->get_level());
-    if (level)
-    {
-        songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
+    if (!level) {
+        getLogger().warning("Cannot retrieve difficulty data for custom song: this beatmap does not contain a valid level!");
+        return {};
     }
+
+    ExtraSongData songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
     CustomDifficultyBeatmapSet* ParentSet = reinterpret_cast<CustomDifficultyBeatmapSet*>(beatmap->parentDifficultyBeatmapSet);
-    std::vector<DifficultyData>::iterator it = std::find_if (songData._difficulties.begin(), songData._difficulties.end(), [ParentSet, beatmap](DifficultyData x) { return x._difficulty == beatmap->get_difficulty() && (x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_characteristicNameLocalizationKey())) || x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_serializedName())));});
+    if (!ParentSet) {
+        getLogger().warning("Cannot retrieve difficulty data for custom song: this beatmap does not have parent difficulty beatmap set!");
+        return {};
+    }
+
+    std::vector<DifficultyData>::iterator it = std::find_if (songData._difficulties.begin(), songData._difficulties.end(), [ParentSet, beatmap](DifficultyData x) {
+        return x._difficulty == beatmap->get_difficulty() && (
+            x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_characteristicNameLocalizationKey()))
+            || x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_serializedName()))
+        );
+    });
+
+    if (it == songData._difficulties.end()) {
+        getLogger().info("RetrieveDifficultyData: difficulty data not found.");
+        return {};
+    }
+
     return *it;
 }
 
@@ -535,9 +552,17 @@ static void clearOverrideLabels()
 MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevelDetailView* self)
 {
     StandardLevelDetailView_RefreshContent(self);
-    CustomPreviewBeatmapLevel* level = reinterpret_cast<CustomPreviewBeatmapLevel*>(reinterpret_cast<CustomDifficultyBeatmap*>(self->get_selectedDifficultyBeatmap())->get_level()); 
 
-    
+    auto originalDifficultyBeatmap = self->get_selectedDifficultyBeatmap();
+    auto originalDifficultyBeatmapClass = il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(originalDifficultyBeatmap));
+    if (!il2cpp_functions::class_is_assignable_from(classof(CustomDifficultyBeatmap*), originalDifficultyBeatmapClass)) {
+        return;
+    }
+
+    getLogger().info("Refreshing custom level content...");
+    auto customDifficultyBeatmap = reinterpret_cast<CustomDifficultyBeatmap*>(originalDifficultyBeatmap);
+    CustomPreviewBeatmapLevel* level = reinterpret_cast<CustomPreviewBeatmapLevel*>(customDifficultyBeatmap->get_level());
+
     if(level)
     {
         ExtraSongData songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
