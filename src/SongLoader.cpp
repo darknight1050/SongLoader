@@ -486,14 +486,31 @@ ExtraSongData RetrieveExtraSongData(std::string levelID, std::string loadIfNullP
 
 DifficultyData RetrieveDifficultyData(CustomDifficultyBeatmap* beatmap)
 {
-    ExtraSongData songData;
     CustomBeatmapLevel* level = reinterpret_cast<CustomBeatmapLevel*>(beatmap->get_level());
-    if (level)
-    {
-        songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
+    if (!level) {
+        getLogger().warning("Cannot retrieve difficulty data for custom song: this beatmap does not contain a valid level!");
+        return {};
     }
+
+    ExtraSongData songData = RetrieveExtraSongData(to_utf8(csstrtostr(level->levelID)), to_utf8(csstrtostr(level->customLevelPath)));
     CustomDifficultyBeatmapSet* ParentSet = reinterpret_cast<CustomDifficultyBeatmapSet*>(beatmap->parentDifficultyBeatmapSet);
-    std::vector<DifficultyData>::iterator it = std::find_if (songData._difficulties.begin(), songData._difficulties.end(), [ParentSet, beatmap](DifficultyData x) { return x._difficulty == beatmap->get_difficulty() && (x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_characteristicNameLocalizationKey())) || x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_serializedName())));});
+    if (!ParentSet) {
+        getLogger().warning("Cannot retrieve difficulty data for custom song: this beatmap does not have parent difficulty beatmap set!");
+        return {};
+    }
+
+    std::vector<DifficultyData>::iterator it = std::find_if (songData._difficulties.begin(), songData._difficulties.end(), [ParentSet, beatmap](DifficultyData x) {
+        return x._difficulty == beatmap->get_difficulty() && (
+            x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_characteristicNameLocalizationKey()))
+            || x._beatmapCharacteristicName == to_utf8(csstrtostr(ParentSet->get_beatmapCharacteristic()->get_serializedName()))
+        );
+    });
+
+    if (it == songData._difficulties.end()) {
+        getLogger().info("RetrieveDifficultyData: difficulty data not found.");
+        return {};
+    }
+
     return *it;
 }
 
