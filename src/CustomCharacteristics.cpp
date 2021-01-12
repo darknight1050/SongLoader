@@ -9,9 +9,14 @@ namespace CustomCharacteristics {
 
     std::vector<GlobalNamespace::BeatmapCharacteristicSO*> customCharacteristics;
 
-    GlobalNamespace::BeatmapCharacteristicSO* RegisterCustomCharacteristic(UnityEngine::Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
+    // TODO: Make this crash-safe
+    GlobalNamespace::BeatmapCharacteristicSO* RegisterCustomCharacteristic(UnityEngine::Sprite* icon, std::string_view characteristicName, std::string_view hintText, std::string_view serializedName, std::string_view compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
-        GlobalNamespace::BeatmapCharacteristicSO* characteristic = UnityEngine::ScriptableObject::CreateInstance<GlobalNamespace::BeatmapCharacteristicSO*>();
+        // To avoid these being GC'd, we should ensure they are allocated manually.
+        // If we can't make it, crash horribly.
+        auto* characteristic = CRASH_UNLESS(reinterpret_cast<GlobalNamespace::BeatmapCharacteristicSO*>(il2cpp_utils::createManual(classof(GlobalNamespace::BeatmapCharacteristicSO*))));
+        // After creating an SO, we must call the CreateInstance method.
+        UnityEngine::ScriptableObject::CreateScriptableObject(characteristic);
         characteristic->icon = icon;
         characteristic->descriptionLocalizationKey = il2cpp_utils::createcsstr(hintText);
         characteristic->serializedName = il2cpp_utils::createcsstr(serializedName);
@@ -24,9 +29,9 @@ namespace CustomCharacteristics {
         return characteristic;
     }
 
-    GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string characteristicName)
+    GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string_view characteristicName)
     {
-        for(GlobalNamespace::BeatmapCharacteristicSO* characteristic : customCharacteristics){
+        for(auto* characteristic : customCharacteristics){
             if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
                 return characteristic;
         }

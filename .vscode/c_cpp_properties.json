@@ -12,7 +12,7 @@
         "${workspaceFolder}/shared/**",
         "${workspaceFolder}/extern/**",
         "${workspaceFolder}/extern/codegen/include/**",
-        "C:/Development/Tools/android-ndk-r21d/**"
+        "C:/android-ndk-r21d/**"
       ],
       "name": "Quest",
       "cStandard": "c11",

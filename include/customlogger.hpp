@@ -1,11 +1,11 @@
 #pragma once
 
-//#define LOG_INFO(value...)
-#define LOG_INFO(value...) getLogger().info(value) 
-//#define LOG_DEBUG(value...) 
-#define LOG_DEBUG(value...) getLogger().debug(value) 
-//#define LOG_ERROR(value...)
-#define LOG_ERROR(value...) getLogger().error(value) 
+//#define LOG_INFO(...)
+#define LOG_INFO(...) getLogger().info(__VA_ARGS__) 
+//#define LOG_DEBUG(...) 
+#define LOG_DEBUG(...) getLogger().debug(__VA_ARGS__) 
+//#define LOG_ERROR(...)
+#define LOG_ERROR(...) getLogger().error(__VA_ARGS__) 
 
 #include "beatsaber-hook/shared/utils/utils.h"
 const Logger& getLogger();

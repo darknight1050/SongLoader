@@ -19,11 +19,10 @@
 #define CUSTOMSONGS_FOLDER "BeatSaberSongs"
 
 static ModInfo modInfo;
-rapidjson::Document d;
 
-const Logger& getLogger() {
-    static const Logger logger(modInfo, LoggerOptions(false, false));
-    return logger;
+Logger& getLogger() {
+    static auto logger = new Logger(modInfo, LoggerOptions(false, true));
+    return *logger;
 }
 //Hash,ExtraSongData
 std::map<std::string, ExtraSongData> DataCache;
