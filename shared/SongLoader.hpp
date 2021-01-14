@@ -17,14 +17,26 @@ namespace SongLoader {
     /// @returns True if the reload was successful and the path added to the collection, false otherwise.
     bool ReloadSongs(std::string_view path);
     /// @brief Returns the collection of paths that are used for loading.
-    /// These paths may be file paths or directories.
     /// @returns A const reference to the paths.
     const std::unordered_map<std::string, PathData>& GetPaths();
-    /// @brief Finds and returns the corresponding rapidjson::Document for the info.dat file at the specified level ID.
-    /// @param levelId The levelId to match.
+    /// @brief Returns the mapping of level ID to SongInfo structures.
+    /// Ensure validity of SongInfo.valid before performing any object creation.
+    /// @returns A const reference to the mapping.
+    const std::unordered_map<std::string, SongData::SongInfo>& GetInfos();
+    /// @brief Returns the mapping of level ID to a sorted mapping of difficulty structures.
+    /// Ensure validity of DifficultyData.valid before performing any object creation using the inner values.
+    /// @returns A const reference to the mapping.
+    const std::unordered_map<std::string, std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>>& GetAllDifficulties();
+    /// @brief Finds and returns the corresponding SongInfo structure for the info.dat file at the specified level ID.
+    /// If the level ID does not have a valid SongInfo, will return an invalid SongInfo structure.
+    /// @param levelId The level ID to search for.
     /// @returns A SongInfo reference for read-only access into the info.dat file.
     const SongData::SongInfo& GetInfo(std::string_view levelId);
 
+    /// @brief Finds and returns the corresponding difficulties for the specified level ID.
+    /// If the level ID does not have a valid mapping, will return an empty map.
+    /// @param levelId The level ID to search for.
+    /// @returns A const reference to a sorted mapping of difficulty to DifficultyData.
     const std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>& GetDifficulties(std::string_view levelId);
 
     /// @brief Removes the specified path from the collection of paths to search when reloading songs.

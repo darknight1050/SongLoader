@@ -42,7 +42,6 @@ namespace SongLoader {
     }
 
     // Given the path and type pair, load all information as necessary, populating infoMap and difficultyMap as needed.
-    // Also should call actual (perhaps?) C# routines to ensure creation of objects
     void LoadFromPair(std::pair<std::string, PathData> pathPair) {
         switch (pathPair.second.type) {
             case PathType::Song:
