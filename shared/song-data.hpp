@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "beatsaber-hook/shared/config/rapidjson-utils.hpp"
+#include <optional>
 
 namespace SongData {
     enum struct BeatmapDifficulty {
@@ -51,12 +52,12 @@ namespace SongData {
     };
 
     struct CustomInfoData {
-        const rapidjson::Value& sourceDocument;
+        const rapidjson::Value& source;
         std::vector<Contributor> contributors;
         std::string customEnvironment;
         std::string customEnvironmentHash;
 
-        CustomInfoData(rapidjson::Value& source) : sourceDocument(source) {
+        CustomInfoData(const rapidjson::Value& source_) : source(source_) {
             // TODO: Parse data
         }
     };
@@ -86,7 +87,8 @@ namespace SongData {
     };
 
     struct SongInfo {
-        const rapidjson::Document& sourceDocument;
+        bool valid;
+        rapidjson::Document sourceDocument;
 
         std::string version;
         std::string songName;
@@ -101,15 +103,10 @@ namespace SongData {
         std::string songFilename;
         std::string coverImageFilename;
         std::string environmentName;
-        CustomInfoData customData;
+        std::optional<CustomInfoData> customData;
         std::vector<DifficultyBeatmapSet> difficultyBeatmapSets;
 
-        SongInfo(rapidjson::Document& source) : sourceDocument(source), customData(ReadCustomData(source)) {
-            // TODO: Parse data
-        }
+        SongInfo(std::string_view source);
+        SongInfo() : valid(false) {}
     };
-
-    static inline rapidjson::Value& ReadCustomData(rapidjson::Document& source) {
-        return source["_customData"];
-    }
 }
