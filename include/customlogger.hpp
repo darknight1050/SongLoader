@@ -8,4 +8,5 @@
 #define LOG_ERROR(...) getLogger().error(__VA_ARGS__) 
 
 #include "beatsaber-hook/shared/utils/utils.h"
-const Logger& getLogger();
+#include "beatsaber-hook/shared/utils/logging.hpp"
+Logger& getLogger();
