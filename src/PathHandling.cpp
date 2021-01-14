@@ -1,4 +1,4 @@
-#include "path-handling.hpp"
+#include "PathHandling.hpp"
 #include "beatsaber-hook/shared/utils/utils-functions.h"
 #include "utils.hpp"
 

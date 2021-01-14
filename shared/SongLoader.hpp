@@ -4,8 +4,8 @@
 #include <string_view>
 #include <map>
 #include <unordered_map>
-#include "song-data.hpp"
-#include "path-handling.hpp"
+#include "SongData.hpp"
+#include "PathHandling.hpp"
 
 namespace SongLoader {
     /// @brief Reloads all songs from all paths songs have been loaded from.

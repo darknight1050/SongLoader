@@ -1,5 +1,5 @@
-#include "loader.hpp"
-#include "path-handling.hpp"
+#include "SongLoader.hpp"
+#include "PathHandling.hpp"
 #include <unordered_map>
 #include "utils.hpp"
 
