@@ -33,7 +33,7 @@ namespace SongData {
     };
 
     struct DifficultyData {
-        const rapidjson::Document& sourceDocument;
+        const rapidjson::Document& source;
         std::string beatmapCharacteristicName;
         BeatmapDifficulty difficulty;
         std::string difficultyLabel;
@@ -46,7 +46,7 @@ namespace SongData {
         MapColor envColorRightBoost;
         MapColor obstacleColor;
 
-        DifficultyData(rapidjson::Document& source) : sourceDocument(source) {
+        DifficultyData(rapidjson::Document& source_) : source(source_) {
             // TODO: Parse data
         }
     };
@@ -96,6 +96,7 @@ namespace SongData {
         std::string songAuthorName;
         std::string levelAuthorName;
         float beatsPerMinute;
+        float songTimeOffset;
         float shuffle;
         float shufflePeriod;
         float previewStartTime;
@@ -103,8 +104,9 @@ namespace SongData {
         std::string songFilename;
         std::string coverImageFilename;
         std::string environmentName;
-        std::optional<CustomInfoData> customData;
+        std::string allDirectionsEnvironmentName;
         std::vector<DifficultyBeatmapSet> difficultyBeatmapSets;
+        std::optional<CustomInfoData> customData;
 
         SongInfo(std::string_view source);
         SongInfo() : valid(false) {}
