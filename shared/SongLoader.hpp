@@ -7,6 +7,10 @@
 #include "SongData.hpp"
 #include "PathHandling.hpp"
 
+namespace GlobalNamespace {
+    class BeatmapData;
+}
+
 namespace SongLoader {
     /// @brief Reloads all songs from all paths songs have been loaded from.
     void ReloadAllSongs();
@@ -24,9 +28,8 @@ namespace SongLoader {
     /// @returns A const reference to the mapping.
     const std::unordered_map<std::string, SongData::SongInfo>& GetInfos();
     /// @brief Returns the mapping of level ID to a sorted mapping of difficulty structures.
-    /// Ensure validity of DifficultyData.valid before performing any object creation using the inner values.
     /// @returns A const reference to the mapping.
-    const std::unordered_map<std::string, std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>>& GetAllDifficulties();
+    const std::unordered_map<std::string, std::map<SongData::BeatmapDifficulty, GlobalNamespace::BeatmapData*>>& GetAllDifficulties();
     /// @brief Finds and returns the corresponding SongInfo structure for the info.dat file at the specified level ID.
     /// If the level ID does not have a valid SongInfo, will return an invalid SongInfo structure.
     /// @param levelId The level ID to search for.
@@ -36,8 +39,8 @@ namespace SongLoader {
     /// @brief Finds and returns the corresponding difficulties for the specified level ID.
     /// If the level ID does not have a valid mapping, will return an empty map.
     /// @param levelId The level ID to search for.
-    /// @returns A const reference to a sorted mapping of difficulty to DifficultyData.
-    const std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>& GetDifficulties(std::string_view levelId);
+    /// @returns A const reference to a sorted mapping of difficulty to BeatmapData.
+    const std::map<SongData::BeatmapDifficulty, GlobalNamespace::BeatmapData*>& GetDifficulties(std::string_view levelId);
 
     /// @brief Removes the specified path from the collection of paths to search when reloading songs.
     /// If the path does not already exist within the search collection, does nothing.

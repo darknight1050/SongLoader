@@ -3,13 +3,15 @@
 #include <unordered_map>
 #include "utils.hpp"
 
+#include "GlobalNamespace/BeatmapData.hpp"
+
 namespace SongLoader {
     /// @brief Holds all search paths for loading/reloading songs.
     static std::unordered_map<std::string, PathData> paths;
     /// @brief Represents a mapping of level ID to info.dat data for all songs that are loaded.
     static std::unordered_map<std::string, SongData::SongInfo> infoMap;
     /// @brief Represents a mapping of level ID to difficulty.dat files for all songs that are loaded.
-    static std::unordered_map<std::string, std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>> difficultyMap;
+    static std::unordered_map<std::string, std::map<SongData::BeatmapDifficulty, GlobalNamespace::BeatmapData*>> difficultyMap;
 
     // Returns the level ID from the provided folder path and deserialized info.dat.
     std::string GetLevelIdFromFolder(std::string_view folder, SongData::SongInfo& info) {
@@ -111,14 +113,14 @@ namespace SongLoader {
         return SongData::SongInfo();
     }
 
-    const std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>& GetDifficulties(std::string_view levelId) {
+    const std::map<SongData::BeatmapDifficulty, GlobalNamespace::BeatmapData*>& GetDifficulties(std::string_view levelId) {
         // Return a reference to the matching collection of difficulties at this levelId.
         // If a match was not found, return a reference to a stack allocated empty map.
         auto itr = difficultyMap.find(levelId.data());
         if (itr != difficultyMap.end()) {
             return itr->second;
         }
-        return std::map<SongData::BeatmapDifficulty, SongData::DifficultyData>();
+        return std::map<SongData::BeatmapDifficulty, GlobalNamespace::BeatmapData*>();
     }
 
     void RemoveSearchPath(std::string_view path) {

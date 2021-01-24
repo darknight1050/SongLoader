@@ -25,37 +25,34 @@ namespace SongData {
         float b;
     };
 
-    struct RequirementData {
-        std::string requirements;
-        std::string suggestions;
-        std::string warnings;
-        std::string information;
-    };
+    struct CustomDifficultyData {
+        const rapidjson::Value& source;
 
-    struct DifficultyData {
-        const rapidjson::Document& source;
-        std::string beatmapCharacteristicName;
-        BeatmapDifficulty difficulty;
-        std::string difficultyLabel;
-        RequirementData additionalDifficultyData;
-        MapColor colorLeft;
-        MapColor colorRight;
-        MapColor envColorLeft;
-        MapColor envColorRight;
-        MapColor envColorLeftBoost;
-        MapColor envColorRightBoost;
-        MapColor obstacleColor;
+        std::optional<BeatmapDifficulty> difficulty;
+        std::optional<std::string> difficultyLabel;
+        std::optional<MapColor> colorLeft;
+        std::optional<MapColor> colorRight;
+        std::optional<MapColor> envColorLeft;
+        std::optional<MapColor> envColorRight;
+        std::optional<MapColor> envColorLeftBoost;
+        std::optional<MapColor> envColorRightBoost;
+        std::optional<MapColor> obstacleColor;
+        std::optional<std::vector<std::string>> requirements;
+        std::optional<std::vector<std::string>> suggestions;
+        std::optional<std::vector<std::string>> warnings;
+        std::optional<std::vector<std::string>> information;
 
-        DifficultyData(rapidjson::Document& source_) : source(source_) {
+        CustomDifficultyData(const rapidjson::Value& source_) : source(source_) {
             // TODO: Parse data
         }
     };
 
     struct CustomInfoData {
         const rapidjson::Value& source;
-        std::vector<Contributor> contributors;
-        std::string customEnvironment;
-        std::string customEnvironmentHash;
+        
+        std::optional<std::vector<Contributor>> contributors;
+        std::optional<std::string> customEnvironment;
+        std::optional<std::string> customEnvironmentHash;
 
         CustomInfoData(const rapidjson::Value& source_) : source(source_) {
             // TODO: Parse data
@@ -63,27 +60,25 @@ namespace SongData {
     };
 
     struct DifficultyBeatmap {
-        const rapidjson::Value& sourceDocument;
-        std::string difficulty;
+        const rapidjson::Value& source;
+
+        BeatmapDifficulty difficulty;
         int difficultyRank;
         std::string beatmapFilename;
         int noteJumpMovementSpeed;
         int noteJumpStartBeatOffset;
+        std::optional<CustomDifficultyData> customData;
 
-        DifficultyBeatmap(rapidjson::Value& source) : sourceDocument(source) {
-            // TODO: Parse data
-        }
+        DifficultyBeatmap(rapidjson::Value& source);
     };
 
     struct DifficultyBeatmapSet {
-        const rapidjson::Value& sourceDocument;
+        const rapidjson::Value& source;
 
         std::string characteristicName;
         std::vector<DifficultyBeatmap> difficultyBeatmaps;
         
-        DifficultyBeatmapSet(rapidjson::Value& source) : sourceDocument(source) {
-            // TODO: Parse data
-        }
+        DifficultyBeatmapSet(rapidjson::Value& source);
     };
 
     struct SongInfo {
