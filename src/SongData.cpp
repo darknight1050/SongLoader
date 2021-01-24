@@ -11,21 +11,21 @@ namespace SongData {
             customData.emplace(CustomInfoData(itr->value));
         }
         
-        version.assign(sourceDocument["_version"].GetString());
-        songName.assign(sourceDocument["_songName"].GetString());
-        songSubName.assign(sourceDocument["_songSubName"].GetString());
-        songAuthorName.assign(sourceDocument["_songAuthorName"].GetString());
-        levelAuthorName.assign(sourceDocument["_levelAuthorName"].GetString());
+        version = sourceDocument["_version"].GetString();
+        songName = sourceDocument["_songName"].GetString();
+        songSubName = sourceDocument["_songSubName"].GetString();
+        songAuthorName = sourceDocument["_songAuthorName"].GetString();
+        levelAuthorName = sourceDocument["_levelAuthorName"].GetString();
         beatsPerMinute = sourceDocument["_beatsPerMinute"].GetFloat();
         songTimeOffset = sourceDocument["_songTimeOffset"].GetFloat();
         shuffle = sourceDocument["_shuffle"].GetFloat();
         shufflePeriod = sourceDocument["_shufflePeriod"].GetFloat();
         previewStartTime = sourceDocument["_previewStartTime"].GetFloat();
         previewDuration = sourceDocument["_previewDuration"].GetFloat();
-        songFilename.assign(sourceDocument["_songFilename"].GetString());
-        coverImageFilename.assign(sourceDocument["_coverImageFilename"].GetString());
-        environmentName.assign(sourceDocument["_environmentName"].GetString());
-        allDirectionsEnvironmentName.assign(sourceDocument["_allDirectionsEnvironmentName"].GetString());
+        songFilename = sourceDocument["_songFilename"].GetString();
+        coverImageFilename = sourceDocument["_coverImageFilename"].GetString();
+        environmentName = sourceDocument["_environmentName"].GetString();
+        allDirectionsEnvironmentName = sourceDocument["_allDirectionsEnvironmentName"].GetString();
     
         const rapidjson::Value& _difficultyBeatmapSets = sourceDocument["_difficultyBeatmapSets"];
         for (rapidjson::SizeType i = 0; i < _difficultyBeatmapSets.Size(); i++) {
@@ -34,7 +34,7 @@ namespace SongData {
     }
 
     DifficultyBeatmapSet::DifficultyBeatmapSet(rapidjson::Value& source_) : source(source_) {
-        characteristicName.assign(source["_beatmapCharacteristicName"].GetString());
+        characteristicName = source["_beatmapCharacteristicName"].GetString();
 
         const rapidjson::Value& _difficultyBeatmaps = source["_difficultyBeatmaps"];
         for (rapidjson::SizeType i = 0; i < _difficultyBeatmaps.Size(); i++) {
@@ -65,7 +65,7 @@ namespace SongData {
         }
 
         difficultyRank = source["_difficultyRank"].GetFloat();
-        beatmapFilename.assign(source["_beatmapFilename"].GetString());
+        beatmapFilename = source["_beatmapFilename"].GetString();
         noteJumpMovementSpeed = source["_noteJumpMovementSpeed"].GetFloat();
         noteJumpStartBeatOffset = source["_noteJumpStartBeatOffset"].GetFloat();
     }
