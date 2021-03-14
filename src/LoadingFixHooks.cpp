@@ -3,6 +3,7 @@
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "CustomLogger.hpp"
+
 #include "Paths.hpp"
 
 #include "GlobalNamespace/AdditionalContentModel.hpp"

@@ -1,6 +1,9 @@
 #include "CustomTypes/SongLoader.hpp"
+
 #include "CustomLogger.hpp"
+
 #include "Paths.hpp"
+
 #include "Utils/ArrayUtil.hpp"
 #include "Utils/HashUtils.hpp"
 #include "Utils/FileUtils.hpp"

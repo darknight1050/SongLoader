@@ -10,5 +10,7 @@ namespace CustomCharacteristics {
     GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string characteristicName);
 
     void InstallHooks();
-
+    
+    void SetupCustomCharacteristics();
+    
 }
