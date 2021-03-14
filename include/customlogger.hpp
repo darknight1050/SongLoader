@@ -8,4 +8,4 @@
 #define LOG_ERROR(value...) getLogger().error(value) 
 
 #include "beatsaber-hook/shared/utils/utils.h"
-const Logger& getLogger();
+Logger& getLogger();

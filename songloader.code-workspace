@@ -90,7 +90,8 @@
 			"valarray": "cpp",
 			"__functional_base_03": "cpp",
 			"filesystem": "cpp",
-			"future": "cpp"
+			"future": "cpp",
+			"coroutine": "cpp"
 		}
 	}
 }

@@ -1,17 +1,23 @@
-#include "beatsaber-hook/shared/utils/utils.h"
-#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "CustomCharacteristics.hpp"
 
+#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+
+#include "customlogger.hpp"
+
+#include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
 #include "UnityEngine/ScriptableObject.hpp"
+
+using namespace GlobalNamespace;
+using namespace UnityEngine;
 
 namespace CustomCharacteristics {
 
-    std::vector<GlobalNamespace::BeatmapCharacteristicSO*> customCharacteristics;
+    std::vector<BeatmapCharacteristicSO*> customCharacteristics;
 
-    GlobalNamespace::BeatmapCharacteristicSO* RegisterCustomCharacteristic(UnityEngine::Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
+    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
-        GlobalNamespace::BeatmapCharacteristicSO* characteristic = UnityEngine::ScriptableObject::CreateInstance<GlobalNamespace::BeatmapCharacteristicSO*>();
+        BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
         characteristic->icon = icon;
         characteristic->descriptionLocalizationKey = il2cpp_utils::createcsstr(hintText);
         characteristic->serializedName = il2cpp_utils::createcsstr(serializedName);
@@ -24,13 +30,33 @@ namespace CustomCharacteristics {
         return characteristic;
     }
 
-    GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string characteristicName)
+    BeatmapCharacteristicSO* FindByName(std::string characteristicName)
     {
-        for(GlobalNamespace::BeatmapCharacteristicSO* characteristic : customCharacteristics){
+        for(BeatmapCharacteristicSO* characteristic : customCharacteristics){
             if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
                 return characteristic;
         }
         return nullptr;
     }
 
+    MAKE_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
+    {
+        BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
+        std::string _serializedName = to_utf8(csstrtostr(serializedName));
+        if(!result)
+        {   
+            result = FindByName(_serializedName);
+            if(!result)
+                result = FindByName("MissingCharacteristic");
+        }
+
+        return result;
+    }
+
+    void InstallHook() {
+        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, il2cpp_utils::FindMethodUnsafe("", "BeatmapCharacteristicCollectionSO", "GetBeatmapCharacteristicBySerializedName", 1));
+    }
+
 }
+
+
