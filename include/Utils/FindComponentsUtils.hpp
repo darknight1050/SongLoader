@@ -2,7 +2,6 @@
 #include "GlobalNamespace/CustomLevelLoader.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
-#include "GlobalNamespace/AlwaysOwnedContentContainerSO.hpp"
 
 namespace FindComponentsUtils {
 
@@ -11,7 +10,6 @@ namespace FindComponentsUtils {
     CacheFindComponentDeclare(GlobalNamespace, CustomLevelLoader)
     CacheFindComponentDeclare(GlobalNamespace, BeatmapLevelsModel)
     CacheFindComponentDeclare(GlobalNamespace, CachedMediaAsyncLoader)
-    CacheFindComponentDeclare(GlobalNamespace, AlwaysOwnedContentContainerSO)
 
     void ClearCache();
 

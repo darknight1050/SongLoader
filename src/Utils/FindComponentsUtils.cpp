@@ -3,7 +3,7 @@
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
-#include "customlogger.hpp"
+#include "CustomLogger.hpp"
 
 #include "UnityEngine/Resources.hpp"
 
@@ -28,13 +28,11 @@ namespace FindComponentsUtils {
     CacheFindComponentDefine(CustomLevelLoader)
     CacheFindComponentDefine(BeatmapLevelsModel)
     CacheFindComponentDefine(CachedMediaAsyncLoader)
-    CacheFindComponentDefine(AlwaysOwnedContentContainerSO)
 
     void ClearCache() {
         CacheClearComponent(CustomLevelLoader)
         CacheClearComponent(BeatmapLevelsModel)
         CacheClearComponent(CachedMediaAsyncLoader)
-        CacheClearComponent(AlwaysOwnedContentContainerSO)
     }
  
 }

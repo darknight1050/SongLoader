@@ -1,7 +1,5 @@
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 
-#include "customlogger.hpp"
-
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 

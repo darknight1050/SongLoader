@@ -2,7 +2,7 @@
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
-#include "customlogger.hpp"
+#include "CustomLogger.hpp"
 
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
@@ -15,6 +15,7 @@ using namespace GlobalNamespace;
 namespace HashUtils {
     
     std::string GetCustomLevelHash(StandardLevelInfoSaveData* level, std::string customLevelPath) {
+        auto start = std::chrono::high_resolution_clock::now(); 
         LOG_DEBUG("GetCustomLevelHash Start");
         std::string actualPath = customLevelPath + "/Info.dat";
         if (!fileexists(actualPath)) actualPath = customLevelPath + "/info.dat";
@@ -46,7 +47,8 @@ namespace HashUtils {
 
         hash.erase(std::remove(hash.begin(), hash.end(), '-'), hash.end());
             
-        LOG_DEBUG("GetCustomLevelHash Stop %s", hash.c_str());
+        std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
+        LOG_DEBUG("GetCustomLevelHash Stop %s Time %d", hash.c_str(), duration);
         return hash;
     }
     

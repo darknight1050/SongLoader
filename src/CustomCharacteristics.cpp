@@ -3,7 +3,7 @@
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
-#include "customlogger.hpp"
+#include "CustomLogger.hpp"
 
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
 #include "UnityEngine/ScriptableObject.hpp"
@@ -53,7 +53,7 @@ namespace CustomCharacteristics {
         return result;
     }
 
-    void InstallHook() {
+    void InstallHooks() {
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, il2cpp_utils::FindMethodUnsafe("", "BeatmapCharacteristicCollectionSO", "GetBeatmapCharacteristicBySerializedName", 1));
     }
 
