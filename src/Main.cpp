@@ -41,8 +41,8 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
         }
         if(hasInited && prevSceneName == "EmptyTransition" && nextSceneName.find("Menu") != std::string::npos) {
             hasInited = false;
-
             CustomCharacteristics::SetupCustomCharacteristics();
+            FindComponentsUtils::ClearCache();
             SongLoader::GetInstance()->RefreshSongs(true);
             
         }

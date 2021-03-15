@@ -25,13 +25,14 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         bool NeedRefresh = false;
 
-    public:
-        static SongLoader* GetInstance();
-        void RefreshLevelPacks();
         GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(std::string customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
         GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(std::string customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
 
+    public:
+        static SongLoader* GetInstance();
+        void RefreshLevelPacks();
+        
         void RefreshSongs(bool fullRefresh = false);
         
     DECLARE_CTOR(ctor);

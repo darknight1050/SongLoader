@@ -91,7 +91,12 @@
 			"__functional_base_03": "cpp",
 			"filesystem": "cpp",
 			"future": "cpp",
-			"coroutine": "cpp"
+			"coroutine": "cpp",
+			"*.tcc": "cpp",
+			"ranges": "cpp",
+			"concepts": "cpp",
+			"memory_resource": "cpp",
+			"stop_token": "cpp"
 		}
 	}
 }
