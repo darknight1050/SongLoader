@@ -29,6 +29,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
         GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(std::string customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
 
+        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string path);
+
     public:
         static SongLoader* GetInstance();
         void RefreshLevelPacks();
