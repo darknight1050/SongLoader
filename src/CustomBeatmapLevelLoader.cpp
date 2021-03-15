@@ -144,13 +144,6 @@ namespace CustomBeatmapLevelLoader {
         return customBeatmapLevel;
     }
 
-    MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches, void, BeatmapLevelsModel* self) {
-        LOG_DEBUG("BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches");
-        if(GetCachedMediaAsyncLoader())
-            GetCachedMediaAsyncLoader()->ClearCache();
-        BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches(self);
-    }
-
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, Il2CppString* levelID, CancellationToken cancellationToken) {
         LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", to_utf8(csstrtostr(levelID)).c_str());
         Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>* result = BeatmapLevelsModel_GetBeatmapLevelAsync(self, levelID, cancellationToken);
@@ -181,7 +174,6 @@ namespace CustomBeatmapLevelLoader {
     }
 
     void InstallHooks() {
-        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_ClearLoadedBeatmapLevelsCaches, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ClearLoadedBeatmapLevelsCaches", 0));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_GetBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetBeatmapLevelAsync", 2));
     }
     
