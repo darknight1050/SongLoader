@@ -8,6 +8,9 @@
 
 #include "GlobalNamespace/AdditionalContentModel.hpp"
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
+#include "GlobalNamespace/BeatmapData.hpp"
+#include "GlobalNamespace/BeatmapEventData.hpp"
+#include "GlobalNamespace/BeatmapEventTypeExtensions.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/IBeatmapLevelPack.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
@@ -24,6 +27,14 @@ using namespace System::Threading;
 using namespace Tasks;
 
 namespace LoadingFixHooks {
+
+
+    MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
+        self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
+        self->beatmapEventsData->Add_NEW(beatmapEventData);
+		if (BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
+			self->spawnRotationEventsCount++;
+    }
 
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, Task_1<IBeatmapLevelPackCollection*>*, BeatmapLevelsModel* self, CancellationToken cancellationToken) {
         LOG_DEBUG("BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync");
@@ -69,6 +80,7 @@ namespace LoadingFixHooks {
     }
 
     void InstallHooks() {
+        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_AddBeatmapEventData, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", "AddBeatmapEventData", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ReloadCustomLevelPackCollectionAsync", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
         INSTALL_HOOK_OFFSETLESS(getLogger(), AdditionalContentModel_GetLevelEntitlementStatusAsync, il2cpp_utils::FindMethodUnsafe("", "AdditionalContentModel", "GetLevelEntitlementStatusAsync", 2));
