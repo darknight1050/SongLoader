@@ -52,26 +52,30 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
             SongLoader* loader = SongLoader::GetInstance();
             HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
                 (std::function<void()>)[=] { 
-                auto start = std::chrono::high_resolution_clock::now(); 
-                auto list = List<CustomPreviewBeatmapLevel*>::New_ctor();
-                Array<Il2CppString*>* directories = Directory::GetDirectories(il2cpp_utils::createcsstr(CustomSongsFolder));
-                for (int i = 0; i < directories->Length(); i++)
-                {
-                    std::string songPath = to_utf8(csstrtostr(Path::GetFullPath(directories->values[i])));
-                    StandardLevelInfoSaveData* saveData = loader->GetStandardLevelInfoSaveData(songPath);
-                    std::string hash;
-                    auto startLevel = std::chrono::high_resolution_clock::now(); 
-                    auto level = loader->LoadCustomPreviewBeatmapLevel(songPath, saveData, hash);
-                    std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel); 
-                    LOG_INFO("Song loaded in %d milliseconds!", durationLevel);
-                    if(level)
-                        list->Add_NEW(level);
+                    auto start = std::chrono::high_resolution_clock::now(); 
+                    auto list = List<CustomPreviewBeatmapLevel*>::New_ctor();
+                    Array<Il2CppString*>* directories = Directory::GetDirectories(il2cpp_utils::createcsstr(CustomSongsFolder));
+                    for (int i = 0; i < directories->Length(); i++)
+                    {
+                        auto startLevel = std::chrono::high_resolution_clock::now(); 
+                        std::string songPath = to_utf8(csstrtostr(Path::GetFullPath(directories->values[i])));
+                        StandardLevelInfoSaveData* saveData = loader->GetStandardLevelInfoSaveData(songPath);
+                        std::string hash;
+                        auto level = loader->LoadCustomPreviewBeatmapLevel(songPath, saveData, hash);
+                        std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel); 
+                        if(level) {  
+                            list->Add_NEW(level);
+                            LOG_INFO("Loaded (%s) in %dms!", songPath.c_str(), durationLevel);
+                        } else {
+                            LOG_ERROR("Failed (%s)!", songPath.c_str());
+                        }
+                    }
+                    loader->CustomLevelsCollection->customPreviewBeatmapLevels = list->ToArray();
+                    loader->RefreshLevelPacks();
+                    std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
+                    LOG_INFO("Loaded %d songs in %dms!", loader->CustomLevelsCollection->customPreviewBeatmapLevels->Length(), duration);
                 }
-                loader->CustomLevelsCollection->customPreviewBeatmapLevels = list->ToArray();
-                loader->RefreshLevelPacks();
-                std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
-                LOG_INFO("RSL Loaded %d songs in %d milliseconds!", loader->CustomLevelsCollection->customPreviewBeatmapLevels->Length(), duration);
-            }), nullptr)->Run();
+            ), nullptr)->Run();
         }
     }
 }

@@ -19,9 +19,10 @@ TARGET_ARCH_ABI := $(APP_ABI)
 include $(CLEAR_VARS)
 LOCAL_MODULE := hook
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
-# Creating prebuilt for dependency: codegen - version: 0.3.4
+
+# Creating prebuilt for dependency: codegen - version: 0.7.0
 include $(CLEAR_VARS)
-LOCAL_MODULE := codegen_0_3_4
+LOCAL_MODULE := codegen_0_7_0
 LOCAL_EXPORT_C_INCLUDES := extern/codegen
 LOCAL_SRC_FILES := extern/libcodegen_0_7_0.so
 include $(PREBUILT_SHARED_LIBRARY)
@@ -45,17 +46,29 @@ LOCAL_EXPORT_C_INCLUDES := extern/custom-types
 LOCAL_SRC_FILES := extern/libcustom-types.so
 include $(PREBUILT_SHARED_LIBRARY)
 
+# cryptopp
+include $(CLEAR_VARS)
+LOCAL_MODULE := cryptopp
+LOCAL_EXPORT_C_INCLUDES := include/cryptopp
+LOCAL_SRC_FILES := include/cryptopp/libcryptopp.a
+include $(PREBUILT_STATIC_LIBRARY)
+
 # If you would like to use more shared libraries (such as custom UI, utils, or more) add them here, following the format above. # In addition, ensure that you add them to the shared library build below. 
 include $(CLEAR_VARS) 
 LOCAL_MODULE := songloader_0_1_0
 LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.c)
+
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_1_6
-LOCAL_SHARED_LIBRARIES += codegen_0_3_4
+LOCAL_SHARED_LIBRARIES += codegen_0_7_0
 LOCAL_SHARED_LIBRARIES += custom-types
+
+LOCAL_SHARED_LIBRARIES += cryptopp
+
 LOCAL_LDLIBS += -llog 
 LOCAL_CFLAGS += -I"include" -I"shared" -I"./extern/libil2cpp/il2cpp/libil2cpp" -I"extern" -I"extern/codegen/include" -DVERSION='"0.1.3"'
 LOCAL_C_INCLUDES += ./include ./src 
+
 include $(BUILD_SHARED_LIBRARY)
