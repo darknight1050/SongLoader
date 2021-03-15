@@ -34,15 +34,20 @@
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
 #include "GlobalNamespace/IAudioClipAsyncLoader.hpp"
 #include "GlobalNamespace/ISpriteAsyncLoader.hpp"
+#include "GlobalNamespace/HMTask.hpp"
 #include "UnityEngine/AudioClip.hpp"
 #include "UnityEngine/GameObject.hpp"
 #include "UnityEngine/Rect.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "UnityEngine/Sprite.hpp"
+#include "System/Action.hpp"
+#include "System/IO/Path.hpp"
+#include "System/IO/Directory.hpp"
 
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
+using namespace System::IO;
 using namespace FindComponentsUtils;
 
 DEFINE_CLASS(SongLoader);
@@ -75,22 +80,20 @@ void SongLoader::Update() {
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
-void SongLoader::Awake() {
-    if(CustomLevelsCollection)
-        return;
+void SongLoader::ctor() {
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(Array<CustomPreviewBeatmapLevel*>::NewLength(0));
-    static auto customLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + "CustomLevels", il2cpp_utils::StringType::Manual);
+    static auto customLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + CustomLevelsFolder, il2cpp_utils::StringType::Manual);
     static auto customLevelsPackName = il2cpp_utils::createcsstr("Custom Levels", il2cpp_utils::StringType::Manual);
     CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(customLevelsPackID, customLevelsPackName, customLevelsPackName, GetCustomLevelLoader()->defaultPackCover, CustomLevelsCollection);
     
-    WIPLevelsCollection = CustomBeatmapLevelCollection::New_ctor(Array<CustomPreviewBeatmapLevel*>::NewLength(0));
-    static auto WIPLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + "CustomWIPLevels", il2cpp_utils::StringType::Manual);
-    static auto WIPLevelsPackName = il2cpp_utils::createcsstr("WIP Levels", il2cpp_utils::StringType::Manual);
-    WIPLevelsPack = CustomBeatmapLevelPack::New_ctor(WIPLevelsPackID, WIPLevelsPackName, WIPLevelsPackName, GetCustomLevelLoader()->defaultPackCover, WIPLevelsCollection);
+    CustomWIPLevelsCollection = CustomBeatmapLevelCollection::New_ctor(Array<CustomPreviewBeatmapLevel*>::NewLength(0));
+    static auto customWIPLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + CustomWIPLevelsFolder, il2cpp_utils::StringType::Manual);
+    static auto customWIPLevelsPackName = il2cpp_utils::createcsstr("WIP Levels", il2cpp_utils::StringType::Manual);
+    CustomWIPLevelsPack = CustomBeatmapLevelPack::New_ctor(customWIPLevelsPackID, customWIPLevelsPackName, customWIPLevelsPackName, GetCustomLevelLoader()->defaultPackCover, CustomWIPLevelsCollection);
     
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
     CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
-    CustomBeatmapLevelPackCollectionSO->AddLevelPack(WIPLevelsPack);
+    CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
     
 }
 
@@ -166,4 +169,51 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
     return CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::createcsstr(customLevelPath), reinterpret_cast<IAudioClipAsyncLoader*>(GetCachedMediaAsyncLoader()), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+}
+
+void SongLoader::RefreshSongs(bool fullRefresh) {
+    HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
+        (std::function<void()>)[=] { 
+            auto start = std::chrono::high_resolution_clock::now(); 
+            auto customLevels = List<CustomPreviewBeatmapLevel*>::New_ctor();
+            Array<Il2CppString*>* customLevelsFolders = Directory::GetDirectories(il2cpp_utils::createcsstr(BaseLevelsPath + "/" + CustomLevelsFolder));
+            for (int i = 0; i < customLevelsFolders->Length(); i++)
+            {
+                auto startLevel = std::chrono::high_resolution_clock::now(); 
+                std::string songPath = to_utf8(csstrtostr(Path::GetFullPath(customLevelsFolders->values[i])));
+                StandardLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
+                std::string hash;
+                auto level = LoadCustomPreviewBeatmapLevel(songPath, saveData, hash);
+                std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel); 
+                if(level) {  
+                    customLevels->Add_NEW(level);
+                    LOG_INFO("Loaded (%s) in %dms!", songPath.c_str(), durationLevel);
+                } else {
+                    LOG_ERROR("Failed (%s)!", songPath.c_str());
+                }
+            }
+            CustomLevelsCollection->customPreviewBeatmapLevels = customLevels->ToArray();
+            auto customWIPLevels = List<CustomPreviewBeatmapLevel*>::New_ctor();
+            Array<Il2CppString*>* customWIPLevelsFolders = Directory::GetDirectories(il2cpp_utils::createcsstr(BaseLevelsPath + "/" + CustomWIPLevelsFolder));
+            for (int i = 0; i < customWIPLevelsFolders->Length(); i++)
+            {
+                auto startLevel = std::chrono::high_resolution_clock::now(); 
+                std::string songPath = to_utf8(csstrtostr(Path::GetFullPath(customWIPLevelsFolders->values[i])));
+                StandardLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
+                std::string hash;
+                auto level = LoadCustomPreviewBeatmapLevel(songPath, saveData, hash);
+                std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel); 
+                if(level) {  
+                    customWIPLevels->Add_NEW(level);
+                    LOG_INFO("Loaded (%s) in %dms!", songPath.c_str(), durationLevel);
+                } else {
+                    LOG_ERROR("Failed (%s)!", songPath.c_str());
+                }
+            }
+            CustomWIPLevelsCollection->customPreviewBeatmapLevels = customWIPLevels->ToArray();
+            RefreshLevelPacks();
+            std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
+            LOG_INFO("Loaded %d songs in %dms!", CustomLevelsCollection->customPreviewBeatmapLevels->Length(), duration);
+        }
+    ), nullptr)->Run();
 }

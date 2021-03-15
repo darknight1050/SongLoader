@@ -15,28 +15,30 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     private:
         static SongLoader* Instance;
         
-        GlobalNamespace::CustomBeatmapLevelCollection* WIPLevelsCollection = nullptr;
+        GlobalNamespace::CustomBeatmapLevelCollection* CustomLevelsCollection = nullptr;
+        GlobalNamespace::CustomBeatmapLevelCollection* CustomWIPLevelsCollection = nullptr;
 
         GlobalNamespace::CustomBeatmapLevelPack* CustomLevelsPack = nullptr;
-        GlobalNamespace::CustomBeatmapLevelPack* WIPLevelsPack = nullptr;
+        GlobalNamespace::CustomBeatmapLevelPack* CustomWIPLevelsPack = nullptr;
 
         SongLoaderBeatmapLevelPackCollectionSO* CustomBeatmapLevelPackCollectionSO = nullptr;
 
         bool NeedRefresh = false;
 
     public:
-        GlobalNamespace::CustomBeatmapLevelCollection* CustomLevelsCollection = nullptr;
         static SongLoader* GetInstance();
         void RefreshLevelPacks();
         GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(std::string customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
         GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(std::string customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
-    
-    DECLARE_METHOD(void, Awake);
+
+        void RefreshSongs(bool fullRefresh = false);
+        
+    DECLARE_CTOR(ctor);
     DECLARE_METHOD(void, Update);
 
     REGISTER_FUNCTION(SongLoader,
-        REGISTER_METHOD(Awake);
+        REGISTER_METHOD(ctor);
         REGISTER_METHOD(Update);
     )
 )
