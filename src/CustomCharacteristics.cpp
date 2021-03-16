@@ -5,20 +5,24 @@
 
 #include "CustomLogger.hpp"
 
+#include "Utils/ArrayUtil.hpp"
+
 #include "Sprites.hpp"
 
+#include "GlobalNamespace/MainSystemInit.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
 #include "UnityEngine/ScriptableObject.hpp"
-
 #include "UnityEngine/Vector4.hpp"
 #include "UnityEngine/Rect.hpp"
 #include "UnityEngine/Sprite.hpp"
 #include "UnityEngine/SpriteMeshType.hpp"
-#include "System/Convert.hpp"
 #include "UnityEngine/Texture2D.hpp"
 #include "UnityEngine/TextureFormat.hpp"
 #include "UnityEngine/TextureWrapMode.hpp"
 #include "UnityEngine/ImageConversion.hpp"
+#include "UnityEngine/Resources.hpp"
+#include "System/Convert.hpp"
+
 
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -37,7 +41,7 @@ Sprite* Base64ToSprite(std::string& base64)
 
 namespace CustomCharacteristics {
 
-    std::vector<BeatmapCharacteristicSO*> customCharacteristics;
+    List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
 
     BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
@@ -45,34 +49,46 @@ namespace CustomCharacteristics {
         characteristic->icon = icon;
         characteristic->descriptionLocalizationKey = il2cpp_utils::createcsstr(hintText);
         characteristic->serializedName = il2cpp_utils::createcsstr(serializedName);
-        characteristic->characteristicNameLocalizationKey = il2cpp_utils::createcsstr(compoundIdPartName);
+        characteristic->characteristicNameLocalizationKey = il2cpp_utils::createcsstr(characteristicName);
+        characteristic->compoundIdPartName = il2cpp_utils::createcsstr(compoundIdPartName);
         characteristic->requires360Movement = requires360Movement;
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
-        
-        customCharacteristics.push_back(characteristic);
+
+        auto mainSystemInit = ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
+        if(!characteristicsList) {
+            characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();
+            if(mainSystemInit) {
+                auto beatmapCharacteristics = mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics;
+                for(int i = 0; i < beatmapCharacteristics->Length(); i++){
+                    characteristicsList->Add_NEW(beatmapCharacteristics->values[i]);
+                }
+            }
+        }
+        characteristicsList->Add_NEW(characteristic);
+        if(mainSystemInit)
+            mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics = characteristicsList->ToArray();
+
         return characteristic;
     }
 
-    BeatmapCharacteristicSO* FindByName(std::string characteristicName)
-    {
-        for(BeatmapCharacteristicSO* characteristic : customCharacteristics){
+    GlobalNamespace::BeatmapCharacteristicSO* FindByName(const std::string& characteristicName) {
+        if(!characteristicsList)
+            return nullptr;
+        for(int i = 0; i < characteristicsList->get_Count_NEW(); i++){
+            auto characteristic = characteristicsList->get_Item_NEW(i);
             if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
                 return characteristic;
         }
         return nullptr;
-    }
+    }  
 
     MAKE_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
     {
         BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
         std::string _serializedName = to_utf8(csstrtostr(serializedName));
         if(!result)
-        {   
-            result = FindByName(_serializedName);
-            if(!result)
-                result = FindByName("MissingCharacteristic");
-        }
+            result = FindByName("MissingCharacteristic");
         return result;
     }
 
