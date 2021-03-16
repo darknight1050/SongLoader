@@ -3,6 +3,8 @@
 
 namespace FileUtils {
     
-    std::string ReadAllText(std::string path);
+    std::string ReadAllText(const std::string& path);
+    
+    std::vector<std::string> GetFolders(const std::string& path);
 
 }
