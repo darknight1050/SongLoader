@@ -179,14 +179,14 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
 }
 
 List<GlobalNamespace::CustomPreviewBeatmapLevel*>* SongLoader::LoadSongsFromPath(std::string path) {
+    const int MAX_THREADS = 8;
     auto customLevelsList = ConcurrentQueue_1<CustomPreviewBeatmapLevel*>::New_ctor();
     std::vector<CustomPreviewBeatmapLevel*> customLevels;
     std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(path);
     int threadsCount = 0;
     int threadsFinished = 0;
-    int maxThreads = 6;
-    int songsPerThread = (customLevelsFolders.size() / maxThreads) + 1;
-    for (int threadIndex = 0; threadIndex < maxThreads; threadIndex++) {
+    int songsPerThread = (customLevelsFolders.size() / MAX_THREADS) + 1;
+    for (int threadIndex = 0; threadIndex < MAX_THREADS; threadIndex++) {
         int startIndex = threadIndex*songsPerThread;
         int endIndex = std::min<int>((threadIndex+1)*songsPerThread, customLevelsFolders.size());
         if(startIndex >= endIndex)
