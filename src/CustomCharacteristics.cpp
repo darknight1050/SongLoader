@@ -77,8 +77,9 @@ namespace CustomCharacteristics {
             return nullptr;
         for(int i = 0; i < characteristicsList->get_Count_NEW(); i++){
             auto characteristic = characteristicsList->get_Item_NEW(i);
-            if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
-                return characteristic;
+            if(characteristic && characteristic->serializedName)
+                if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
+                    return characteristic;
         }
         return nullptr;
     }  
@@ -86,7 +87,6 @@ namespace CustomCharacteristics {
     MAKE_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
     {
         BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
-        std::string _serializedName = to_utf8(csstrtostr(serializedName));
         if(!result)
             result = FindByName("MissingCharacteristic");
         return result;
