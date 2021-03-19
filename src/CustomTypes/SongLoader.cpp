@@ -215,7 +215,7 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
     }
     auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
     float highestTime = 0.0f;
-    if(beatmapSaveData->notes->get_Count_NEW() > 0) {
+    if(beatmapSaveData->notes->get_Count() > 0) {
         highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->notes->ToArray(), [](BeatmapSaveData::NoteData* x){ return x->time; });
     } else {
         highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->events->ToArray(), [](BeatmapSaveData::EventData* x){ return x->time; });
