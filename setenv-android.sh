@@ -393,7 +393,7 @@ sed -e 's/= memmem/= (const char*)memmem/g' \
 mv ./include/cryptopp/cpu-features.c.fixed ./include/cryptopp/cpu-features.c
 
 # Fix permissions. For some reason cpu-features.h is +x.
-chmod u=rw,go=r ./include/cryptopp/cpu-features.h c./include/cryptopp/pu-features.c
+chmod u=rw,go=r ./include/cryptopp/cpu-features.h ./include/cryptopp/cpu-features.c
 
 #####################################################################
 
