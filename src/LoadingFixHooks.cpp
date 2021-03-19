@@ -8,6 +8,8 @@
 
 #include "GlobalNamespace/AdditionalContentModel.hpp"
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
+#include "GlobalNamespace/CustomBeatmapLevel.hpp"
+#include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
 #include "GlobalNamespace/BeatmapEventData.hpp"
 #include "GlobalNamespace/BeatmapEventTypeExtensions.hpp"
@@ -28,6 +30,17 @@ using namespace Tasks;
 
 namespace LoadingFixHooks {
 
+    MAKE_HOOK_OFFSETLESS(BeatmapData_ctor, void, BeatmapData* self, int numberOfLines) {
+        LOG_DEBUG("BeatmapData_ctor");
+        BeatmapData_ctor(self, numberOfLines);
+        self->prevAddedBeatmapEventDataTime = System::Single::MinValue;
+    }
+
+    MAKE_HOOK_OFFSETLESS(CustomBeatmapLevel_ctor, void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel, AudioClip* previewAudioClip) {
+        LOG_DEBUG("CustomBeatmapLevel_ctor");
+        CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel, previewAudioClip);
+        self->songDuration = customPreviewBeatmapLevel->songDuration;
+    }
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
         self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
@@ -80,6 +93,8 @@ namespace LoadingFixHooks {
     }
 
     void InstallHooks() {
+        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_ctor, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", ".ctor", 1));
+        INSTALL_HOOK_OFFSETLESS(getLogger(), CustomBeatmapLevel_ctor, il2cpp_utils::FindMethodUnsafe("", "CustomBeatmapLevel", ".ctor", 2));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_AddBeatmapEventData, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", "AddBeatmapEventData", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ReloadCustomLevelPackCollectionAsync", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));

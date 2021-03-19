@@ -201,7 +201,7 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
     if(!fileexists(path)) {
         LOG_ERROR("GetLengthFromMap File %s did not exist", (path).c_str());
         return 0.0f;
-    } 
+    }
     auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
     float highestTime = 0.0f;
     if(beatmapSaveData->notes->get_Count_NEW() > 0) {
