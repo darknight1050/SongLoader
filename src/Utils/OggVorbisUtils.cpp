@@ -10,15 +10,18 @@ namespace OggVorbisUtils {
     const char OGG_BYTES[] = { 0x4F, 0x67, 0x67, 0x53, 0x00, 0x04 }; //"OggS" + 0x00 + 0x04
     #define OGG_OFFSET (8 + 2 + 4)
     float GetLengthFromOggVorbisFile(std::string_view path) {
+        
         auto start = std::chrono::high_resolution_clock::now();
         LOG_DEBUG("GetLengthFromOggVorbisFile Start");
+        float length = 0.0f;
+
         size_t dataLength;
         const char* dataStart = FileUtils::ReadAllBytes(path, dataLength);
         if(!dataStart)
-            return 0.0f;
+            return length;
         if(dataLength <= 0) {
             delete dataStart;
-            return 0.0f;
+            return length;
         }
         long rate = 0;
         long long lastSample = 0;
@@ -40,9 +43,9 @@ namespace OggVorbisUtils {
         }
 
         delete dataStart;
-        float length = 0.0f;
         if(rate != 0 & lastSample != 0)
             length = lastSample / (float)rate;
+
         std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
         LOG_DEBUG("GetLengthFromOggVorbisFile Stop Result %f Time %d", length, duration);
         return length;

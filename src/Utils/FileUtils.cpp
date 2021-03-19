@@ -11,7 +11,9 @@ namespace FileUtils {
     std::string ReadAllText(std::string_view path) {
         if(!fileexists(path))
             return "";
-        std::ifstream fileStream(path.data(), std::ifstream::in | std::ios::binary);
+        std::ifstream fileStream(path.data(), std::ifstream::in);
+        if(!fileStream.is_open())
+            return "";
         std::string text((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
         return text;
     }

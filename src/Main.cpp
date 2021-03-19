@@ -5,6 +5,7 @@
 #include "custom-types/shared/register.hpp"
 
 #include "CustomLogger.hpp"
+#include "CustomConfig.hpp"
 
 #include "Paths.hpp"
 
@@ -13,6 +14,7 @@
 #include "CustomBeatmapLevelLoader.hpp"
 
 #include "Utils/FindComponentsUtils.hpp"
+#include "Utils/CacheUtils.hpp"
 
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 #include "CustomTypes/SongLoader.hpp"
@@ -21,11 +23,16 @@
 
 #include "UnityEngine/SceneManagement/Scene.hpp"
 
-static ModInfo modInfo;
+ModInfo modInfo;
 
 Logger& getLogger() {
     static auto logger = new Logger(modInfo, LoggerOptions(false, true)); 
     return *logger; 
+}
+
+Configuration& getConfig() {
+    static Configuration config(modInfo);
+    return config;
 }
 
 using namespace GlobalNamespace;
