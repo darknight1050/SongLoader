@@ -8,28 +8,34 @@
 #include "GlobalNamespace/CustomBeatmapLevelPack.hpp" 
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp" 
 #include "GlobalNamespace/EnvironmentInfoSO.hpp" 
+#include "GlobalNamespace/BeatmapDataLoader.hpp" 
 #include "UnityEngine/MonoBehaviour.hpp" 
 
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour, 
  
     private:
         static SongLoader* Instance;
-        
-        GlobalNamespace::CustomBeatmapLevelCollection* CustomLevelsCollection = nullptr;
-        GlobalNamespace::CustomBeatmapLevelCollection* CustomWIPLevelsCollection = nullptr;
 
-        GlobalNamespace::CustomBeatmapLevelPack* CustomLevelsPack = nullptr;
-        GlobalNamespace::CustomBeatmapLevelPack* CustomWIPLevelsPack = nullptr;
+        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader, nullptr);
 
-        SongLoaderBeatmapLevelPackCollectionSO* CustomBeatmapLevelPackCollectionSO = nullptr;
+        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelCollection*, CustomLevelsCollection, nullptr);
+        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelCollection*, CustomWIPLevelsCollection, nullptr);
 
-        bool NeedRefresh = false;
+        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelPack*, CustomLevelsPack, nullptr);
+        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelPack*, CustomWIPLevelsPack, nullptr);
 
-        GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(std::string customLevelPath);
+        DECLARE_INSTANCE_FIELD_DEFAULT(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO, nullptr);
+
+        DECLARE_INSTANCE_FIELD_DEFAULT(bool, NeedRefresh, false);
+
+        GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
-        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(std::string customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
+        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
+        
+        void UpdateSongDuration(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
+        float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
 
-        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string path);
+        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path);
 
     public:
         static SongLoader* GetInstance();
@@ -41,6 +47,18 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     DECLARE_METHOD(void, Update);
 
     REGISTER_FUNCTION(SongLoader,
+        REGISTER_FIELD(beatmapDataLoader);
+
+        REGISTER_FIELD(CustomLevelsCollection);
+        REGISTER_FIELD(CustomWIPLevelsCollection);
+
+        REGISTER_FIELD(CustomLevelsPack);
+        REGISTER_FIELD(CustomWIPLevelsPack);
+
+        REGISTER_FIELD(CustomBeatmapLevelPackCollectionSO);
+
+        REGISTER_FIELD(NeedRefresh);
+
         REGISTER_METHOD(ctor);
         REGISTER_METHOD(Update);
     )

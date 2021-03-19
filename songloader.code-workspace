@@ -96,7 +96,19 @@
 			"ranges": "cpp",
 			"concepts": "cpp",
 			"memory_resource": "cpp",
-			"stop_token": "cpp"
+			"stop_token": "cpp",
+			"span": "cpp",
+			"any": "cpp",
+			"cfenv": "cpp",
+			"charconv": "cpp",
+			"csetjmp": "cpp",
+			"csignal": "cpp",
+			"scoped_allocator": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp",
+			"cuchar": "cpp",
+			"numbers": "cpp",
+			"shared_mutex": "cpp"
 		}
 	}
 }

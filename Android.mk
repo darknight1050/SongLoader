@@ -45,6 +45,12 @@ LOCAL_MODULE := custom-types
 LOCAL_EXPORT_C_INCLUDES := extern/custom-types
 LOCAL_SRC_FILES := extern/libcustom-types.so
 include $(PREBUILT_SHARED_LIBRARY)
+# Creating prebuilt for dependency: questui - version: 0.4.4
+include $(CLEAR_VARS)
+LOCAL_MODULE := questui
+LOCAL_EXPORT_C_INCLUDES := extern/questui
+LOCAL_SRC_FILES := extern/libquestui.so
+include $(PREBUILT_SHARED_LIBRARY)
 
 # cryptopp
 include $(CLEAR_VARS)
@@ -64,6 +70,7 @@ LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_1_6
 LOCAL_SHARED_LIBRARIES += codegen_0_7_0
 LOCAL_SHARED_LIBRARIES += custom-types
+LOCAL_SHARED_LIBRARIES += questui
 
 LOCAL_SHARED_LIBRARIES += cryptopp
 

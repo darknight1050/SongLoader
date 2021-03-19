@@ -17,6 +17,8 @@
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 #include "CustomTypes/SongLoader.hpp"
 
+#include "questui/shared/QuestUI.hpp"
+
 #include "UnityEngine/SceneManagement/Scene.hpp"
 
 static ModInfo modInfo;
@@ -58,6 +60,7 @@ extern "C" void setup(ModInfo& info) {
 extern "C" void load() {
     LOG_INFO("Starting SongLoader installation...");
     il2cpp_functions::Init();
+    QuestUI::Init();
     custom_types::Register::RegisterTypes<SongLoaderBeatmapLevelPackCollectionSO, SongLoader>();
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_ActiveSceneChanged, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_ActiveSceneChanged", 2));
     CustomBeatmapLevelLoader::InstallHooks();

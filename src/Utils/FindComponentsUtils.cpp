@@ -1,5 +1,5 @@
 #include "Utils/FindComponentsUtils.hpp"
-#include "Utils/ArrayUtil.hpp"
+#include "questui/shared/ArrayUtil.hpp"
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -18,7 +18,7 @@ namespace FindComponentsUtils {
     name* _##name = nullptr; \
     name* Get##name() { \
         if(!_##name) \
-            _##name = ArrayUtil::First(Resources::FindObjectsOfTypeAll<name*>()); \
+            _##name = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<name*>()); \
         if(!_##name) \
             CacheNotFoundWarningLog(_##name) \
         return _##name; \

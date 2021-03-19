@@ -5,7 +5,7 @@
 
 #include "CustomLogger.hpp"
 
-#include "Utils/ArrayUtil.hpp"
+#include "questui/shared/ArrayUtil.hpp"
 
 #include "Sprites.hpp"
 
@@ -32,7 +32,7 @@ Sprite* Base64ToSprite(std::string& base64)
 {
     Array<uint8_t>* bytes = System::Convert::FromBase64String(il2cpp_utils::createcsstr(base64));
     Texture2D* texture = Texture2D::New_ctor(0, 0, TextureFormat::RGBA32, false, false);
-    if (ImageConversion::LoadImage(texture, bytes, false)) {
+    if(ImageConversion::LoadImage(texture, bytes, false)) {
         texture->set_wrapMode(TextureWrapMode::Clamp);
         return Sprite::Create(texture, UnityEngine::Rect(0.0f, 0.0f, (float)texture->get_width_NEW(), (float)texture->get_height_NEW()), UnityEngine::Vector2(0.5f,0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
     }
@@ -55,7 +55,7 @@ namespace CustomCharacteristics {
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
 
-        auto mainSystemInit = ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
+        auto mainSystemInit = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
         if(!characteristicsList) {
             characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();
             if(mainSystemInit) {

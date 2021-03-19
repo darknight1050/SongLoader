@@ -32,7 +32,7 @@ namespace LoadingFixHooks {
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
         self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
         self->beatmapEventsData->Add_NEW(beatmapEventData);
-		if (BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
+		if(BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
 			self->spawnRotationEventsCount++;
     }
 
@@ -49,7 +49,7 @@ namespace LoadingFixHooks {
         if(self->dlcLevelPackCollectionContainer && self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection)
             list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection->get_beatmapLevelPacks_NEW()));
         self->allLoadedBeatmapLevelWithoutCustomLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
-        if (self->customLevelPackCollection)
+        if(self->customLevelPackCollection)
             list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks_NEW()));
         self->allLoadedBeatmapLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
         LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Stop");
