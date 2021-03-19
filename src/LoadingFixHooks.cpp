@@ -44,7 +44,7 @@ namespace LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
         self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
-        self->beatmapEventsData->Add_NEW(beatmapEventData);
+        self->beatmapEventsData->Add(beatmapEventData);
 		if(BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
 			self->spawnRotationEventsCount++;
     }
@@ -58,12 +58,12 @@ namespace LoadingFixHooks {
         LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Start");
         List<IBeatmapLevelPack*>* list = List<IBeatmapLevelPack*>::New_ctor();
         if(self->ostAndExtrasPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks_NEW()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks()));
         if(self->dlcLevelPackCollectionContainer && self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection->get_beatmapLevelPacks_NEW()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection->get_beatmapLevelPacks()));
         self->allLoadedBeatmapLevelWithoutCustomLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
         if(self->customLevelPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks_NEW()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks()));
         self->allLoadedBeatmapLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
         LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Stop");
     }
@@ -89,7 +89,7 @@ namespace LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, Il2CppString*, Il2CppString* filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return il2cpp_utils::createcsstr("file:///" + to_utf8(csstrtostr(filePath)));
+        return il2cpp_utils::createcsstr("file://" + to_utf8(csstrtostr(filePath)));
     }
 
     void InstallHooks() {

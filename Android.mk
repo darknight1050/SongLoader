@@ -26,11 +26,11 @@ LOCAL_MODULE := codegen_0_7_0
 LOCAL_EXPORT_C_INCLUDES := extern/codegen
 LOCAL_SRC_FILES := extern/libcodegen_0_7_0.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: beatsaber-hook - version: 1.1.6
+# Creating prebuilt for dependency: beatsaber-hook - version: 1.2.3
 include $(CLEAR_VARS)
-LOCAL_MODULE := beatsaber-hook_1_1_6
+LOCAL_MODULE := beatsaber-hook_1_2_3
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
-LOCAL_SRC_FILES := extern/libbeatsaber-hook_1_1_6.so
+LOCAL_SRC_FILES := extern/libbeatsaber-hook_1_2_3.so
 LOCAL_CPP_FEATURES += exceptions 
 include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: modloader - version: 1.0.4
@@ -39,13 +39,13 @@ LOCAL_MODULE := modloader
 LOCAL_EXPORT_C_INCLUDES := extern/modloader
 LOCAL_SRC_FILES := extern/libmodloader.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: custom-types - version: 0.5.0
+# Creating prebuilt for dependency: custom-types - version: 0.5.1
 include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
 LOCAL_EXPORT_C_INCLUDES := extern/custom-types
 LOCAL_SRC_FILES := extern/libcustom-types.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: questui - version: 0.4.4
+# Creating prebuilt for dependency: questui - version: 0.5.0
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui
 LOCAL_EXPORT_C_INCLUDES := extern/questui
@@ -65,17 +65,13 @@ LOCAL_MODULE := songloader_0_1_0
 LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.c)
-
 LOCAL_SHARED_LIBRARIES += modloader
-LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_1_6
+LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_2_3
 LOCAL_SHARED_LIBRARIES += codegen_0_7_0
 LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_SHARED_LIBRARIES += questui
-
 LOCAL_SHARED_LIBRARIES += cryptopp
-
 LOCAL_LDLIBS += -llog 
 LOCAL_CFLAGS += -I"include" -I"shared" -I"./extern/libil2cpp/il2cpp/libil2cpp" -I"extern" -I"extern/codegen/include" -DVERSION='"0.1.3"'
 LOCAL_C_INCLUDES += ./include ./src 
-
 include $(BUILD_SHARED_LIBRARY)

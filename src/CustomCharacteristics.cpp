@@ -34,7 +34,7 @@ Sprite* Base64ToSprite(std::string& base64)
     Texture2D* texture = Texture2D::New_ctor(0, 0, TextureFormat::RGBA32, false, false);
     if(ImageConversion::LoadImage(texture, bytes, false)) {
         texture->set_wrapMode(TextureWrapMode::Clamp);
-        return Sprite::Create(texture, UnityEngine::Rect(0.0f, 0.0f, (float)texture->get_width_NEW(), (float)texture->get_height_NEW()), UnityEngine::Vector2(0.5f,0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
+        return Sprite::Create(texture, UnityEngine::Rect(0.0f, 0.0f, (float)texture->get_width(), (float)texture->get_height()), UnityEngine::Vector2(0.5f,0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
     }
     return nullptr;
 }
@@ -61,11 +61,11 @@ namespace CustomCharacteristics {
             if(mainSystemInit) {
                 auto beatmapCharacteristics = mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics;
                 for(int i = 0; i < beatmapCharacteristics->Length(); i++){
-                    characteristicsList->Add_NEW(beatmapCharacteristics->values[i]);
+                    characteristicsList->Add(beatmapCharacteristics->values[i]);
                 }
             }
         }
-        characteristicsList->Add_NEW(characteristic);
+        characteristicsList->Add(characteristic);
         if(mainSystemInit)
             mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics = characteristicsList->ToArray();
 
@@ -75,8 +75,8 @@ namespace CustomCharacteristics {
     GlobalNamespace::BeatmapCharacteristicSO* FindByName(const std::string& characteristicName) {
         if(!characteristicsList)
             return nullptr;
-        for(int i = 0; i < characteristicsList->get_Count_NEW(); i++){
-            auto characteristic = characteristicsList->get_Item_NEW(i);
+        for(int i = 0; i < characteristicsList->get_Count(); i++){
+            auto characteristic = characteristicsList->get_Item(i);
             if(characteristic && characteristic->serializedName)
                 if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
                     return characteristic;

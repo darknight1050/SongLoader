@@ -35,6 +35,8 @@ Configuration& getConfig() {
     return config;
 }
 
+std::string BaseLevelsPath;
+
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 using namespace RuntimeSongLoader;
@@ -62,6 +64,13 @@ extern "C" void setup(ModInfo& info) {
     modInfo.id = "SongLoader";
     modInfo.version = VERSION;
     info = modInfo;
+
+    BaseLevelsPath = getDataDir(modInfo);
+    if(!direxists(BaseLevelsPath))
+        mkpath(BaseLevelsPath);
+    if(!direxists(BaseLevelsPath + CustomLevelsFolder))
+        mkpath(BaseLevelsPath + CustomLevelsFolder);
+    LOG_INFO("Base path is: %s", BaseLevelsPath.c_str());
 }
 
 extern "C" void load() {

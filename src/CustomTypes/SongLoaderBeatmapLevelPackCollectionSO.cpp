@@ -16,15 +16,15 @@ SongLoaderBeatmapLevelPackCollectionSO* SongLoaderBeatmapLevelPackCollectionSO::
 }
 
 void SongLoaderBeatmapLevelPackCollectionSO::AddLevelPack(CustomBeatmapLevelPack* pack) {
-    if(pack && !customBeatmapLevelPacks->Contains_NEW(pack)) {
-        customBeatmapLevelPacks->Add_NEW(pack);
+    if(pack && !customBeatmapLevelPacks->Contains(pack)) {
+        customBeatmapLevelPacks->Add(pack);
         UpdateArray();
     }
 }
 
 void SongLoaderBeatmapLevelPackCollectionSO::RemoveLevelPack(CustomBeatmapLevelPack* pack) {
-    if(pack && customBeatmapLevelPacks->Contains_NEW(pack)) {
-        customBeatmapLevelPacks->Remove_NEW(pack);
+    if(pack && customBeatmapLevelPacks->Contains(pack)) {
+        customBeatmapLevelPacks->Remove(pack);
         UpdateArray();
     }
 }

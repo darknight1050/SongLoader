@@ -1,6 +1,6 @@
 #pragma once
 
-const std::string BaseLevelsPath = "/sdcard/BeatSaberSongs";
+extern std::string BaseLevelsPath;
 const std::string CustomLevelsFolder = "CustomLevels";
 const std::string CustomWIPLevelsFolder = "CustomWIPLevels";
 const std::string CustomLevelPrefixID = "custom_level_";
