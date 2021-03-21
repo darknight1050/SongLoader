@@ -28,6 +28,11 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         DECLARE_INSTANCE_FIELD_DEFAULT(bool, NeedRefresh, false);
 
+        DECLARE_INSTANCE_FIELD_DEFAULT(bool, IsLoading, false);
+
+        DECLARE_INSTANCE_FIELD_DEFAULT(int, MaxFolders, 0);
+        DECLARE_INSTANCE_FIELD_DEFAULT(int, CurrentFolder, 0);
+
         GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
         GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
@@ -58,6 +63,11 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         REGISTER_FIELD(CustomBeatmapLevelPackCollectionSO);
 
         REGISTER_FIELD(NeedRefresh);
+
+        REGISTER_FIELD(IsLoading);
+
+        REGISTER_FIELD(MaxFolders);
+        REGISTER_FIELD(CurrentFolder);
 
         REGISTER_METHOD(ctor);
         REGISTER_METHOD(Update);

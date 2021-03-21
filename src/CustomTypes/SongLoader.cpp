@@ -4,12 +4,15 @@
 
 #include "Paths.hpp"
 
-#include "questui/shared/ArrayUtil.hpp"
+#include "LoadingUI.hpp"
+
 #include "Utils/HashUtils.hpp"
 #include "Utils/FileUtils.hpp"
 #include "Utils/CacheUtils.hpp"
 #include "Utils/OggVorbisUtils.hpp"
 #include "Utils/FindComponentsUtils.hpp"
+
+#include "questui/shared/ArrayUtil.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
@@ -52,6 +55,8 @@
 
 #include <vector>
 
+#define MAX_THREADS 8
+
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -78,6 +83,8 @@ void SongLoader::RefreshLevelPacks() {
 }
 
 void SongLoader::Update() {
+    if(IsLoading)
+        LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
     if(!NeedRefresh)
         return;
     NeedRefresh = false;
@@ -225,10 +232,14 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
 
 List<GlobalNamespace::CustomPreviewBeatmapLevel*>* SongLoader::LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths) {
     std::mutex values_mutex;
-    const int MAX_THREADS = 8;
     auto customLevelsList = List<CustomPreviewBeatmapLevel*>::New_ctor();
     std::vector<CustomPreviewBeatmapLevel*> customLevels;
     std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(path);
+    
+    IsLoading = true;
+    MaxFolders = customLevelsFolders.size();
+    CurrentFolder = 0;
+
     int songsCount = customLevelsFolders.size();
     int songsPerThread = (songsCount / MAX_THREADS) + 1;
     int threadsCount = 0;
@@ -253,6 +264,7 @@ List<GlobalNamespace::CustomPreviewBeatmapLevel*>* SongLoader::LoadSongsFromPath
                         customLevelsList->Add(level); //To avoid GC freeing it
                         customLevels.push_back(level);
                         loadedPaths.push_back(songPath);
+                        CurrentFolder++;
                         LOG_INFO("Loaded %s in %dms!", songPath.c_str(), durationLevel);
                     } else {
                         LOG_ERROR("Failed %s!", songPath.c_str());
@@ -270,6 +282,7 @@ List<GlobalNamespace::CustomPreviewBeatmapLevel*>* SongLoader::LoadSongsFromPath
     for(CustomPreviewBeatmapLevel* level : customLevels) {
         customLevelsListFinal->Add(level);
     }
+    IsLoading = false;
     return customLevelsListFinal;
 }
 
@@ -288,6 +301,9 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             
             RefreshLevelPacks();
             auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
+            
+            int levelsCount = CustomLevelsCollection->customPreviewBeatmapLevels->Length() + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length();
+            LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
             LOG_INFO("Loaded %d songs in %dms!", CustomLevelsCollection->customPreviewBeatmapLevels->Length() + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length(), duration);
             
             CacheUtils::SaveToFile(loadedPaths);

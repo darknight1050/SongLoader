@@ -12,6 +12,7 @@
 #include "LoadingFixHooks.hpp"
 #include "CustomCharacteristics.hpp"
 #include "CustomBeatmapLevelLoader.hpp"
+#include "LoadingUI.hpp"
 
 #include "Utils/FindComponentsUtils.hpp"
 #include "Utils/CacheUtils.hpp"
@@ -50,12 +51,16 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
         if(prevSceneName == "QuestInit"){
             hasInited = true;
         }
-        if(hasInited && prevSceneName == "EmptyTransition" && nextSceneName.find("Menu") != std::string::npos) {
-            hasInited = false;
-            CustomCharacteristics::SetupCustomCharacteristics();
-            FindComponentsUtils::ClearCache();
-            SongLoader::GetInstance()->RefreshSongs(true);
-            
+        if(nextSceneName.find("Menu") != std::string::npos) {
+            if(hasInited && prevSceneName == "EmptyTransition") {
+                hasInited = false;
+                CustomCharacteristics::SetupCustomCharacteristics();
+                FindComponentsUtils::ClearCache();
+                LoadingUI::CreateCanvas();
+                SongLoader::GetInstance()->RefreshSongs(true);
+            }
+        } else {
+            LoadingUI::SetActive(false);
         }
     }
 }
