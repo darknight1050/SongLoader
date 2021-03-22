@@ -33,7 +33,7 @@ namespace LoadingUI {
             VerticalLayoutGroup* layout = BeatSaberUI::CreateVerticalLayoutGroup(transform);
             GameObject* layoutGameObject = layout->get_gameObject();
             layoutGameObject->GetComponent<ContentSizeFitter*>()->set_verticalFit(ContentSizeFitter::FitMode::PreferredSize);
-            layoutGameObject->AddComponent<Backgroundable*>()->ApplyBackgroundWithAlpha(il2cpp_utils::createcsstr("round-rect-panel"), 0.75f);
+            layoutGameObject->AddComponent<Backgroundable*>()->ApplyBackgroundWithAlpha(il2cpp_utils::createcsstr("round-rect-panel"), 0.98f);
             layout->set_padding(UnityEngine::RectOffset::New_ctor(3, 4, 2, 2));
             textObject = BeatSaberUI::CreateText(layout->get_transform(), "");
             textObject->set_alignment(TextAlignmentOptions::Center);
@@ -56,7 +56,7 @@ namespace LoadingUI {
         SetText(string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f));
         HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
             (std::function<void()>)[] {
-                Thread::Sleep(6000);
+                Thread::Sleep(6400);
                 SetActive(false);
             }
         ), nullptr)->Run();

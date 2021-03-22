@@ -26,6 +26,8 @@ namespace CacheUtils {
         }
         CacheData data;
         data.directoryHash = *directoryHash;
+        data.sha1 = std::nullopt;
+        data.songDuration = std::nullopt;
         UpdateCacheData(fullPath, data);
         return data;
     }
@@ -42,10 +44,19 @@ namespace CacheUtils {
             auto& value = it->value;
             if(value.HasMember("directoryHash") && value["directoryHash"].IsInt())
                 data.directoryHash = value["directoryHash"].GetInt();
-            if(value.HasMember("sha1") && value["sha1"].IsString())
+
+            if(value.HasMember("sha1") && value["sha1"].IsString()) {
                 data.sha1 = value["sha1"].GetString();
-            if(value.HasMember("songDuration") && value["songDuration"].IsFloat())
+                if(data.sha1.value().empty())
+                    data.sha1 = std::nullopt;
+            }
+
+            if(value.HasMember("songDuration") && value["songDuration"].IsFloat()) {
                 data.songDuration = value["songDuration"].GetFloat();
+                if(data.songDuration.value() <= 0.0f)
+                    data.songDuration = std::nullopt;
+            }
+
             UpdateCacheData(it->name.GetString(), data);
         }
     }

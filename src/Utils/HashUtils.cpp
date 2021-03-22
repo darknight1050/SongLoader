@@ -102,7 +102,6 @@ namespace HashUtils {
                 }
                 // Otherwise, xor all relevant fields of stat
                 value ^= st.st_size;
-                value ^= st.st_atime;
                 value ^= st.st_mtime;
             }
         }
