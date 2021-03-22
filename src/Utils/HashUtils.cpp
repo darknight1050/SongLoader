@@ -98,6 +98,7 @@ namespace HashUtils {
                 struct stat st;
                 if (stat((fullPath + "/" + name).c_str(), &st)) {
                     // Error
+                    closedir(dir);
                     return std::nullopt;
                 }
                 // Otherwise, xor all relevant fields of stat
