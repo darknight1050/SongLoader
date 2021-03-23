@@ -112,7 +112,7 @@ void SongLoader::ctor() {
     
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
     CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
-    CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
+    //CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
     
 }
 
@@ -299,6 +299,12 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             CustomLevelsCollection->customPreviewBeatmapLevels = LoadSongsFromPath(BaseLevelsPath + CustomLevelsFolder, loadedPaths)->ToArray();
             CustomWIPLevelsCollection->customPreviewBeatmapLevels = LoadSongsFromPath(BaseLevelsPath + CustomWIPLevelsFolder, loadedPaths)->ToArray();
             
+            if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+                CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
+            } else {
+                CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
+            }
+
             RefreshLevelPacks();
             auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
             
