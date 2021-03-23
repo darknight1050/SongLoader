@@ -53,6 +53,7 @@ namespace LoadingUI {
     }
 
     void UpdateLoadedProgress(int levelsCount, int time) {
+        SetActive(true);
         SetText(string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f));
         HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
             (std::function<void()>)[] {
