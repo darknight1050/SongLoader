@@ -76,8 +76,8 @@ namespace LoadingFixHooks {
         LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", to_utf8(csstrtostr(levelId)).c_str());
         if(to_utf8(csstrtostr(levelId)).starts_with(CustomLevelPrefixID)) {
             auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
-            if(beatmapLevelsModel->loadedPreviewBeatmapLevels->ContainsKey(levelId) || beatmapLevelsModel->loadedBeatmapLevels->IsInCache(levelId))
-                return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
+            bool loaded = beatmapLevelsModel->loadedPreviewBeatmapLevels->ContainsKey(levelId) || beatmapLevelsModel->loadedBeatmapLevels->IsInCache(levelId);
+            return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(loaded ? AdditionalContentModel::EntitlementStatus::Owned : AdditionalContentModel::EntitlementStatus::NotOwned);
         }
         return AdditionalContentModel_GetLevelEntitlementStatusAsync(self, levelId, cancellationToken);
     }
