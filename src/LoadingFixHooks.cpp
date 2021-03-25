@@ -6,6 +6,8 @@
 
 #include "Paths.hpp"
 
+#include "Utils/FindComponentsUtils.hpp"
+
 #include "GlobalNamespace/AdditionalContentModel.hpp"
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
@@ -18,6 +20,8 @@
 #include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
+#include "GlobalNamespace/HMCache_2.hpp"
+#include "System/Collections/Generic/Dictionary_2.hpp"
 #include "System/Threading/CancellationToken.hpp"
 #include "System/Threading/Tasks/Task_1.hpp"
 #include "System/Linq/Enumerable.hpp"
@@ -43,6 +47,7 @@ namespace LoadingFixHooks {
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
+        LOG_DEBUG("BeatmapData_AddBeatmapEventData");
         self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
         self->beatmapEventsData->Add(beatmapEventData);
 		if(BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
@@ -55,7 +60,7 @@ namespace LoadingFixHooks {
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, void, BeatmapLevelsModel* self) {
-        LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Start");
+        LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks");
         List<IBeatmapLevelPack*>* list = List<IBeatmapLevelPack*>::New_ctor();
         if(self->ostAndExtrasPackCollection)
             list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks()));
@@ -65,18 +70,20 @@ namespace LoadingFixHooks {
         if(self->customLevelPackCollection)
             list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks()));
         self->allLoadedBeatmapLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
-        LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks Stop");
     }
 
-    MAKE_HOOK_OFFSETLESS(AdditionalContentModel_GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, Il2CppString* levelID, CancellationToken cancellationToken) {
-        LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync Start %s", to_utf8(csstrtostr(levelID)).c_str());
-        if(to_utf8(csstrtostr(levelID)).starts_with(CustomLevelPrefixID))
-            return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
-        return AdditionalContentModel_GetLevelEntitlementStatusAsync(self, levelID, cancellationToken);
+    MAKE_HOOK_OFFSETLESS(AdditionalContentModel_GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, Il2CppString* levelId, CancellationToken cancellationToken) {
+        LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", to_utf8(csstrtostr(levelId)).c_str());
+        if(to_utf8(csstrtostr(levelId)).starts_with(CustomLevelPrefixID)) {
+            auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
+            if(beatmapLevelsModel->loadedPreviewBeatmapLevels->ContainsKey(levelId) || beatmapLevelsModel->loadedBeatmapLevels->IsInCache(levelId))
+                return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
+        }
+        return AdditionalContentModel_GetLevelEntitlementStatusAsync(self, levelId, cancellationToken);
     }
 
     MAKE_HOOK_OFFSETLESS(AdditionalContentModel_GetPackEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, Il2CppString* levelPackId, CancellationToken cancellationToken) {
-        LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync Start %s", to_utf8(csstrtostr(levelPackId)).c_str());
+        LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", to_utf8(csstrtostr(levelPackId)).c_str());
         if(to_utf8(csstrtostr(levelPackId)).starts_with(CustomLevelPackPrefixID))
             return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
         return AdditionalContentModel_GetPackEntitlementStatusAsync(self, levelPackId, cancellationToken);
