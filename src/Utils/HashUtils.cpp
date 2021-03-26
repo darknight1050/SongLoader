@@ -24,15 +24,20 @@ namespace HashUtils {
     
     std::optional<std::string> GetCustomLevelHash(StandardLevelInfoSaveData* level, std::string customLevelPath) {
         auto start = std::chrono::high_resolution_clock::now();
+        std::string hashHex;
         LOG_DEBUG("GetCustomLevelHash Start");
 
         auto cacheDataOpt = CacheUtils::GetCacheData(customLevelPath);
-        if(!cacheDataOpt.has_value())
+        if(!cacheDataOpt.has_value()) 
             return std::nullopt;
         auto cacheData = *cacheDataOpt;
         auto cacheSHA1 = cacheData.sha1;
         if(cacheSHA1.has_value())
-            return *cacheSHA1;
+        { 
+            hashHex = *cacheSHA1;
+            LOG_DEBUG("GetCustomLevelHash Stop Result %s from cache", hashHex.c_str());
+            return hashHex;
+        }
 
         std::string actualPath = customLevelPath + "/Info.dat";
         if(!fileexists(actualPath)) 
@@ -67,7 +72,6 @@ namespace HashUtils {
 
         hashFilter.MessageEnd();
         
-        std::string hashHex;
         HexEncoder hexEncoder(new StringSink(hashHex));
         hexEncoder.Put((const byte*)hashResult.data(), hashResult.size());
 

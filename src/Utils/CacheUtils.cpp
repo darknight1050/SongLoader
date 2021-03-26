@@ -37,9 +37,12 @@ namespace CacheUtils {
     }
 
     void LoadFromFile() {
+        cacheMap.clear();
         getConfig().Load();
+        getConfig().Reload();
         auto& config = getConfig().config;
         for(auto it = config.MemberBegin(); it != config.MemberEnd(); it++) {
+            LOG_INFO("Loading %s from cache!", it->name.GetString());
             CacheData data;
             auto& value = it->value;
             if(value.HasMember("directoryHash") && value["directoryHash"].IsInt())
@@ -56,7 +59,6 @@ namespace CacheUtils {
                 if(data.songDuration.value() <= 0.0f)
                     data.songDuration = std::nullopt;
             }
-
             UpdateCacheData(it->name.GetString(), data);
         }
     }
