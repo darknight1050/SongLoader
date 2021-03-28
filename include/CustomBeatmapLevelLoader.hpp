@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace CustomBeatmapLevelLoader {
+namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     void InstallHooks();
 

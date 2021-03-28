@@ -4,7 +4,7 @@
 #include <optional>
 #include <vector>
 
-namespace CacheUtils {
+namespace RuntimeSongLoader::CacheUtils {
 
     struct CacheData {
         int directoryHash = 0;

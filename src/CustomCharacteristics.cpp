@@ -39,7 +39,7 @@ Sprite* Base64ToSprite(std::string& base64)
     return nullptr;
 }
 
-namespace CustomCharacteristics {
+namespace RuntimeSongLoader::CustomCharacteristics {
 
     List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
 

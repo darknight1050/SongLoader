@@ -6,7 +6,7 @@
 #include <iterator>
 #include <dirent.h>
 
-namespace FileUtils {
+namespace RuntimeSongLoader::FileUtils {
     
     std::string ReadAllText(std::string_view path) {
         if(!fileexists(path))

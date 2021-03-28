@@ -1,6 +1,6 @@
 #pragma once
 
-namespace LoadingFixHooks {
+namespace RuntimeSongLoader::LoadingFixHooks {
 
     void InstallHooks();
 

@@ -3,7 +3,7 @@
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
 
-namespace FindComponentsUtils {
+namespace RuntimeSongLoader::FindComponentsUtils {
 
     #define CacheFindComponentDeclare(namespace, name) namespace::name* Get##name();
 

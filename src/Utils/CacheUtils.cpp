@@ -9,7 +9,7 @@
 #include <map>
 #include <algorithm>
 
-namespace CacheUtils {
+namespace RuntimeSongLoader::CacheUtils {
 
     std::map<std::string, CacheData> cacheMap;
 

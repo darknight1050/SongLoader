@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace FileUtils {
+namespace RuntimeSongLoader::FileUtils {
     
     std::string ReadAllText(std::string_view path);
 

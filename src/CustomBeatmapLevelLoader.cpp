@@ -44,9 +44,10 @@ using namespace UnityEngine::Networking;
 using namespace System::IO;
 using namespace System::Threading;
 using namespace System::Threading::Tasks;
-using namespace FindComponentsUtils;
 
-namespace CustomBeatmapLevelLoader {
+namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
+
+    using namespace FindComponentsUtils;
     
     AudioClip* GetPreviewAudioClip(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         auto start = std::chrono::high_resolution_clock::now(); 

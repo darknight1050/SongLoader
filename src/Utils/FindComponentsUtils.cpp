@@ -10,7 +10,7 @@
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 
-namespace FindComponentsUtils {
+namespace RuntimeSongLoader::FindComponentsUtils {
 
     #define CacheNotFoundWarningLog(type) getLogger().warning("Can't find '" #type "'! (This shouldn't happen and can cause unexpected behaviour)");
 

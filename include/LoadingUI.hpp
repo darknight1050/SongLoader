@@ -1,6 +1,6 @@
 #pragma once
 
-namespace LoadingUI {
+namespace RuntimeSongLoader::LoadingUI {
 
     void CreateCanvas();
 

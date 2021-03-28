@@ -17,9 +17,8 @@ using namespace HMUI;
 using namespace TMPro;
 using namespace System::Threading;
 
-namespace LoadingUI {
+namespace RuntimeSongLoader::LoadingUI {
 
-    
     GameObject* canvas = nullptr;
     TextMeshProUGUI* textObject = nullptr;
 

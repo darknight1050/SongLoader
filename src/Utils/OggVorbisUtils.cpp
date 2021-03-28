@@ -4,7 +4,7 @@
 
 #include "Utils/FileUtils.hpp"
 
-namespace OggVorbisUtils {
+namespace RuntimeSongLoader::OggVorbisUtils {
 
     const char VORBIS_BYTES[] = { 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73 }; //"vorbis"
     const char OGG_BYTES[] = { 0x4F, 0x67, 0x67, 0x53, 0x00, 0x04 }; //"OggS" + 0x00 + 0x04

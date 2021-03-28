@@ -32,7 +32,7 @@ using namespace System::Collections::Generic;
 using namespace System::Threading;
 using namespace Tasks;
 
-namespace LoadingFixHooks {
+namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_ctor, void, BeatmapData* self, int numberOfLines) {
         LOG_DEBUG("BeatmapData_ctor");

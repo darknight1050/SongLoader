@@ -20,7 +20,7 @@
 using namespace GlobalNamespace;
 using namespace CryptoPP;
 
-namespace HashUtils {
+namespace RuntimeSongLoader::HashUtils {
     
     std::optional<std::string> GetCustomLevelHash(StandardLevelInfoSaveData* level, std::string customLevelPath) {
         auto start = std::chrono::high_resolution_clock::now();
