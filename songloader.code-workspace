@@ -90,7 +90,26 @@
 			"valarray": "cpp",
 			"__functional_base_03": "cpp",
 			"filesystem": "cpp",
-			"future": "cpp"
+			"future": "cpp",
+			"coroutine": "cpp",
+			"*.tcc": "cpp",
+			"ranges": "cpp",
+			"concepts": "cpp",
+			"memory_resource": "cpp",
+			"stop_token": "cpp",
+			"span": "cpp",
+			"any": "cpp",
+			"cfenv": "cpp",
+			"charconv": "cpp",
+			"csetjmp": "cpp",
+			"csignal": "cpp",
+			"scoped_allocator": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp",
+			"cuchar": "cpp",
+			"numbers": "cpp",
+			"shared_mutex": "cpp",
+			"__memory": "cpp"
 		}
 	}
 }
