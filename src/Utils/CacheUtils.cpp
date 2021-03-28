@@ -36,6 +36,11 @@ namespace CacheUtils {
         cacheMap[path] = newData;
     }
 
+    void ClearCache() {
+        cacheMap.clear();
+        SaveToFile({});
+    }
+
     void LoadFromFile() {
         cacheMap.clear();
         getConfig().Load();
@@ -67,22 +72,24 @@ namespace CacheUtils {
         auto& config = getConfig().config;
         config.RemoveAllMembers();
         config.SetObject();
-        rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
-        for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {
-            next_it++;
-            auto& path = it->first;
-            auto& data = it->second;
-            if(std::find(paths.begin(), paths.end(), path) == paths.end()) {
-                LOG_INFO("Removing %s from cache!", path.c_str());
-                cacheMap.erase(it); //Clear unused paths
-            } else {
-                ConfigValue value(rapidjson::kObjectType);
-                value.AddMember("directoryHash", data.directoryHash, allocator);
-                if(data.sha1.has_value())
-                    value.AddMember("sha1", *data.sha1, allocator);
-                if(data.songDuration.has_value())
-                    value.AddMember("songDuration", *data.songDuration, allocator);
-                config.AddMember((ConfigValue::StringRefType)path.c_str(), value, allocator);
+        if(paths.size() > 0) {
+            rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
+            for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {
+                next_it++;
+                auto& path = it->first;
+                auto& data = it->second;
+                if(std::find(paths.begin(), paths.end(), path) == paths.end()) {
+                    LOG_INFO("Removing %s from cache!", path.c_str());
+                    cacheMap.erase(it); //Clear unused paths
+                } else {
+                    ConfigValue value(rapidjson::kObjectType);
+                    value.AddMember("directoryHash", data.directoryHash, allocator);
+                    if(data.sha1.has_value())
+                        value.AddMember("sha1", *data.sha1, allocator);
+                    if(data.songDuration.has_value())
+                        value.AddMember("songDuration", *data.songDuration, allocator);
+                    config.AddMember((ConfigValue::StringRefType)path.c_str(), value, allocator);
+                }
             }
         }
         getConfig().Write();

@@ -16,6 +16,8 @@ namespace CacheUtils {
 
     void UpdateCacheData(std::string path, CacheData newData);
 
+    void ClearCache();
+
     void LoadFromFile();
     void SaveToFile(std::vector<std::string> paths);
 
