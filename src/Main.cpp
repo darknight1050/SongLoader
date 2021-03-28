@@ -17,6 +17,7 @@
 #include "Utils/FindComponentsUtils.hpp"
 #include "Utils/CacheUtils.hpp"
 
+#include "ModSettingsViewController.hpp"
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 #include "CustomTypes/SongLoader.hpp"
 
@@ -39,7 +40,9 @@ Configuration& getConfig() {
 std::string BaseLevelsPath;
 
 using namespace GlobalNamespace;
+using namespace HMUI;
 using namespace UnityEngine;
+using namespace QuestUI;
 using namespace RuntimeSongLoader;
 
 MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine::SceneManagement::Scene prevScene, UnityEngine::SceneManagement::Scene nextScene) {
@@ -81,6 +84,9 @@ extern "C" void load() {
     LOG_INFO("Starting SongLoader installation...");
     il2cpp_functions::Init();
     QuestUI::Init();
+    
+    QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
+
     custom_types::Register::RegisterTypes<SongLoaderBeatmapLevelPackCollectionSO, SongLoader>();
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_ActiveSceneChanged, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_ActiveSceneChanged", 2));
     CustomBeatmapLevelLoader::InstallHooks();
