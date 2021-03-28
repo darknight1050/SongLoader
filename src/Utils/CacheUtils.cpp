@@ -47,7 +47,7 @@ namespace CacheUtils {
         getConfig().Reload();
         auto& config = getConfig().config;
         for(auto it = config.MemberBegin(); it != config.MemberEnd(); it++) {
-            LOG_INFO("Loading %s from cache!", it->name.GetString());
+            LOG_DEBUG("CacheUtils Loading %s from cache!", it->name.GetString());
             CacheData data;
             auto& value = it->value;
             if(value.HasMember("directoryHash") && value["directoryHash"].IsInt())
@@ -79,9 +79,10 @@ namespace CacheUtils {
                 auto& path = it->first;
                 auto& data = it->second;
                 if(std::find(paths.begin(), paths.end(), path) == paths.end()) {
-                    LOG_INFO("Removing %s from cache!", path.c_str());
+                    LOG_DEBUG("CacheUtils Removing %s from cache!", path.c_str());
                     cacheMap.erase(it); //Clear unused paths
                 } else {
+                    LOG_DEBUG("CacheUtils Saving %s to cache!", path.c_str());
                     ConfigValue value(rapidjson::kObjectType);
                     value.AddMember("directoryHash", data.directoryHash, allocator);
                     if(data.sha1.has_value())
