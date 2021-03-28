@@ -1,5 +1,5 @@
 #pragma once
-#include <string_view>
+#include <string>
 #include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
 #include "UnityEngine/Sprite.hpp"
 
