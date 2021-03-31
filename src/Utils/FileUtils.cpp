@@ -35,6 +35,8 @@ namespace RuntimeSongLoader::FileUtils {
     std::vector<std::string> GetFolders(std::string_view path) {
         std::vector<std::string> directories;
         std::string fullPath(path);
+        if(fullPath.ends_with("/"))
+            fullPath.pop_back();
         DIR *dir;
         struct dirent *ent;
         if((dir = opendir (fullPath.c_str())) != nullptr) {
