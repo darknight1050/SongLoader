@@ -13,6 +13,8 @@
 #include "UnityEngine/MonoBehaviour.hpp" 
 #include "System/Collections/Generic/Dictionary_2.hpp"
 
+#include <vector>
+
 namespace RuntimeSongLoader {
     using DictionaryType = ::System::Collections::Generic::Dictionary_2<Il2CppString*, ::GlobalNamespace::CustomPreviewBeatmapLevel*>*;
 }
@@ -20,6 +22,8 @@ namespace RuntimeSongLoader {
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour, 
     private:
         static SongLoader* Instance;
+
+        std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
 
         DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomLevels, nullptr);
         DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomWIPLevels, nullptr);
@@ -57,6 +61,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
     public:
         static SongLoader* GetInstance();
+
+        void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+
         void RefreshLevelPacks();
         
         void RefreshSongs(bool fullRefresh = true);

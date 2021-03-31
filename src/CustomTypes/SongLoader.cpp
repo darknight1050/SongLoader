@@ -6,6 +6,8 @@
 
 #include "LoadingUI.hpp"
 
+#include "API.hpp"
+
 #include "Utils/HashUtils.hpp"
 #include "Utils/FileUtils.hpp"
 #include "Utils/CacheUtils.hpp"
@@ -100,6 +102,11 @@ void SongLoader::ctor() {
 }
 
 void SongLoader::Finalize() {
+    LoadedEvents.~vector();
+}
+
+void SongLoader::AddSongsLoadedEvent(std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> event) {
+    LoadedEvents.push_back(event);
 }
 
 void SongLoader::Awake() {
@@ -305,8 +312,8 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             std::mutex valuesMutex;
             std::vector<std::string> loadedPaths;
 
-            std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(BaseLevelsPath + CustomLevelsFolder);
-            std::vector<std::string> customWIPLevelsFolders = FileUtils::GetFolders(BaseLevelsPath + CustomWIPLevelsFolder);
+            std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(API::GetCustomLevelsPath());
+            std::vector<std::string> customWIPLevelsFolders = FileUtils::GetFolders(API::GetCustomWIPLevelsPath());
             customLevelsFolders.insert(std::end(customLevelsFolders), std::begin(customWIPLevelsFolders), std::end(customWIPLevelsFolders));
 
             MaxFolders = customLevelsFolders.size();
@@ -388,6 +395,15 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             CacheUtils::SaveToFile(loadedPaths);
 
             RefreshLevelPacks();
+
+            std::vector<CustomPreviewBeatmapLevel*> loadedLevels;
+            loadedLevels.insert(loadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
+            loadedLevels.insert(loadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
+            
+            for (auto& event : LoadedEvents) {
+                event(loadedLevels);
+            }
+            
         }
     ), nullptr)->Run();
 }
