@@ -9,5 +9,7 @@ namespace RuntimeSongLoader::LoadingUI {
     void UpdateLoadedProgress(int levelsCount, int time);
 
     void SetActive(bool active);
+    
+    void UpdateVisibility();
 
 }

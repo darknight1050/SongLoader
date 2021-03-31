@@ -130,6 +130,7 @@ void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
 void SongLoader::Update() {
     if(IsLoading)
         LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
+    LoadingUI::UpdateVisibility();
     if(!NeedsRefresh)
         return;
     NeedsRefresh = false;
@@ -294,12 +295,12 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
     if(!activeScene.IsValid() || to_utf8(csstrtostr(activeScene.get_name())).find("Menu") == std::string::npos)
         return;
 
+    IsLoading = true;
+    HasLoaded = false;
+    CurrentFolder = 0;
+
     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
         (std::function<void()>)[=] {
-
-            IsLoading = true;
-            HasLoaded = false;
-            CurrentFolder = 0;
 
             auto start = std::chrono::high_resolution_clock::now();
 
@@ -379,9 +380,8 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
                 Thread::Yield();
             }
 
-            IsLoading = false;
-            HasLoaded = true;
-            
+            CacheUtils::SaveToFile(loadedPaths);
+
             CustomLevelsCollection->customPreviewBeatmapLevels = GetDictionaryValues(CustomLevels);
             CustomWIPLevelsCollection->customPreviewBeatmapLevels = GetDictionaryValues(CustomWIPLevels);
 
@@ -392,8 +392,9 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
             LOG_INFO("Loaded %d songs in %dms!", levelsCount, duration);
             
-            CacheUtils::SaveToFile(loadedPaths);
-
+            IsLoading = false;
+            HasLoaded = true;
+            
             RefreshLevelPacks();
 
             std::vector<CustomPreviewBeatmapLevel*> loadedLevels;

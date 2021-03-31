@@ -9,6 +9,8 @@
 #include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/Backgroundable.hpp"
 
+#include <chrono>
+
 using namespace QuestUI;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -17,10 +19,15 @@ using namespace HMUI;
 using namespace TMPro;
 using namespace System::Threading;
 
+#define ACTIVE_TIME 6400
+
 namespace RuntimeSongLoader::LoadingUI {
 
     GameObject* canvas = nullptr;
     TextMeshProUGUI* textObject = nullptr;
+    
+    std::chrono::high_resolution_clock::time_point lastActive;
+    bool isActive;
 
     void CreateCanvas() {
         if(!canvas) {
@@ -54,17 +61,22 @@ namespace RuntimeSongLoader::LoadingUI {
     void UpdateLoadedProgress(int levelsCount, int time) {
         SetActive(true);
         SetText(string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f));
-        HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
-            (std::function<void()>)[] {
-                Thread::Sleep(6400);
-                SetActive(false);
-            }
-        ), nullptr)->Run();
     }
 
     void SetActive(bool active) {
+        isActive = active;
+        if(active)
+            lastActive = std::chrono::high_resolution_clock::now();
         if(canvas)
             canvas->SetActive(active);
+    }
+
+    void UpdateVisibility() {
+        if(!canvas || !isActive)
+            return;
+        std::chrono::milliseconds delay = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - lastActive);
+        if(delay.count() > ACTIVE_TIME)
+            SetActive(false);
     }
 
 }
