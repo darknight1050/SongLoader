@@ -59,7 +59,7 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
                 hasInited = false;
                 CustomCharacteristics::SetupCustomCharacteristics();
                 FindComponentsUtils::ClearCache();
-                SongLoader::GetInstance();
+                SongLoader::GetInstance()->RefreshSongs(false);
             }
         } else {
             LoadingUI::SetActive(false);

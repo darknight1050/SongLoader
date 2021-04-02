@@ -111,11 +111,8 @@ void SongLoader::AddSongsLoadedEvent(std::function<void(const std::vector<Custom
 
 void SongLoader::Awake() {
     LoadingUI::CreateCanvas();
-    if(IsLoading) {
+    if(IsLoading)
         LoadingCancelled = true;
-    } else {
-        RefreshSongs();
-    }
 }
 
 void SongLoader::RefreshLevelPacks() {
