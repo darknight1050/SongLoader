@@ -47,7 +47,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
-        LOG_DEBUG("BeatmapData_AddBeatmapEventData");
+        //LOG_DEBUG("BeatmapData_AddBeatmapEventData");
         self->prevAddedBeatmapEventDataTime = beatmapEventData->time;
         self->beatmapEventsData->Add(beatmapEventData);
 		if(BeatmapEventTypeExtensions::IsRotationEvent(beatmapEventData->type))
