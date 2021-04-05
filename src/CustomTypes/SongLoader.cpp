@@ -132,18 +132,17 @@ void SongLoader::Update() {
         return;
     NeedsRefresh = false;
 
+    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
+    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
+
     if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
         SortCustomPreviewBeatmapLevels(CustomLevelsCollection->customPreviewBeatmapLevels);
         CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
-    } else {
-        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
     }
 
     if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
         SortCustomPreviewBeatmapLevels(CustomWIPLevelsCollection->customPreviewBeatmapLevels);
         CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
-    } else {
-        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
     }
 
     auto beatmapLevelsModel = GetBeatmapLevelsModel();
