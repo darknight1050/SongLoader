@@ -12,7 +12,13 @@
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
+#include "GlobalNamespace/NotesInTimeRowProcessor.hpp"
+#include "GlobalNamespace/NoteData.hpp"
+#include "GlobalNamespace/NoteCutDirection.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
+#include "GlobalNamespace/BeatmapLineData.hpp"
+#include "GlobalNamespace/BeatmapObjectType.hpp"
+#include "GlobalNamespace/BeatmapObjectData.hpp"
 #include "GlobalNamespace/BeatmapEventData.hpp"
 #include "GlobalNamespace/BeatmapEventTypeExtensions.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
@@ -44,6 +50,27 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
         CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel, previewAudioClip);
         self->songDuration = customPreviewBeatmapLevel->songDuration;
+    }
+
+    MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapObjectData, void, BeatmapData* self, BeatmapObjectData* beatmapObjectData) {
+        //LOG_DEBUG("BeatmapData_AddBeatmapObjectData");
+        self->prevAddedBeatmapObjectDataTime = beatmapObjectData->time;
+        self->beatmapLinesData->values[beatmapObjectData->lineIndex]->AddBeatmapObjectData(beatmapObjectData);
+
+        auto type = beatmapObjectData->get_beatmapObjectType();
+		if (type == BeatmapObjectType::Obstacle) {
+			self->obstaclesCount++;
+			return;
+		}
+		if (type == BeatmapObjectType::Note) {
+			NoteData* noteData = reinterpret_cast<NoteData*>(beatmapObjectData);
+			self->notesInTimeRowProcessor->ProcessNote(noteData);
+			if (noteData->cutDirection != NoteCutDirection::None) {
+				self->cuttableNotesType++;
+				return;
+			}
+			self->bombsCount++;
+		}
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapData_AddBeatmapEventData, void, BeatmapData* self, BeatmapEventData* beatmapEventData) {
@@ -102,6 +129,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     void InstallHooks() {
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_ctor, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", ".ctor", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), CustomBeatmapLevel_ctor, il2cpp_utils::FindMethodUnsafe("", "CustomBeatmapLevel", ".ctor", 2));
+        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_AddBeatmapObjectData, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", "AddBeatmapObjectData", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapData_AddBeatmapEventData, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", "AddBeatmapEventData", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ReloadCustomLevelPackCollectionAsync", 1));
         INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
