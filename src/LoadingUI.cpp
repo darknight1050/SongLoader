@@ -23,11 +23,14 @@ using namespace System::Threading;
 
 namespace RuntimeSongLoader::LoadingUI {
 
+    std::string newText;
+    bool needsUpdate = false;
+
     GameObject* canvas = nullptr;
     TextMeshProUGUI* textObject = nullptr;
     
     std::chrono::high_resolution_clock::time_point lastActive;
-    bool isActive;
+    bool isActive = false;
 
     void CreateCanvas() {
         if(!canvas) {
@@ -54,13 +57,13 @@ namespace RuntimeSongLoader::LoadingUI {
     }
 
     void UpdateLoadingProgress(int maxFolders, int currentFolder) {
-        SetActive(true);
-        SetText(string_format("Loading Songs %d/%d (%.1f%%)", currentFolder, maxFolders, (float)currentFolder / (float)maxFolders * 100.0f));
+        newText = string_format("Loading Songs %d/%d (%.1f%%)", currentFolder, maxFolders, (float)currentFolder / (float)maxFolders * 100.0f);
+        needsUpdate = true;
     }
 
     void UpdateLoadedProgress(int levelsCount, int time) {
-        SetActive(true);
-        SetText(string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f));
+        newText = string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f);
+        needsUpdate = true;
     }
 
     void SetActive(bool active) {
@@ -71,9 +74,19 @@ namespace RuntimeSongLoader::LoadingUI {
             canvas->SetActive(active);
     }
 
-    void UpdateVisibility() {
-        if(!canvas || !isActive)
+    void UpdateState() {
+        if(!canvas)
             return;
+
+        if(needsUpdate) {
+            needsUpdate = false;
+            SetActive(true);
+            SetText(newText);
+        }
+
+        if(!isActive)
+            return;
+
         std::chrono::milliseconds delay = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - lastActive);
         if(delay.count() > ACTIVE_TIME)
             SetActive(false);

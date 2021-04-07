@@ -129,7 +129,7 @@ void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
 void SongLoader::Update() {
     if(IsLoading)
         LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
-    LoadingUI::UpdateVisibility();
+    LoadingUI::UpdateState();
     if(!NeedsRefresh)
         return;
     NeedsRefresh = false;

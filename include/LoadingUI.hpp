@@ -10,6 +10,6 @@ namespace RuntimeSongLoader::LoadingUI {
 
     void SetActive(bool active);
     
-    void UpdateVisibility();
+    void UpdateState();
 
 }
