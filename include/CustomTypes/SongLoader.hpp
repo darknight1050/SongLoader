@@ -23,7 +23,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     private:
         static SongLoader* Instance;
 
-        std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
+        static std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
 
         DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomLevels, nullptr);
         DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomWIPLevels, nullptr);
@@ -62,14 +62,16 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     public:
         static SongLoader* GetInstance();
 
-        void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+        static void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
 
         void RefreshLevelPacks();
         
         void RefreshSongs(bool fullRefresh = true);
         
         DECLARE_CTOR(ctor);
-        DECLARE_METHOD(void, Finalize);
+
+        DECLARE_OVERRIDE_METHOD(void, Finalize, il2cpp_utils::FindMethod("System", "Object", "Finalize"));
+        
         DECLARE_METHOD(void, Awake);
         DECLARE_METHOD(void, Update);
 

@@ -10,7 +10,9 @@ namespace RuntimeSongLoader::API {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh);
     }
     
-    void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+    void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event) {
+        SongLoader::AddSongsLoadedEvent(event);
+    }
 
     std::string GetCustomLevelsPath() {
         return BaseLevelsPath + CustomLevelsFolder + "/";

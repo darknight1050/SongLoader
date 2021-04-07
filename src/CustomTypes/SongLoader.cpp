@@ -82,6 +82,8 @@ SongLoader* SongLoader::GetInstance() {
     return Instance;
 }
 
+std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
+
 void SongLoader::ctor() {
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
