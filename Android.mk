@@ -54,7 +54,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := cryptopp
 LOCAL_EXPORT_C_INCLUDES := include/cryptopp
-LOCAL_SRC_FILES := include/cryptopp/libcryptopp.a
+LOCAL_SRC_FILES := include/cryptopp/prebuilt/libcryptopp.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 # If you would like to use more shared libraries (such as custom UI, utils, or more) add them here, following the format above. # In addition, ensure that you add them to the shared library build below. 
