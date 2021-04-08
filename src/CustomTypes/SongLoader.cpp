@@ -85,7 +85,8 @@ SongLoader* SongLoader::GetInstance() {
 std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
 
 void SongLoader::ctor() {
-    NeedsRefresh = false;
+    NextSongsRefresh = std::nullopt;
+    NeedsLevelPacksRefresh = false;
     IsLoading = false;
     HasLoaded = false;
     LoadingCancelled = false;
@@ -125,7 +126,7 @@ void SongLoader::Awake() {
 }
 
 void SongLoader::RefreshLevelPacks() {
-    NeedsRefresh = true;
+    NeedsLevelPacksRefresh = true;
 }
 
 void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
@@ -134,32 +135,39 @@ void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
 }
 
 void SongLoader::Update() {
+    if(NextSongsRefresh.has_value()) {
+        bool fullRefresh = NextSongsRefresh.value();
+        NextSongsRefresh = std::nullopt;
+        RefreshSongs(fullRefresh);
+    }
+
     if(IsLoading)
         LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
     LoadingUI::UpdateState();
-    if(!NeedsRefresh)
-        return;
-    NeedsRefresh = false;
 
-    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
-    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
+    if(NeedsLevelPacksRefresh) {
+        NeedsLevelPacksRefresh = false;
 
-    if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
-        SortCustomPreviewBeatmapLevels(CustomLevelsCollection->customPreviewBeatmapLevels);
-        CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
+        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
+        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
+
+        if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+            SortCustomPreviewBeatmapLevels(CustomLevelsCollection->customPreviewBeatmapLevels);
+            CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
+        }
+
+        if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+            SortCustomPreviewBeatmapLevels(CustomWIPLevelsCollection->customPreviewBeatmapLevels);
+            CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
+        }
+
+        auto beatmapLevelsModel = GetBeatmapLevelsModel();
+        beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
+        beatmapLevelsModel->UpdateLoadedPreviewLevels();
+        auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+        if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
+            levelFilteringNavigationController->UpdateCustomSongs();
     }
-
-    if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
-        SortCustomPreviewBeatmapLevels(CustomWIPLevelsCollection->customPreviewBeatmapLevels);
-        CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
-    }
-
-    auto beatmapLevelsModel = GetBeatmapLevelsModel();
-    beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
-    beatmapLevelsModel->UpdateLoadedPreviewLevels();
-    auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
-    if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
-        levelFilteringNavigationController->UpdateCustomSongs();
 }
 
 StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
@@ -412,4 +420,9 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             
         }
     ), nullptr)->Run();
+}
+
+void SongLoader::RefreshSongsThreadSafe(bool fullRefresh) {
+    if(!NextSongsRefresh.has_value() || !NextSongsRefresh.value())
+        NextSongsRefresh = fullRefresh;
 }

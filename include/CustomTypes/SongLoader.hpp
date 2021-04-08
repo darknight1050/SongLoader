@@ -38,7 +38,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         DECLARE_INSTANCE_FIELD(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO);
 
-        DECLARE_INSTANCE_FIELD(bool, NeedsRefresh);
+        std::optional<bool> NextSongsRefresh;
+
+        DECLARE_INSTANCE_FIELD(bool, NeedsLevelPacksRefresh);
 
         DECLARE_INSTANCE_FIELD(bool, IsLoading);
         DECLARE_INSTANCE_FIELD(bool, HasLoaded);
@@ -67,6 +69,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         void RefreshLevelPacks();
         
         void RefreshSongs(bool fullRefresh = true);
+
+        void RefreshSongsThreadSafe(bool fullRefresh = true);
         
         DECLARE_CTOR(ctor);
 
@@ -86,7 +90,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         REGISTER_FIELD(CustomBeatmapLevelPackCollectionSO);
 
-        REGISTER_FIELD(NeedsRefresh);
+        REGISTER_FIELD(NeedsLevelPacksRefresh);
 
         REGISTER_FIELD(IsLoading);
         REGISTER_FIELD(HasLoaded);
