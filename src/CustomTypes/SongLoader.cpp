@@ -68,7 +68,7 @@ using namespace System::Threading;
 using namespace System::Collections::Generic;
 using namespace FindComponentsUtils;
 
-DEFINE_CLASS(SongLoader);
+DEFINE_TYPE(SongLoader);
 
 SongLoader* SongLoader::Instance = nullptr;
 
@@ -85,6 +85,13 @@ SongLoader* SongLoader::GetInstance() {
 std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
 
 void SongLoader::ctor() {
+    NeedsRefresh = false;
+    IsLoading = false;
+    HasLoaded = false;
+    LoadingCancelled = false;
+    MaxFolders = 0;
+    CurrentFolder = 0;
+
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
     CustomLevels = Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>::New_ctor();

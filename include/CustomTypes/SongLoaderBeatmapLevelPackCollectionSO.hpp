@@ -8,7 +8,7 @@
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderBeatmapLevelPackCollectionSO, GlobalNamespace::BeatmapLevelPackCollectionSO, 
  
     private:
-        DECLARE_INSTANCE_FIELD_DEFAULT(List<GlobalNamespace::CustomBeatmapLevelPack*>*, customBeatmapLevelPacks, nullptr);
+        DECLARE_INSTANCE_FIELD(List<GlobalNamespace::CustomBeatmapLevelPack*>*, customBeatmapLevelPacks);
 
     public:
         static SongLoaderBeatmapLevelPackCollectionSO* CreateNew();

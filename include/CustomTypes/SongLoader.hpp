@@ -25,28 +25,28 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         static std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomLevels, nullptr);
-        DECLARE_INSTANCE_FIELD_DEFAULT(DictionaryType, CustomWIPLevels, nullptr);
+        DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
+        DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader, nullptr);
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelCollection*, CustomLevelsCollection, nullptr);
-        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelCollection*, CustomWIPLevelsCollection, nullptr);
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelCollection*, CustomLevelsCollection);
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelCollection*, CustomWIPLevelsCollection);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelPack*, CustomLevelsPack, nullptr);
-        DECLARE_INSTANCE_FIELD_DEFAULT(GlobalNamespace::CustomBeatmapLevelPack*, CustomWIPLevelsPack, nullptr);
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelPack*, CustomLevelsPack);
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelPack*, CustomWIPLevelsPack);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO, nullptr);
+        DECLARE_INSTANCE_FIELD(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(bool, NeedsRefresh, false);
+        DECLARE_INSTANCE_FIELD(bool, NeedsRefresh);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(bool, IsLoading, false);
-        DECLARE_INSTANCE_FIELD_DEFAULT(bool, HasLoaded, false);
+        DECLARE_INSTANCE_FIELD(bool, IsLoading);
+        DECLARE_INSTANCE_FIELD(bool, HasLoaded);
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(bool, LoadingCancelled, false); //TODO: Implement this
+        DECLARE_INSTANCE_FIELD(bool, LoadingCancelled); //TODO: Implement this
 
-        DECLARE_INSTANCE_FIELD_DEFAULT(int, MaxFolders, 0);
-        DECLARE_INSTANCE_FIELD_DEFAULT(int, CurrentFolder, 0);
+        DECLARE_INSTANCE_FIELD(int, MaxFolders);
+        DECLARE_INSTANCE_FIELD(int, CurrentFolder);
 
         void MenuLoaded();
 

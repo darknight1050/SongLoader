@@ -3,7 +3,7 @@
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 
-DEFINE_CLASS(SongLoaderBeatmapLevelPackCollectionSO);
+DEFINE_TYPE(SongLoaderBeatmapLevelPackCollectionSO);
 
 void SongLoaderBeatmapLevelPackCollectionSO::ctor() {
     customBeatmapLevelPacks = List<GlobalNamespace::CustomBeatmapLevelPack*>::New_ctor();
