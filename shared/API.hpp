@@ -10,6 +10,8 @@ namespace RuntimeSongLoader::API {
 
     void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
 
+    std::string GetCustomLevelsPrefix();
+    
     std::string GetCustomLevelsPath();
 
     std::string GetCustomWIPLevelsPath();

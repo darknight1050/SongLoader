@@ -14,6 +14,10 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
+    std::string GetCustomLevelsPrefix() {
+        return CustomLevelPrefixID;
+    }
+
     std::string GetCustomLevelsPath() {
         return BaseLevelsPath + CustomLevelsFolder + "/";
     }
