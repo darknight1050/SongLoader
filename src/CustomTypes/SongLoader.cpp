@@ -82,7 +82,12 @@ SongLoader* SongLoader::GetInstance() {
     return Instance;
 }
 
-std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
+std::vector<std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
+std::mutex SongLoader::LoadedEventsMutex;
+
+std::vector<CustomPreviewBeatmapLevel*> SongLoader::GetLoadedLevels() {
+    return LoadedLevels;
+}
 
 void SongLoader::ctor() {
     NextSongsRefresh = std::nullopt;
@@ -109,14 +114,6 @@ void SongLoader::ctor() {
     CustomWIPLevelsPack = CustomBeatmapLevelPack::New_ctor(customWIPLevelsPackID, customWIPLevelsPackName, customWIPLevelsPackName, GetCustomLevelLoader()->defaultPackCover, CustomWIPLevelsCollection);
     
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
-}
-
-void SongLoader::Finalize() {
-    LoadedEvents.~vector();
-}
-
-void SongLoader::AddSongsLoadedEvent(std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> event) {
-    LoadedEvents.push_back(event);
 }
 
 void SongLoader::Awake() {
@@ -275,7 +272,7 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
     }
     
     //Temporary fix because exceptions don't work
-    auto optional = il2cpp_utils::RunMethod<GlobalNamespace::BeatmapSaveData*>("", "BeatmapSaveData", "DeserializeFromJSONString", il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
+    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>("", "BeatmapSaveData", "DeserializeFromJSONString", il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
     if(!optional.has_value()) {
         LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
         return 0.0f;
@@ -349,15 +346,15 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
                                 bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
                                 
-                                GlobalNamespace::CustomPreviewBeatmapLevel* level = nullptr;
+                                CustomPreviewBeatmapLevel* level = nullptr;
                                 auto songPathCS = il2cpp_utils::createcsstr(songPath);
                                 bool containsKey = CustomLevels->ContainsKey(songPathCS);
                                 if(containsKey) {
-                                    level = reinterpret_cast<GlobalNamespace::CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
+                                    level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
                                 } else {
                                     containsKey = CustomWIPLevels->ContainsKey(songPathCS);
                                     if(containsKey) 
-                                        level = reinterpret_cast<GlobalNamespace::CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
+                                        level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
                                 }
                                 if(!level) {
                                     StandardLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
@@ -410,14 +407,14 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             
             RefreshLevelPacks();
 
-            std::vector<CustomPreviewBeatmapLevel*> loadedLevels;
-            loadedLevels.insert(loadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
-            loadedLevels.insert(loadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
+            LoadedLevels.clear();
+            LoadedLevels.insert(LoadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
+            LoadedLevels.insert(LoadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
             
+            std::lock_guard<std::mutex> lock(LoadedEventsMutex);
             for (auto& event : LoadedEvents) {
-                event(loadedLevels);
+                event(LoadedLevels);
             }
-            
         }
     ), nullptr)->Run();
 }

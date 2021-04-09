@@ -24,6 +24,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         static SongLoader* Instance;
 
         static std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
+        static std::mutex LoadedEventsMutex;
+
+        std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> LoadedLevels;
 
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
@@ -64,7 +67,12 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     public:
         static SongLoader* GetInstance();
 
-        static void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+        std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedLevels();
+
+        static void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event) {
+            std::lock_guard<std::mutex> lock(LoadedEventsMutex);
+            LoadedEvents.push_back(event);
+        }
 
         void RefreshLevelPacks();
         
@@ -74,8 +82,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         
         DECLARE_CTOR(ctor);
 
-        DECLARE_OVERRIDE_METHOD(void, Finalize, il2cpp_utils::FindMethod("System", "Object", "Finalize"));
-        
         DECLARE_METHOD(void, Awake);
         DECLARE_METHOD(void, Update);
 
@@ -100,7 +106,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         REGISTER_FIELD(CurrentFolder);
 
         REGISTER_METHOD(ctor);
-        REGISTER_METHOD(Finalize);
+
         REGISTER_METHOD(Awake);
         REGISTER_METHOD(Update);
     )

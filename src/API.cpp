@@ -18,6 +18,10 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
+    std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs() {
+        return SongLoader::GetInstance()->GetLoadedLevels();
+    }
+
     std::string GetCustomLevelsPrefix() {
         return CustomLevelPrefixID;
     }
