@@ -42,7 +42,8 @@ namespace RuntimeSongLoader::LoadingUI {
             VerticalLayoutGroup* layout = BeatSaberUI::CreateVerticalLayoutGroup(transform);
             GameObject* layoutGameObject = layout->get_gameObject();
             layoutGameObject->GetComponent<ContentSizeFitter*>()->set_verticalFit(ContentSizeFitter::FitMode::PreferredSize);
-            layoutGameObject->AddComponent<Backgroundable*>()->ApplyBackgroundWithAlpha(il2cpp_utils::createcsstr("round-rect-panel"), 0.98f);
+            auto bgName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("round-rect-panel");
+            layoutGameObject->AddComponent<Backgroundable*>()->ApplyBackgroundWithAlpha(bgName, 0.96f);
             layout->set_padding(UnityEngine::RectOffset::New_ctor(3, 4, 2, 2));
             textObject = BeatSaberUI::CreateText(layout->get_transform(), "");
             textObject->set_alignment(TextAlignmentOptions::Center);
@@ -75,8 +76,10 @@ namespace RuntimeSongLoader::LoadingUI {
     }
 
     void UpdateState() {
-        if(!canvas)
+        if(!canvas) {
+            LoadingUI::CreateCanvas();
             return;
+        }
 
         if(needsUpdate) {
             needsUpdate = false;

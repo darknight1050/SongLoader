@@ -117,7 +117,6 @@ void SongLoader::ctor() {
 }
 
 void SongLoader::Awake() {
-    LoadingUI::CreateCanvas();
     if(IsLoading)
         LoadingCancelled = true;
 }
