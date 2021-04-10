@@ -81,11 +81,12 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         void RefreshSongsThreadSafe(bool fullRefresh = true);
         
         DECLARE_CTOR(ctor);
+        DECLARE_SIMPLE_DTOR();
 
         DECLARE_METHOD(void, Awake);
         DECLARE_METHOD(void, Update);
 
-    REGISTER_FUNCTION(SongLoader,
+    REGISTER_FUNCTION(
         REGISTER_FIELD(beatmapDataLoader);
 
         REGISTER_FIELD(CustomLevelsCollection);
@@ -106,6 +107,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         REGISTER_FIELD(CurrentFolder);
 
         REGISTER_METHOD(ctor);
+        REGISTER_SIMPLE_DTOR();
 
         REGISTER_METHOD(Awake);
         REGISTER_METHOD(Update);

@@ -18,7 +18,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderBeatmapLevelPackCollectionSO,
  
     DECLARE_CTOR(ctor);
 
-    REGISTER_FUNCTION(SongLoaderBeatmapLevelPackCollectionSO,
+    REGISTER_FUNCTION(
         REGISTER_FIELD(customBeatmapLevelPacks);
         
         REGISTER_METHOD(ctor);
