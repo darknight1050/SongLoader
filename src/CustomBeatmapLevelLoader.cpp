@@ -150,8 +150,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", to_utf8(csstrtostr(levelID)).c_str());
         Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>* result = BeatmapLevelsModel_GetBeatmapLevelAsync(self, levelID, cancellationToken);
         if(result->get_IsCompleted() && result->get_Result().isError) {
-            IPreviewBeatmapLevel* previewBeatmapLevel = self->loadedPreviewBeatmapLevels->get_Item(levelID);
-            if(previewBeatmapLevel) {
+            if(self->loadedPreviewBeatmapLevels->ContainsKey(levelID)) {
+                IPreviewBeatmapLevel* previewBeatmapLevel = self->loadedPreviewBeatmapLevels->get_Item(levelID);
                 LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync previewBeatmapLevel %p", previewBeatmapLevel);
                 if(il2cpp_functions::class_is_assignable_from(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(previewBeatmapLevel)))) {
                     auto task = Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor();
@@ -166,7 +166,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                                 task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr));
                             }
                             LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Stop");
-                    }), nullptr)->Run();
+                        }
+                    ), nullptr)->Run();
                     return task;
                 }
             }

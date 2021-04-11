@@ -91,7 +91,6 @@ std::vector<CustomPreviewBeatmapLevel*> SongLoader::GetLoadedLevels() {
 
 void SongLoader::ctor() {
     INVOKE_CTOR();
-    NextSongsRefresh = std::nullopt;
     NeedsLevelPacksRefresh = false;
     IsLoading = false;
     HasLoaded = false;
@@ -132,12 +131,6 @@ void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
 }
 
 void SongLoader::Update() {
-    if(NextSongsRefresh.has_value()) {
-        bool fullRefresh = NextSongsRefresh.value();
-        NextSongsRefresh = std::nullopt;
-        RefreshSongs(fullRefresh);
-    }
-
     if(IsLoading)
         LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
     LoadingUI::UpdateState();
@@ -298,7 +291,7 @@ Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
-void SongLoader::RefreshSongs(bool fullRefresh) {
+void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
     if(IsLoading)
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
@@ -411,15 +404,13 @@ void SongLoader::RefreshSongs(bool fullRefresh) {
             LoadedLevels.insert(LoadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
             LoadedLevels.insert(LoadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
             
+            if(songsLoaded)
+                songsLoaded(LoadedLevels);
+
             std::lock_guard<std::mutex> lock(LoadedEventsMutex);
             for (auto& event : LoadedEvents) {
                 event(LoadedLevels);
             }
         }
     ), nullptr)->Run();
-}
-
-void SongLoader::RefreshSongsThreadSafe(bool fullRefresh) {
-    if(!NextSongsRefresh.has_value() || !NextSongsRefresh.value())
-        NextSongsRefresh = fullRefresh;
 }

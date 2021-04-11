@@ -4,6 +4,7 @@
 
 #include "questui/shared/BeatSaberUI.hpp"
 #include "CustomTypes/SongLoader.hpp"
+#include "API.hpp"
 #include "Utils/CacheUtils.hpp"
 
 using namespace QuestUI;
@@ -20,11 +21,11 @@ void DidActivate(ViewController* self, bool firstActivation, bool addedToHierarc
         Transform* parent = container->get_transform();
 
         BeatSaberUI::CreateUIButton(parent, "Reload New Songs", [] { 
-                SongLoader::GetInstance()->RefreshSongs(false); 
+                API::RefreshSongs(false); 
             }
         );
         BeatSaberUI::CreateUIButton(parent, "Reload All Songs", [] { 
-                SongLoader::GetInstance()->RefreshSongs(); 
+                API::RefreshSongs(); 
             }
         );
         BeatSaberUI::CreateUIButton(parent, "Clear Cache", [] { 

@@ -6,12 +6,12 @@
 
 namespace RuntimeSongLoader::API {
 
-    void RefreshSongs(bool fullRefresh) {
-        SongLoader::GetInstance()->RefreshSongs(fullRefresh);
+    void RefreshSongs() {
+        RefreshSongs(true, nullptr);
     }
 
-    void RefreshSongsThreadSafe(bool fullRefresh) {
-        SongLoader::GetInstance()->RefreshSongsThreadSafe(fullRefresh);
+    void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded) {
+        SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
 
     void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event) {
