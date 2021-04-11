@@ -15,6 +15,7 @@
 #include "Utils/FindComponentsUtils.hpp"
 
 #include "questui/shared/ArrayUtil.hpp"
+#include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
@@ -121,9 +122,6 @@ void SongLoader::Awake() {
         LoadingCancelled = true;
 }
 
-void SongLoader::RefreshLevelPacks() {
-    NeedsLevelPacksRefresh = true;
-}
 
 void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
     auto arrayValues = array->values;
@@ -134,30 +132,6 @@ void SongLoader::Update() {
     if(IsLoading)
         LoadingUI::UpdateLoadingProgress(MaxFolders, CurrentFolder);
     LoadingUI::UpdateState();
-
-    if(NeedsLevelPacksRefresh) {
-        NeedsLevelPacksRefresh = false;
-
-        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
-        CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
-
-        if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
-            SortCustomPreviewBeatmapLevels(CustomLevelsCollection->customPreviewBeatmapLevels);
-            CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
-        }
-
-        if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
-            SortCustomPreviewBeatmapLevels(CustomWIPLevelsCollection->customPreviewBeatmapLevels);
-            CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
-        }
-
-        auto beatmapLevelsModel = GetBeatmapLevelsModel();
-        beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
-        beatmapLevelsModel->UpdateLoadedPreviewLevels();
-        auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
-        if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
-            levelFilteringNavigationController->UpdateCustomSongs();
-    }
 }
 
 StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
@@ -291,6 +265,36 @@ Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
+void SongLoader::RefreshLevelPacks(std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
+    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
+    CustomBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomWIPLevelsPack);
+
+    if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+        SortCustomPreviewBeatmapLevels(CustomLevelsCollection->customPreviewBeatmapLevels);
+        CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
+    }
+
+    if(CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+        SortCustomPreviewBeatmapLevels(CustomWIPLevelsCollection->customPreviewBeatmapLevels);
+        CustomBeatmapLevelPackCollectionSO->AddLevelPack(CustomWIPLevelsPack);
+    }
+
+    auto beatmapLevelsModel = GetBeatmapLevelsModel();
+    beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
+    beatmapLevelsModel->UpdateLoadedPreviewLevels();
+    auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+    if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
+        levelFilteringNavigationController->UpdateCustomSongs();
+
+    if(songsLoaded)
+        songsLoaded(LoadedLevels);
+
+    std::lock_guard<std::mutex> lock(LoadedEventsMutex);
+    for (auto& event : LoadedEvents) {
+        event(LoadedLevels);
+    }
+}
+
 void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
     if(IsLoading)
         return;
@@ -395,22 +399,20 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
             LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
             LOG_INFO("Loaded %d songs in %dms!", levelsCount, duration);
             
-            IsLoading = false;
-            HasLoaded = true;
             
-            RefreshLevelPacks();
-
             LoadedLevels.clear();
             LoadedLevels.insert(LoadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
             LoadedLevels.insert(LoadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
             
-            if(songsLoaded)
-                songsLoaded(LoadedLevels);
+            IsLoading = false;
+            HasLoaded = true;
 
-            std::lock_guard<std::mutex> lock(LoadedEventsMutex);
-            for (auto& event : LoadedEvents) {
-                event(LoadedLevels);
-            }
+            QuestUI::MainThreadScheduler::Schedule(
+                [this, songsLoaded] {
+                    RefreshLevelPacks(songsLoaded);
+                }
+            );
+           
         }
     ), nullptr)->Run();
 }
