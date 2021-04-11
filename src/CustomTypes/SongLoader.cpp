@@ -92,7 +92,6 @@ std::vector<CustomPreviewBeatmapLevel*> SongLoader::GetLoadedLevels() {
 
 void SongLoader::ctor() {
     INVOKE_CTOR();
-    NeedsLevelPacksRefresh = false;
     IsLoading = false;
     HasLoaded = false;
     LoadingCancelled = false;
