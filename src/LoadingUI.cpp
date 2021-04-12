@@ -54,7 +54,7 @@ namespace RuntimeSongLoader::LoadingUI {
 
     void SetText(std::string_view text) {
         if(textObject)
-            textObject->set_text(il2cpp_utils::createcsstr(text));
+            textObject->set_text(il2cpp_utils::newcsstr(text));
     }
 
     void UpdateLoadingProgress(int maxFolders, int currentFolder) {

@@ -75,7 +75,7 @@ SongLoader* SongLoader::Instance = nullptr;
 
 SongLoader* SongLoader::GetInstance() {
     if(!Instance) {
-        static auto name = il2cpp_utils::createcsstr("SongLoader", il2cpp_utils::StringType::Manual);
+        static auto name = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("SongLoader");
         auto gameObject = GameObject::New_ctor(name);
         Instance = gameObject->AddComponent<SongLoader*>();
         GameObject::DontDestroyOnLoad(gameObject);
@@ -104,13 +104,13 @@ void SongLoader::ctor() {
     CustomWIPLevels = Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>::New_ctor();
 
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(Array<CustomPreviewBeatmapLevel*>::NewLength(0));
-    static auto customLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + CustomLevelsFolder, il2cpp_utils::StringType::Manual);
-    static auto customLevelsPackName = il2cpp_utils::createcsstr("Custom Levels", il2cpp_utils::StringType::Manual);
+    static auto customLevelsPackID = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>(CustomLevelPackPrefixID + CustomLevelsFolder);
+    static auto customLevelsPackName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Custom Levels");
     CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(customLevelsPackID, customLevelsPackName, customLevelsPackName, GetCustomLevelLoader()->defaultPackCover, CustomLevelsCollection);
     
     CustomWIPLevelsCollection = CustomBeatmapLevelCollection::New_ctor(Array<CustomPreviewBeatmapLevel*>::NewLength(0));
-    static auto customWIPLevelsPackID = il2cpp_utils::createcsstr(CustomLevelPackPrefixID + CustomWIPLevelsFolder, il2cpp_utils::StringType::Manual);
-    static auto customWIPLevelsPackName = il2cpp_utils::createcsstr("WIP Levels", il2cpp_utils::StringType::Manual);
+    static auto customWIPLevelsPackID = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>(CustomLevelPackPrefixID + CustomWIPLevelsFolder);
+    static auto customWIPLevelsPackName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("WIP Levels");
     CustomWIPLevelsPack = CustomBeatmapLevelPack::New_ctor(customWIPLevelsPackID, customWIPLevelsPackName, customWIPLevelsPackName, GetCustomLevelLoader()->defaultPackCover, CustomWIPLevelsCollection);
     
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
@@ -137,8 +137,17 @@ StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::s
     std::string path = customLevelPath + "/info.dat";
     if(!fileexists(path))
         path = customLevelPath + "/Info.dat";
-    if(fileexists(path))
-        return StandardLevelInfoSaveData::DeserializeFromJSONString(il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
+    if(fileexists(path)) {
+        //Temporary fix because exceptions don't work
+        auto optional = il2cpp_utils::RunMethod<StandardLevelInfoSaveData*>("", "StandardLevelInfoSaveData", "DeserializeFromJSONString", il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+        if(!optional.has_value()) {
+            LOG_ERROR("GetStandardLevelInfoSaveData File %s is corrupted!", (path).c_str());
+            return nullptr;
+        }
+        return *optional;
+
+        //return StandardLevelInfoSaveData::DeserializeFromJSONString(il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+    }
     return nullptr;
 }
 
@@ -162,7 +171,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     std::string stringLevelID = CustomLevelPrefixID + outHash;
     if(wip)
         stringLevelID += " WIP";
-    Il2CppString* levelID = il2cpp_utils::createcsstr(stringLevelID);
+    Il2CppString* levelID = il2cpp_utils::newcsstr(stringLevelID);
     Il2CppString* songName = standardLevelInfoSaveData->songName;
     Il2CppString* songSubName = standardLevelInfoSaveData->songSubName;
     Il2CppString* songAuthorName = standardLevelInfoSaveData->songAuthorName;
@@ -174,10 +183,10 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     float previewStartTime = standardLevelInfoSaveData->previewStartTime;
     float previewDuration = standardLevelInfoSaveData->previewDuration;
     LOG_DEBUG("levelID: %s", stringLevelID.c_str());
-    LOG_DEBUG("songName: %s", to_utf8(csstrtostr(songName)).c_str());
-    LOG_DEBUG("songSubName: %s", to_utf8(csstrtostr(songSubName)).c_str());
-    LOG_DEBUG("songAuthorName: %s", to_utf8(csstrtostr(songAuthorName)).c_str());
-    LOG_DEBUG("levelAuthorName: %s", to_utf8(csstrtostr(levelAuthorName)).c_str());
+    LOG_DEBUG("songName: %s", csstrtostr(songName).data());
+    LOG_DEBUG("songSubName: %s", csstrtostr(songSubName).data());
+    LOG_DEBUG("songAuthorName: %s", csstrtostr(songAuthorName).data());
+    LOG_DEBUG("levelAuthorName: %s", csstrtostr(levelAuthorName).data());
     LOG_DEBUG("beatsPerMinute: %f", beatsPerMinute);
     LOG_DEBUG("songTimeOffset: %f", songTimeOffset);
     LOG_DEBUG("shuffle: %f", shuffle);
@@ -205,7 +214,8 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
         }
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::createcsstr(customLevelPath), reinterpret_cast<IAudioClipAsyncLoader*>(GetCachedMediaAsyncLoader()), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    
+    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<IAudioClipAsyncLoader*>(GetCachedMediaAsyncLoader()), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
     UpdateSongDuration(result, customLevelPath);
     return result;
 }
@@ -238,14 +248,14 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
     }
     
     //Temporary fix because exceptions don't work
-    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>("", "BeatmapSaveData", "DeserializeFromJSONString", il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
+    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>("", "BeatmapSaveData", "DeserializeFromJSONString", il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
     if(!optional.has_value()) {
         LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
         return 0.0f;
     }
     auto beatmapSaveData = *optional;
 
-    //auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(il2cpp_utils::createcsstr(FileUtils::ReadAllText(path)));
+    //auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
     float highestTime = 0.0f;
     if(beatmapSaveData->notes->get_Count() > 0) {
         highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->notes->ToArray(), [](BeatmapSaveData::NoteData* x){ return x->time; });
@@ -343,7 +353,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                                 bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
                                 
                                 CustomPreviewBeatmapLevel* level = nullptr;
-                                auto songPathCS = il2cpp_utils::createcsstr(songPath);
+                                auto songPathCS = il2cpp_utils::newcsstr(songPath);
                                 bool containsKey = CustomLevels->ContainsKey(songPathCS);
                                 if(containsKey) {
                                     level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));

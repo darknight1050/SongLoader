@@ -49,14 +49,14 @@ using namespace RuntimeSongLoader;
 MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine::SceneManagement::Scene prevScene, UnityEngine::SceneManagement::Scene nextScene) {
     SceneManager_Internal_ActiveSceneChanged(prevScene, nextScene);
     if(prevScene.IsValid() && nextScene.IsValid()) {
-        std::string prevSceneName = to_utf8(csstrtostr(prevScene.get_name()));
-        std::string nextSceneName = to_utf8(csstrtostr(nextScene.get_name()));
+        std::u16string prevSceneName(csstrtostr(prevScene.get_name()));
+        std::u16string nextSceneName(csstrtostr(nextScene.get_name()));
         static bool hasInited = false;
-        if(prevSceneName == "QuestInit"){
+        if(prevSceneName == u"QuestInit"){
             hasInited = true;
         }
-        if(nextSceneName.find("Menu") != std::string::npos) {
-            if(hasInited && prevSceneName == "EmptyTransition") {
+        if(nextSceneName.find(u"Menu") != std::string::npos) {
+            if(hasInited && prevSceneName == u"EmptyTransition") {
                 hasInited = false;
                 CustomCharacteristics::SetupCustomCharacteristics();
                 FindComponentsUtils::ClearCache();

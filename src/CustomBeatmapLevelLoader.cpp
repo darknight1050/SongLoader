@@ -83,7 +83,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         BeatmapData* data = nullptr;
         std::string path = customLevelPath + "/" + difficultyFileName;
         if(fileexists(path)) {
-            Il2CppString* json = il2cpp_utils::createcsstr(FileUtils::ReadAllText(path));
+            Il2CppString* json = il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path));
             data = BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
         }
         LOG_DEBUG("LoadBeatmapData Stop");

@@ -90,7 +90,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(FileHelpers_GetEscapedURLForFilePath, Il2CppString*, Il2CppString* filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return il2cpp_utils::createcsstr("file://" + to_utf8(csstrtostr(filePath)));
+        return il2cpp_utils::newcsstr(std::u16string(u"file://") + std::u16string(csstrtostr(filePath)));
     }
 
     void InstallHooks() {

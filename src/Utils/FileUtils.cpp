@@ -18,6 +18,16 @@ namespace RuntimeSongLoader::FileUtils {
         return text;
     }
 
+    std::u16string ReadAllText16(std::string_view path) {
+        if(!fileexists(path))
+            return u"";
+        std::basic_ifstream<char16_t> fileStream(path.data(), std::ifstream::in);
+        if(!fileStream.is_open())
+            return u"";
+        std::u16string text((std::istreambuf_iterator<char16_t>(fileStream)), std::istreambuf_iterator<char16_t>());
+        return text;
+    }
+
     const char* ReadAllBytes(std::string_view path, size_t& outSize) {
         outSize = 0;
         if(!fileexists(path))

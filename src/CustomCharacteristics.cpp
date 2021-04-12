@@ -6,6 +6,7 @@
 #include "CustomLogger.hpp"
 
 #include "questui/shared/ArrayUtil.hpp"
+#include "questui/shared/BeatSaberUI.hpp"
 
 #include "Sprites.hpp"
 
@@ -27,18 +28,6 @@
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 
-//From questui: https://github.com/darknight1050/questui
-Sprite* Base64ToSprite(std::string& base64)
-{
-    Array<uint8_t>* bytes = System::Convert::FromBase64String(il2cpp_utils::createcsstr(base64));
-    Texture2D* texture = Texture2D::New_ctor(0, 0, TextureFormat::RGBA32, false, false);
-    if(ImageConversion::LoadImage(texture, bytes, false)) {
-        texture->set_wrapMode(TextureWrapMode::Clamp);
-        return Sprite::Create(texture, UnityEngine::Rect(0.0f, 0.0f, (float)texture->get_width(), (float)texture->get_height()), UnityEngine::Vector2(0.5f,0.5f), 1024.0f, 1u, SpriteMeshType::FullRect, UnityEngine::Vector4(0.0f, 0.0f, 0.0f, 0.0f), false);
-    }
-    return nullptr;
-}
-
 namespace RuntimeSongLoader::CustomCharacteristics {
 
     List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
@@ -47,10 +36,10 @@ namespace RuntimeSongLoader::CustomCharacteristics {
     {
         BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
         characteristic->icon = icon;
-        characteristic->descriptionLocalizationKey = il2cpp_utils::createcsstr(hintText);
-        characteristic->serializedName = il2cpp_utils::createcsstr(serializedName);
-        characteristic->characteristicNameLocalizationKey = il2cpp_utils::createcsstr(characteristicName);
-        characteristic->compoundIdPartName = il2cpp_utils::createcsstr(compoundIdPartName);
+        characteristic->descriptionLocalizationKey = il2cpp_utils::newcsstr(hintText);
+        characteristic->serializedName = il2cpp_utils::newcsstr(serializedName);
+        characteristic->characteristicNameLocalizationKey = il2cpp_utils::newcsstr(characteristicName);
+        characteristic->compoundIdPartName = il2cpp_utils::newcsstr(compoundIdPartName);
         characteristic->requires360Movement = requires360Movement;
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
@@ -100,9 +89,10 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         static bool created = false;
         if(!created) {
             created = true;
-            CustomCharacteristics::RegisterCustomCharacteristic(Base64ToSprite(Sprites::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
-            CustomCharacteristics::RegisterCustomCharacteristic(Base64ToSprite(Sprites::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
-            CustomCharacteristics::RegisterCustomCharacteristic(Base64ToSprite(Sprites::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
+            
+            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
+            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
+            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
         }
     }
 
