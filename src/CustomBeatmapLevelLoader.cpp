@@ -80,19 +80,28 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     BeatmapData* LoadBeatmapData(std::string customLevelPath, std::string difficultyFileName, StandardLevelInfoSaveData* standardLevelInfoSaveData) {
         LOG_DEBUG("LoadBeatmapData Start");
-        BeatmapData* data = nullptr;
         std::string path = customLevelPath + "/" + difficultyFileName;
         if(fileexists(path)) {
             Il2CppString* json = il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path));
-            data = BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
+
+            //Temporary fix because exceptions don't work
+            auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
+            if(!optional.has_value()) {
+                LOG_ERROR("LoadBeatmapData File %s is corrupted!", (path).c_str());
+                return nullptr;
+            }
+            return *optional;
+
+            //return BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
         }
-        LOG_DEBUG("LoadBeatmapData Stop");
-        return data;
+        return nullptr;
     }
 
     CustomDifficultyBeatmap* LoadDifficultyBeatmap(std::string customLevelPath, CustomBeatmapLevel* parentCustomBeatmapLevel, CustomDifficultyBeatmapSet* parentDifficultyBeatmapSet, StandardLevelInfoSaveData* standardLevelInfoSaveData, StandardLevelInfoSaveData::DifficultyBeatmap* difficultyBeatmapSaveData) {
         LOG_DEBUG("LoadDifficultyBeatmapAsync Start");
         BeatmapData* beatmapData = LoadBeatmapData(customLevelPath, to_utf8(csstrtostr(difficultyBeatmapSaveData->beatmapFilename)), standardLevelInfoSaveData);
+        if(!beatmapData)
+            return nullptr;
         BeatmapDifficulty difficulty;
         BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSaveData->difficulty, difficulty);
         LOG_DEBUG("LoadDifficultyBeatmapAsync Stop");
@@ -106,6 +115,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         CustomDifficultyBeatmapSet* difficultyBeatmapSet = CustomDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName);
         for(int i = 0; i < difficultyBeatmapSetSaveData->difficultyBeatmaps->Length(); i++) {
             CustomDifficultyBeatmap* customDifficultyBeatmap = LoadDifficultyBeatmap(customLevelPath, customBeatmapLevel, difficultyBeatmapSet, standardLevelInfoSaveData, difficultyBeatmapSetSaveData->difficultyBeatmaps->values[i]);
+            if(!customDifficultyBeatmap)
+                return nullptr;
             difficultyBeatmaps->values[i] = customDifficultyBeatmap;
         }
         difficultyBeatmapSet->SetCustomDifficultyBeatmaps(difficultyBeatmaps);
@@ -118,6 +129,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         Array<IDifficultyBeatmapSet*>* difficultyBeatmapSets = Array<IDifficultyBeatmapSet*>::NewLength(standardLevelInfoSaveData->difficultyBeatmapSets->Length());
         for(int i = 0; i < difficultyBeatmapSets->Length(); i++) {
             IDifficultyBeatmapSet* difficultyBeatmapSet = LoadDifficultyBeatmapSet(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData, standardLevelInfoSaveData->difficultyBeatmapSets->values[i]);
+            if(!difficultyBeatmapSet)
+                return nullptr;
             difficultyBeatmapSets->values[i] = difficultyBeatmapSet;
         }
         LOG_DEBUG("LoadDifficultyBeatmapSetsAsync Stop");
@@ -127,6 +140,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     BeatmapLevelData* LoadBeatmapLevelData(std::string customLevelPath, CustomBeatmapLevel* customBeatmapLevel, StandardLevelInfoSaveData* standardLevelInfoSaveData) {
         LOG_DEBUG("LoadBeatmapLevelDataAsync Start");
         Array<IDifficultyBeatmapSet*>* difficultyBeatmapSets = LoadDifficultyBeatmapSets(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
+        if(!difficultyBeatmapSets)
+            return nullptr;
         AudioClip* audioClip = GetPreviewAudioClip(reinterpret_cast<CustomPreviewBeatmapLevel*>(customBeatmapLevel));
         if(!audioClip)
             return nullptr;
@@ -141,6 +156,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         AudioClip* previewAudioClip = GetPreviewAudioClip(customPreviewBeatmapLevel);
         CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevel::New_ctor(customPreviewBeatmapLevel, previewAudioClip);
         BeatmapLevelData* beatmapLevelData = LoadBeatmapLevelData(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
+        if(!beatmapLevelData)
+            return nullptr;
         customBeatmapLevel->SetBeatmapLevelData(beatmapLevelData);
         LOG_DEBUG("LoadCustomBeatmapLevel Stop");
         return customBeatmapLevel;
@@ -157,8 +174,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                     auto task = Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor();
                     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
                         (std::function<void()>)[=] { 
-                            CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
                             LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
+                            CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
                             if(customBeatmapLevel && customBeatmapLevel->beatmapLevelData) {
                                 self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
                                 task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel)));
