@@ -49,15 +49,39 @@ namespace RuntimeSongLoader::FileUtils {
             fullPath.pop_back();
         DIR *dir;
         struct dirent *ent;
-        if((dir = opendir (fullPath.c_str())) != nullptr) {
-            while((ent = readdir (dir)) != nullptr) {
+        if((dir = opendir(fullPath.c_str())) != nullptr) {
+            while((ent = readdir(dir)) != nullptr) {
                 std::string name = ent->d_name;
                 if(name != "." && name != "..")
                     directories.push_back(fullPath + "/" + name);
             }
-            closedir (dir);
+            closedir(dir);
         }
         return directories;
+    }
+
+    bool DeleteFolder(std::string_view path) {
+        std::string fullPath(path);
+        if(fullPath.ends_with("/"))
+            fullPath.pop_back();
+        DIR *dir;
+        struct dirent *ent;
+        if((dir = opendir(fullPath.c_str())) != nullptr) {
+            while((ent = readdir(dir)) != nullptr) {
+                std::string name = ent->d_name;
+                if(name != "." && name != "..") {
+                    auto entryPath = fullPath + "/" + name;
+                    if(!DeleteFolder(entryPath)) {
+                        deletefile(entryPath);
+                    }
+                }
+            }
+            closedir(dir);
+        } else {
+            return false;
+        }
+        rmdir(fullPath.c_str());
+        return true;
     }
 
 }

@@ -11,5 +11,7 @@ namespace RuntimeSongLoader::FileUtils {
     const char* ReadAllBytes(std::string_view path, size_t& outSize);
 
     std::vector<std::string> GetFolders(std::string_view path);
+    
+    bool DeleteFolder(std::string_view path);
 
 }

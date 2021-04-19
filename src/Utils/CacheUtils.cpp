@@ -36,6 +36,10 @@ namespace RuntimeSongLoader::CacheUtils {
         cacheMap[path] = newData;
     }
 
+    void RemoveCacheData(std::string path) {
+        cacheMap.erase(path);
+    }
+
     void ClearCache() {
         cacheMap.clear();
         SaveToFile({});
@@ -66,6 +70,27 @@ namespace RuntimeSongLoader::CacheUtils {
             }
             UpdateCacheData(it->name.GetString(), data);
         }
+    }
+
+    void SaveToFile() {
+        auto& config = getConfig().config;
+        config.RemoveAllMembers();
+        config.SetObject();
+        rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
+        for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {
+            next_it++;
+            auto& path = it->first;
+            auto& data = it->second;
+            LOG_DEBUG("CacheUtils Saving %s to cache!", path.c_str());
+            ConfigValue value(rapidjson::kObjectType);
+            value.AddMember("directoryHash", data.directoryHash, allocator);
+            if(data.sha1.has_value())
+                value.AddMember("sha1", *data.sha1, allocator);
+            if(data.songDuration.has_value())
+                value.AddMember("songDuration", *data.songDuration, allocator);
+            config.AddMember((ConfigValue::StringRefType)path.c_str(), value, allocator);
+        }
+        getConfig().Write();
     }
 
     void SaveToFile(std::vector<std::string> paths) {

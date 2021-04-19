@@ -22,6 +22,10 @@ namespace RuntimeSongLoader::API {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }
 
+    void DeleteSong(std::string path, std::function<void()> finished) {
+        SongLoader::GetInstance()->DeleteSong(path, finished);
+    }
+
     std::string GetCustomLevelsPrefix() {
         return CustomLevelPrefixID;
     }

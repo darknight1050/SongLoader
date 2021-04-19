@@ -18,6 +18,8 @@ namespace RuntimeSongLoader::API {
     /// @tparam event Callback event
     void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
 
+    void DeleteSong(std::string path, std::function<void()> finished = nullptr);
+    
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs();
 
     std::string GetCustomLevelsPrefix();

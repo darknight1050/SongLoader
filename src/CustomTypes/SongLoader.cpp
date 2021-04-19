@@ -123,8 +123,11 @@ void SongLoader::Awake() {
 
 
 void SortCustomPreviewBeatmapLevels(Array<CustomPreviewBeatmapLevel*>* array) {
+    if(!array)
+        return;
     auto arrayValues = array->values;
-    std::sort(arrayValues, arrayValues + array->Length(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return to_utf8(csstrtostr(first->songName)) < to_utf8(csstrtostr(second->songName)); } );
+    if(array->Length() > 0)
+        std::sort(arrayValues, arrayValues + array->Length(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return to_utf8(csstrtostr(first->songName)) < to_utf8(csstrtostr(second->songName)); } );
 }
 
 void SongLoader::Update() {
@@ -266,12 +269,15 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
 }
 
 Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>* dictionary) {
-    int count = dictionary->get_Count();
-    auto array = Array<CustomPreviewBeatmapLevel*>::NewLength(count);
-    for(int i = 0; i < count; i++) {
-        array->values[i] = dictionary->entries->values[i].value;
+    if(!dictionary)
+        return Array<CustomPreviewBeatmapLevel*>::NewLength(0);
+    auto list = List_1<CustomPreviewBeatmapLevel*>::New_ctor();
+    auto valuesEnumerator = dictionary->GetEnumerator();
+    while(valuesEnumerator.MoveNext()) {
+        list->Add(reinterpret_cast<CustomPreviewBeatmapLevel*>(valuesEnumerator.get_Current().get_Value()));
     }
-    return array;
+    valuesEnumerator.Dispose();
+    return list->ToArray();
 }
 
 void SongLoader::RefreshLevelPacks(std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
@@ -367,7 +373,6 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                                     std::string hash;
                                     level = LoadCustomPreviewBeatmapLevel(songPath, wip, saveData, hash);
                                 }
-                                std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel);
                                 if(level) { 
                                     std::lock_guard<std::mutex> lock(valuesMutex);
                                     if(!containsKey) {
@@ -379,6 +384,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                                     }
                                     loadedPaths.push_back(songPath);
                                     CurrentFolder++;
+                                    std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel);
                                     LOG_INFO("Loaded %s in %dms!", songPath.c_str(), durationLevel);
                                 } else {
                                     LOG_ERROR("Failed loading %s!", songPath.c_str());
@@ -408,7 +414,6 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
             LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
             LOG_INFO("Loaded %d songs in %dms!", levelsCount, duration);
             
-            
             LoadedLevels.clear();
             LoadedLevels.insert(LoadedLevels.end(), CustomLevelsCollection->customPreviewBeatmapLevels->values, CustomLevelsCollection->customPreviewBeatmapLevels->values + CustomLevelsCollection->customPreviewBeatmapLevels->Length());
             LoadedLevels.insert(LoadedLevels.end(), CustomWIPLevelsCollection->customPreviewBeatmapLevels->values, CustomWIPLevelsCollection->customPreviewBeatmapLevels->values + CustomWIPLevelsCollection->customPreviewBeatmapLevels->Length());
@@ -422,6 +427,19 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                 }
             );
            
+        }
+    ), nullptr)->Run();
+}
+
+void SongLoader::DeleteSong(std::string path, std::function<void()> finished) {
+    HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
+        (std::function<void()>)[this, path, finished] {
+            FileUtils::DeleteFolder(path);
+            auto songPathCS = il2cpp_utils::newcsstr(path);
+            CustomLevels->Remove(songPathCS);
+            CustomWIPLevels->Remove(songPathCS);
+            LOG_INFO("Deleted Song %s!", path.c_str());
+            finished();
         }
     ), nullptr)->Run();
 }
