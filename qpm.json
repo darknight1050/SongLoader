@@ -7,7 +7,10 @@
     "version": "0.2.4",
     "url": "https://github.com/darknight1050/songloader",
     "additionalData": {
-      "overrideSoName": "libsongloader.so"
+      "overrideSoName": "libsongloader.so",
+      "branchName": "version-v0.2.4",
+      "soLink": "https://github.com/darknight1050/SongLoader/releases/download/v0.2.4/libsongloader.so",
+      "debugSoLink": "https://github.com/darknight1050/SongLoader/releases/download/v0.2.4/debug_libsongloader.so"
     }
   },
   "dependencies": [
