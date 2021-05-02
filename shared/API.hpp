@@ -27,6 +27,10 @@ namespace RuntimeSongLoader::API {
     
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs();
 
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
+    
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string levelID);
+
     std::string GetCustomLevelsPrefix();
 
     std::string GetCustomLevelsPath();

@@ -22,12 +22,29 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddRefreshLevelPacksEvent(event);
     }
 
+    void DeleteSong(std::string path, std::function<void()> finished) {
+        SongLoader::GetInstance()->DeleteSong(path, finished);
+    }
+
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs() {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }
 
-    void DeleteSong(std::string path, std::function<void()> finished) {
-        SongLoader::GetInstance()->DeleteSong(path, finished);
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash) {
+        std::transform(hash.begin(), hash.end(), hash.begin(), toupper);
+        for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
+            if(to_utf8(csstrtostr(song->levelID)).ends_with(hash))
+                return song;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string levelID) {
+        for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
+            if(to_utf8(csstrtostr(song->levelID)) == levelID)
+                return song;
+        }
+        return std::nullopt;
     }
 
     std::string GetCustomLevelsPrefix() {
