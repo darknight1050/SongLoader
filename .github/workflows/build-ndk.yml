@@ -1,10 +1,6 @@
 name: NDK build
 
-on:
-  push:
-    branches: [ main, master, async-test ]
-  pull_request:
-    branches: [ main, master, async-test ]
+on: [push, pull_request]
 
 jobs:
   build:
