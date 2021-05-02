@@ -3,7 +3,9 @@
 
 #include "custom-types/shared/macros.hpp" 
 
-#include "SongLoaderBeatmapLevelPackCollectionSO.hpp" 
+#include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp" 
+#include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
+
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp" 
 #include "GlobalNamespace/CustomBeatmapLevelCollection.hpp" 
 #include "GlobalNamespace/CustomBeatmapLevelPack.hpp" 
@@ -26,6 +28,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         static std::vector<std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>> LoadedEvents;
         static std::mutex LoadedEventsMutex;
 
+        static std::vector<std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>> RefreshLevelPacksEvents;
+        static std::mutex RefreshLevelPacksEventsMutex;
+
         std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> LoadedLevels;
 
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
@@ -33,11 +38,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
 
-        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelCollection*, CustomLevelsCollection);
-        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelCollection*, CustomWIPLevelsCollection);
-
-        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelPack*, CustomLevelsPack);
-        DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelPack*, CustomWIPLevelsPack);
+        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomLevelsPack);
+        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomWIPLevelsPack);
 
         DECLARE_INSTANCE_FIELD(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO);
 
@@ -70,7 +72,12 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
             LoadedEvents.push_back(event);
         }
 
-        void RefreshLevelPacks(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded);
+        static void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event) {
+            std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
+            RefreshLevelPacksEvents.push_back(event);
+        }
+
+        void RefreshLevelPacks();
         
         void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded = nullptr);
 
@@ -84,9 +91,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
     REGISTER_FUNCTION(
         REGISTER_FIELD(beatmapDataLoader);
-
-        REGISTER_FIELD(CustomLevelsCollection);
-        REGISTER_FIELD(CustomWIPLevelsCollection);
 
         REGISTER_FIELD(CustomLevelsPack);
         REGISTER_FIELD(CustomWIPLevelsPack);

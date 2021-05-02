@@ -18,6 +18,10 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event) {
+        SongLoader::AddRefreshLevelPacksEvent(event);
+    }
+
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs() {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }

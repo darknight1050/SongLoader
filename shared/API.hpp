@@ -3,6 +3,7 @@
 #include <string>
 
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
+#include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 
 namespace RuntimeSongLoader::API {
 
@@ -17,6 +18,10 @@ namespace RuntimeSongLoader::API {
     /// @brief Add a loading callback that gets called after songs got loaded
     /// @tparam event Callback event
     void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+
+    /// @brief Add a callback that gets called before level packs get refreshed
+    /// @tparam event Callback event
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event);
 
     void DeleteSong(std::string path, std::function<void()> finished = nullptr);
     

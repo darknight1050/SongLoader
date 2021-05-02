@@ -12,6 +12,9 @@
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
+#include "GlobalNamespace/BeatmapLevelCollection.hpp"
+#include "GlobalNamespace/LevelSearchViewController.hpp"
+#include "GlobalNamespace/LevelSearchViewController_BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/IBeatmapLevelPack.hpp"
@@ -46,6 +49,19 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(Assert_IsTrue, void, bool, Il2CppString* message, Array<Il2CppObject*>* args) {
         //LOG_DEBUG("Assert_IsTrue");
+    }
+
+    MAKE_HOOK_OFFSETLESS(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
+        LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
+        LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
+        List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
+        auto& levels = reinterpret_cast<BeatmapLevelCollection*>(self->beatmapLevelPackCollection->beatmapLevelCollection)->levels;
+        for(int i = 0; i < levels->Length(); i++) {
+            auto level = levels->values[i];
+            if(!newLevels->Contains(level))
+                newLevels->Add(level);
+        }
+        levels = newLevels->ToArray();
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, Task_1<IBeatmapLevelPackCollection*>*, BeatmapLevelsModel* self, CancellationToken cancellationToken) {
@@ -97,6 +113,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor, il2cpp_utils::FindMethodUnsafe("", "BeatmapData", ".ctor", 1));
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor, il2cpp_utils::FindMethodUnsafe("", "CustomBeatmapLevel", ".ctor", 2));
         INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue, il2cpp_utils::FindMethod("NUnit.Framework", "Assert", "IsTrue", std::vector<Il2CppClass*>{}, il2cpp_utils::TypesFrom(std::vector<const Il2CppClass*> { classof(bool), classof(Il2CppString*), classof(Array<Il2CppObject*>*) })));
+        INSTALL_HOOK_ORIG(getLogger(), LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "LevelSearchViewController", "UpdateBeatmapLevelPackCollectionAsync", 0));
         INSTALL_HOOK_ORIG(getLogger(), BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "ReloadCustomLevelPackCollectionAsync", 1));
         INSTALL_HOOK_ORIG(getLogger(), BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks", 0));
         INSTALL_HOOK_ORIG(getLogger(), AdditionalContentModel_GetLevelEntitlementStatusAsync, il2cpp_utils::FindMethodUnsafe("", "AdditionalContentModel", "GetLevelEntitlementStatusAsync", 2));

@@ -20,6 +20,7 @@
 
 #include "ModSettingsViewController.hpp"
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
+#include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
 #include "CustomTypes/SongLoader.hpp"
 #include "API.hpp"
 
@@ -196,7 +197,7 @@ extern "C" void load() {
     
     QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
 
-    custom_types::Register::RegisterTypes<SongLoaderBeatmapLevelPackCollectionSO, SongLoader>();
+    custom_types::Register::RegisterTypes<SongLoaderBeatmapLevelPackCollectionSO, SongLoaderCustomBeatmapLevelPack, SongLoader>();
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_ActiveSceneChanged, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_ActiveSceneChanged", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), StandardLevelDetailView_RefreshContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailView", "RefreshContent", 0));
     CustomBeatmapLevelLoader::InstallHooks();
