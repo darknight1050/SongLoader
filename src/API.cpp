@@ -31,10 +31,10 @@ namespace RuntimeSongLoader::API {
     }
 
     std::string GetCustomLevelsPath() {
-        return BaseLevelsPath + CustomLevelsFolder + "/";
+        return GetBaseLevelsPath() + CustomLevelsFolder + "/";
     }
 
     std::string GetCustomWIPLevelsPath() {
-        return BaseLevelsPath + CustomWIPLevelsFolder + "/";
+        return GetBaseLevelsPath() + CustomWIPLevelsFolder + "/";
     }
 }

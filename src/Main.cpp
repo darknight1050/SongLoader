@@ -55,7 +55,10 @@ Configuration& getConfig() {
     return config;
 }
 
-std::string BaseLevelsPath;
+std::string GetBaseLevelsPath() {
+    static std::string baseLevelsPath(getDataDir(modInfo));
+    return baseLevelsPath;
+}
 
 using namespace GlobalNamespace;
 using namespace HMUI;
@@ -178,12 +181,12 @@ extern "C" void setup(ModInfo& info) {
     modInfo.version = VERSION;
     info = modInfo;
 
-    BaseLevelsPath = getDataDir(modInfo);
-    if(!direxists(BaseLevelsPath))
-        mkpath(BaseLevelsPath);
-    if(!direxists(BaseLevelsPath + CustomLevelsFolder))
-        mkpath(BaseLevelsPath + CustomLevelsFolder);
-    LOG_INFO("Base path is: %s", BaseLevelsPath.c_str());
+    auto baseLevelsPath = GetBaseLevelsPath();
+    if(!direxists(baseLevelsPath))
+        mkpath(baseLevelsPath);
+    if(!direxists(baseLevelsPath + CustomLevelsFolder))
+        mkpath(baseLevelsPath + CustomLevelsFolder);
+    LOG_INFO("Base path is: %s", baseLevelsPath.c_str());
 }
 
 extern "C" void load() {

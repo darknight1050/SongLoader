@@ -1,6 +1,6 @@
 #pragma once
 
-extern std::string BaseLevelsPath;
+std::string GetBaseLevelsPath();
 const std::string CustomLevelsFolder = "CustomLevels";
 const std::string CustomWIPLevelsFolder = "CustomWIPLevels";
 const std::string CustomLevelPrefixID = "custom_level_";
