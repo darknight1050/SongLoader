@@ -21,7 +21,9 @@
 #include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
+#include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
 #include "GlobalNamespace/HMCache_2.hpp"
+#include "System/Action_2.hpp"
 #include "System/Collections/Generic/Dictionary_2.hpp"
 #include "System/Threading/CancellationToken.hpp"
 #include "System/Threading/Tasks/Task_1.hpp"
@@ -51,6 +53,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         //LOG_DEBUG("Assert_IsTrue");
     }
 
+    //TODO: PLS IMPROVE THIS MESS
     MAKE_HOOK_OFFSETLESS(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
         LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
@@ -62,6 +65,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 newLevels->Add(level);
         }
         levels = newLevels->ToArray();
+        self->didFilterBeatmapLevelCollectionEvent->Invoke(reinterpret_cast<IAnnotatedBeatmapLevelCollection*>(self->beatmapLevelPackCollection), self->preferredBeatmapCharacteristic);
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, Task_1<IBeatmapLevelPackCollection*>*, BeatmapLevelsModel* self, CancellationToken cancellationToken) {
