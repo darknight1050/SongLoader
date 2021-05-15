@@ -22,7 +22,6 @@ namespace RuntimeSongLoader::CacheUtils {
 
     void LoadFromFile();
     
-    void SaveToFile();
     void SaveToFile(std::vector<std::string> paths);
 
 }

@@ -12,18 +12,21 @@
 namespace RuntimeSongLoader::CacheUtils {
 
     std::map<std::string, CacheData> cacheMap;
+    std::mutex cacheMapMutex;
 
     std::optional<CacheData> GetCacheData(std::string_view path) {
         std::string fullPath(path);
         auto directoryHash = HashUtils::GetDirectoryHash(fullPath);
         if(!directoryHash.has_value())
             return std::nullopt;
+        std::unique_lock<std::mutex> lock(cacheMapMutex);
         auto search = cacheMap.find(fullPath);
         if(search != cacheMap.end()) {
             auto data = search->second;
             if(*directoryHash == data.directoryHash)
                 return search->second;
         }
+        lock.unlock();
         CacheData data;
         data.directoryHash = *directoryHash;
         data.sha1 = std::nullopt;
@@ -33,20 +36,26 @@ namespace RuntimeSongLoader::CacheUtils {
     }
 
     void UpdateCacheData(std::string path, CacheData newData) {
+        std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap[path] = newData;
     }
 
     void RemoveCacheData(std::string path) {
+        std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.erase(path);
     }
 
     void ClearCache() {
+        std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.clear();
+        lock.unlock();
         SaveToFile({});
     }
 
     void LoadFromFile() {
+        std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.clear();
+        lock.unlock();
         getConfig().Load();
         getConfig().Reload();
         auto& config = getConfig().config;
@@ -72,33 +81,13 @@ namespace RuntimeSongLoader::CacheUtils {
         }
     }
 
-    void SaveToFile() {
-        auto& config = getConfig().config;
-        config.RemoveAllMembers();
-        config.SetObject();
-        rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
-        for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {
-            next_it++;
-            auto& path = it->first;
-            auto& data = it->second;
-            LOG_DEBUG("CacheUtils Saving %s to cache!", path.c_str());
-            ConfigValue value(rapidjson::kObjectType);
-            value.AddMember("directoryHash", data.directoryHash, allocator);
-            if(data.sha1.has_value())
-                value.AddMember("sha1", *data.sha1, allocator);
-            if(data.songDuration.has_value())
-                value.AddMember("songDuration", *data.songDuration, allocator);
-            config.AddMember((ConfigValue::StringRefType)path.c_str(), value, allocator);
-        }
-        getConfig().Write();
-    }
-
     void SaveToFile(std::vector<std::string> paths) {
         auto& config = getConfig().config;
         config.RemoveAllMembers();
         config.SetObject();
         if(paths.size() > 0) {
             rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
+            std::unique_lock<std::mutex> lock(cacheMapMutex);
             for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {
                 next_it++;
                 auto& path = it->first;

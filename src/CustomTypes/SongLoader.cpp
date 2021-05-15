@@ -304,7 +304,6 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                 CustomLevels->Clear();
                 CustomWIPLevels->Clear();
             }
-            CacheUtils::LoadFromFile();
 
             std::mutex valuesMutex;
             std::vector<std::string> loadedPaths;
@@ -376,8 +375,6 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                 Thread::Yield();
             }
 
-            CacheUtils::SaveToFile(loadedPaths);
-
             auto customPreviewLevels = GetDictionaryValues(CustomLevels);
             auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
             
@@ -412,7 +409,8 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                     }
                 }
             );
-           
+
+            CacheUtils::SaveToFile(loadedPaths);
         }
     ), nullptr)->Run();
 }
