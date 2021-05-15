@@ -93,8 +93,8 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
 }
 
 MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevelDetailView* self) {
+    getLogger().debug("StandardLevelDetailView_RefreshContent");
     StandardLevelDetailView_RefreshContent(self);
-
     static SimpleDialogPromptViewController* deleteDialogPromptViewController = nullptr;
     static auto deleteLevelButtonName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteLevelButton");
     auto templateButton = self->practiceButton;
@@ -173,8 +173,12 @@ MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevel
         ));
         deleteLevelButtonGameObject->GetComponent<Button*>()->set_onClick(onClick);
     }
-    deleteLevelButtonGameObject->SetActive(il2cpp_functions::class_is_assignable_from(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->level))));
-    
+    if(self->level) {
+        static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
+        deleteLevelButtonGameObject->SetActive(il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->level))));
+    } else {
+        deleteLevelButtonGameObject->SetActive(false);
+    }
 }
 
 extern "C" void setup(ModInfo& info) {
