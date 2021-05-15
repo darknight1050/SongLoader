@@ -57,22 +57,24 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_OFFSETLESS(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
         LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
+        static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
         List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
         auto levelPacks = self->beatmapLevelPacks;
-        for(int i = 0; i < levelPacks->Length(); i++) {
-            auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPacks->values[i])->get_beatmapLevelCollection()->get_beatmapLevels();
-            for(int j = 0; j < levels->Length(); j++) {
-                auto level = levels->values[j];
-                if(!newLevels->Contains(level))
-                    newLevels->Add(level);
+        if(levelPacks->Length() != 1 || csstrtostr(levelPacks->values[0]->get_packID()) != csstrtostr(filterName)) {
+            for(int i = 0; i < levelPacks->Length(); i++) {
+                auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPacks->values[i])->get_beatmapLevelCollection()->get_beatmapLevels();
+                for(int j = 0; j < levels->Length(); j++) {
+                    auto level = levels->values[j];
+                    if(!newLevels->Contains(level))
+                        newLevels->Add(level);
+                }
             }
+            BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor(nullptr);
+            BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
+            self->beatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(1);
+            self->beatmapLevelPacks->values[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
+            beatmapLevelCollection->levels = newLevels->ToArray();
         }
-        static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
-        BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor(nullptr);
-        BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
-        self->beatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(1);
-        self->beatmapLevelPacks->values[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
-        beatmapLevelCollection->levels = newLevels->ToArray();
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
     }
 
