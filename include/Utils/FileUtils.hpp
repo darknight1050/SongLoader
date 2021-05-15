@@ -12,6 +12,6 @@ namespace RuntimeSongLoader::FileUtils {
 
     std::vector<std::string> GetFolders(std::string_view path);
     
-    bool DeleteFolder(std::string_view path);
+    void DeleteFolder(std::string_view path);
 
 }

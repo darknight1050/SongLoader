@@ -2,6 +2,8 @@
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
+#include <filesystem>
+
 #include "CustomLogger.hpp"
 
 #include "Utils/FileUtils.hpp"
@@ -13,9 +15,6 @@
 
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
-
-#include <dirent.h>
-#include <sys/stat.h>
 
 using namespace GlobalNamespace;
 using namespace CryptoPP;
@@ -84,34 +83,19 @@ namespace RuntimeSongLoader::HashUtils {
     }
 
     std::optional<int> GetDirectoryHash(std::string_view path) {
-        std::string fullPath(path);
-        DIR *dir;
-        struct dirent *ent;
-        if((dir = opendir (fullPath.c_str())) == nullptr) {
-            // could not open path to hash, return 0 or some other shit
-            closedir(dir);
+        if(!direxists(path))
             return std::nullopt;
-        }
-        // We return 0 if we have nothing in our folder. This can also be the case if we collide on 0.
-        // Perhaps we want to return std::nullopt instead?
-        int value = 0;
-        while((ent = readdir (dir)) != nullptr) {
-            std::string name = ent->d_name;
-            if(name != "." && name != "..") {
-                // Each file entry in the directory is hashed, we only check top level file entries
-                struct stat st;
-                if (stat((fullPath + "/" + name).c_str(), &st)) {
-                    // Error
-                    closedir(dir);
-                    return std::nullopt;
-                }
-                // Otherwise, xor all relevant fields of stat
-                value ^= st.st_size;
-                value ^= st.st_mtime;
+        int hash = 0;
+        bool hasFile = false;
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            if(!entry.is_directory()) {
+                hasFile = true;
+                hash ^= entry.file_size() ^ std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(entry).time_since_epoch()).count();
             }
         }
-        closedir(dir);
-        return value;
+        if(!hasFile)
+            return std::nullopt;
+        return hash;
     }
     
 }

@@ -3,8 +3,7 @@
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include <fstream>
-#include <iterator>
-#include <dirent.h>
+#include <filesystem>
 
 namespace RuntimeSongLoader::FileUtils {
     
@@ -44,44 +43,15 @@ namespace RuntimeSongLoader::FileUtils {
 
     std::vector<std::string> GetFolders(std::string_view path) {
         std::vector<std::string> directories;
-        std::string fullPath(path);
-        if(fullPath.ends_with("/"))
-            fullPath.pop_back();
-        DIR *dir;
-        struct dirent *ent;
-        if((dir = opendir(fullPath.c_str())) != nullptr) {
-            while((ent = readdir(dir)) != nullptr) {
-                std::string name = ent->d_name;
-                if(name != "." && name != "..")
-                    directories.push_back(fullPath + "/" + name);
-            }
-            closedir(dir);
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            if(entry.is_directory())
+                directories.push_back(entry.path().string());
         }
         return directories;
     }
 
-    bool DeleteFolder(std::string_view path) {
-        std::string fullPath(path);
-        if(fullPath.ends_with("/"))
-            fullPath.pop_back();
-        DIR *dir;
-        struct dirent *ent;
-        if((dir = opendir(fullPath.c_str())) != nullptr) {
-            while((ent = readdir(dir)) != nullptr) {
-                std::string name = ent->d_name;
-                if(name != "." && name != "..") {
-                    auto entryPath = fullPath + "/" + name;
-                    if(!DeleteFolder(entryPath)) {
-                        deletefile(entryPath);
-                    }
-                }
-            }
-            closedir(dir);
-        } else {
-            return false;
-        }
-        rmdir(fullPath.c_str());
-        return true;
+    void DeleteFolder(std::string_view path) {
+        std::filesystem::remove_all(path);
     }
 
 }
