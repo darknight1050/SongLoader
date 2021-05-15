@@ -8,6 +8,8 @@
 
 #include "Utils/FindComponentsUtils.hpp"
 
+#include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
+
 #include "GlobalNamespace/AdditionalContentModel.hpp"
 #include "GlobalNamespace/SinglePlayerLevelSelectionFlowCoordinator.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
@@ -17,7 +19,7 @@
 #include "GlobalNamespace/LevelSearchViewController_BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
-#include "GlobalNamespace/IBeatmapLevelPack.hpp"
+#include "GlobalNamespace/BeatmapLevelPack.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
@@ -53,19 +55,25 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         //LOG_DEBUG("Assert_IsTrue");
     }
 
-    //TODO: PLS IMPROVE THIS MESS
     MAKE_HOOK_OFFSETLESS(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
         LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
-        LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
         List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
-        auto& levels = reinterpret_cast<BeatmapLevelCollection*>(self->beatmapLevelPackCollection->beatmapLevelCollection)->levels;
-        for(int i = 0; i < levels->Length(); i++) {
-            auto level = levels->values[i];
-            if(!newLevels->Contains(level))
-                newLevels->Add(level);
+        auto levelPacks = self->beatmapLevelPacks;
+        for(int i = 0; i < levelPacks->Length(); i++) {
+            auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPacks->values[i])->get_beatmapLevelCollection()->get_beatmapLevels();
+            for(int j = 0; j < levels->Length(); j++) {
+                auto level = levels->values[j];
+                if(!newLevels->Contains(level))
+                    newLevels->Add(level);
+            }
         }
-        levels = newLevels->ToArray();
-        self->didFilterBeatmapLevelCollectionEvent->Invoke(reinterpret_cast<IAnnotatedBeatmapLevelCollection*>(self->beatmapLevelPackCollection), self->preferredBeatmapCharacteristic);
+        static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
+        BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor(nullptr);
+        BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
+        self->beatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(1);
+        self->beatmapLevelPacks->values[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
+        beatmapLevelCollection->levels = newLevels->ToArray();
+        LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
     }
 
     MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync, Task_1<IBeatmapLevelPackCollection*>*, BeatmapLevelsModel* self, CancellationToken cancellationToken) {
