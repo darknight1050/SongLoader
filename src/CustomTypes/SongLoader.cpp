@@ -3,6 +3,7 @@
 #include "CustomLogger.hpp"
 
 #include "Paths.hpp"
+#include "Sprites.hpp"
 
 #include "LoadingUI.hpp"
 
@@ -14,7 +15,7 @@
 #include "Utils/OggVorbisUtils.hpp"
 #include "Utils/FindComponentsUtils.hpp"
 
-#include "questui/shared/ArrayUtil.hpp"
+#include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
@@ -107,7 +108,7 @@ void SongLoader::ctor() {
     CustomWIPLevels = Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>::New_ctor();
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::New_ctor(CustomLevelsFolder, "Custom Levels");
-    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::New_ctor(CustomWIPLevelsFolder, "WIP Levels");
+    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::New_ctor(CustomWIPLevelsFolder, "WIP Levels", QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomWIPLevelsCover));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
 }
 
