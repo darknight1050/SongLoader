@@ -267,6 +267,7 @@ Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString
 }
 
 void SongLoader::RefreshLevelPacks() {
+    CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
     CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     

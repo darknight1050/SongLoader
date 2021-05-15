@@ -29,6 +29,11 @@ void SongLoaderBeatmapLevelPackCollectionSO::RemoveLevelPack(CustomBeatmapLevelP
     }
 }
 
+void SongLoaderBeatmapLevelPackCollectionSO::ClearLevelPacks() {
+    customBeatmapLevelPacks->Clear();
+    UpdateArray();
+}
+
 void SongLoaderBeatmapLevelPackCollectionSO::UpdateArray() {
     allBeatmapLevelPacks = reinterpret_cast<Array<IBeatmapLevelPack*>*>(customBeatmapLevelPacks->ToArray());
 }

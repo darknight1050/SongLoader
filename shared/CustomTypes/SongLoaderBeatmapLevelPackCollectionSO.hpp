@@ -14,6 +14,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderBeatmapLevelPackCollectionSO,
         static SongLoaderBeatmapLevelPackCollectionSO* CreateNew();
         void AddLevelPack(GlobalNamespace::CustomBeatmapLevelPack* pack);
         void RemoveLevelPack(GlobalNamespace::CustomBeatmapLevelPack* pack);
+        void ClearLevelPacks();
         void UpdateArray();
  
     DECLARE_CTOR(ctor);

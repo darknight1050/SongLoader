@@ -40,12 +40,8 @@ void SongLoaderCustomBeatmapLevelPack::SetCustomPreviewBeatmapLevels(Array<Globa
 }
 
 void SongLoaderCustomBeatmapLevelPack::AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty) {
-    customBeatmapLevelPackCollectionSO->RemoveLevelPack(CustomLevelsPack);
-    if(CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
+    if(addIfEmpty || CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
         SortLevels();
-        if(!addIfEmpty)
-            customBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
-    }
-    if(addIfEmpty)
         customBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
+    }
 }
