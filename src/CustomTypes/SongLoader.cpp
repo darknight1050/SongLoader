@@ -268,7 +268,9 @@ Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString
 
 void SongLoader::RefreshLevelPacks() {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
+    CustomLevelsPack->SortLevels();
     CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+    CustomWIPLevelsPack->SortLevels();
     CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);

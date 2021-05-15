@@ -41,7 +41,6 @@ void SongLoaderCustomBeatmapLevelPack::SetCustomPreviewBeatmapLevels(Array<Globa
 
 void SongLoaderCustomBeatmapLevelPack::AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty) {
     if(addIfEmpty || CustomLevelsCollection->customPreviewBeatmapLevels->Length() > 0) {
-        SortLevels();
         customBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
     }
 }
