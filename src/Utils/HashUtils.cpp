@@ -83,7 +83,7 @@ namespace RuntimeSongLoader::HashUtils {
     }
 
     std::optional<int> GetDirectoryHash(std::string_view path) {
-        if(!direxists(path))
+        if(!std::filesystem::is_directory(path))
             return std::nullopt;
         int hash = 0;
         bool hasFile = false;

@@ -43,6 +43,8 @@ namespace RuntimeSongLoader::FileUtils {
 
     std::vector<std::string> GetFolders(std::string_view path) {
         std::vector<std::string> directories;
+        if(!std::filesystem::is_directory(path))
+            return directories;
         for (const auto& entry : std::filesystem::directory_iterator(path)) {
             if(entry.is_directory())
                 directories.push_back(entry.path().string());
