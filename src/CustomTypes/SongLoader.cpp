@@ -330,6 +330,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                     (std::function<void()>)[this, startIndex, endIndex, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] { 
                         for(int i = startIndex; i < endIndex; i++) {
                             std::string songPath = customLevelsFolders[i];
+                            LOG_INFO("Loading %s ...", songPath.c_str());
                             try {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
                                 bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
