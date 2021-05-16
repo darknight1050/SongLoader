@@ -70,6 +70,12 @@ using namespace System::Threading;
 using namespace System::Collections::Generic;
 using namespace FindComponentsUtils;
 
+#define FixEmptyString(name) \
+if(!name) { \
+    LOG_WARN("Fixed nullptr string \"%s\"! THIS SHOULDN'T HAPPEN!", #name);\
+    name = System::String::_get_Empty(); \
+}
+
 DEFINE_TYPE(SongLoader);
 
 SongLoader* SongLoader::Instance = nullptr;
@@ -163,9 +169,13 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
         stringLevelID += " WIP";
     Il2CppString* levelID = il2cpp_utils::newcsstr(stringLevelID);
     Il2CppString* songName = standardLevelInfoSaveData->songName;
+    FixEmptyString(songName)
     Il2CppString* songSubName = standardLevelInfoSaveData->songSubName;
+    FixEmptyString(songSubName)
     Il2CppString* songAuthorName = standardLevelInfoSaveData->songAuthorName;
+    FixEmptyString(songAuthorName)
     Il2CppString* levelAuthorName = standardLevelInfoSaveData->levelAuthorName;
+    FixEmptyString(levelAuthorName)
     float beatsPerMinute = standardLevelInfoSaveData->beatsPerMinute;
     float songTimeOffset = standardLevelInfoSaveData->songTimeOffset;
     float shuffle = standardLevelInfoSaveData->shuffle;
@@ -173,10 +183,10 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     float previewStartTime = standardLevelInfoSaveData->previewStartTime;
     float previewDuration = standardLevelInfoSaveData->previewDuration;
     LOG_DEBUG("levelID: %s", stringLevelID.c_str());
-    LOG_DEBUG("songName: %s", csstrtostr(songName).data());
-    LOG_DEBUG("songSubName: %s", csstrtostr(songSubName).data());
-    LOG_DEBUG("songAuthorName: %s", csstrtostr(songAuthorName).data());
-    LOG_DEBUG("levelAuthorName: %s", csstrtostr(levelAuthorName).data());
+    LOG_DEBUG("songName: %s", to_utf8(csstrtostr(songName)).c_str());
+    LOG_DEBUG("songSubName: %s", to_utf8(csstrtostr(songSubName)).c_str());
+    LOG_DEBUG("songAuthorName: %s", to_utf8(csstrtostr(songAuthorName)).c_str());
+    LOG_DEBUG("levelAuthorName: %s", to_utf8(csstrtostr(levelAuthorName)).c_str());
     LOG_DEBUG("beatsPerMinute: %f", beatsPerMinute);
     LOG_DEBUG("songTimeOffset: %f", songTimeOffset);
     LOG_DEBUG("shuffle: %f", shuffle);
@@ -191,7 +201,6 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     for(int i = 0; i < difficultyBeatmapSets->Length(); i++) {
         StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet = difficultyBeatmapSets->values[i];
         BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = GetCustomLevelLoader()->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
-        LOG_DEBUG("beatmapCharacteristicBySerializedName: %p", beatmapCharacteristicBySerializedName);
         LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", to_utf8(csstrtostr(difficultyBeatmapSet->beatmapCharacteristicName)).c_str());
         if(beatmapCharacteristicBySerializedName) {
             Array<BeatmapDifficulty>* array = Array<BeatmapDifficulty>::NewLength(difficultyBeatmapSet->difficultyBeatmaps->Length());
