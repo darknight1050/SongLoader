@@ -3,6 +3,7 @@
 #include "Paths.hpp"
 
 #include "CustomTypes/SongLoader.hpp"
+#include "CustomBeatmapLevelLoader.hpp"
 
 namespace RuntimeSongLoader::API {
 
@@ -20,6 +21,10 @@ namespace RuntimeSongLoader::API {
 
     void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event) {
         SongLoader::AddRefreshLevelPacksEvent(event);
+    }
+
+    void AddBeatmapDataLoadedEvent(std::function<void(GlobalNamespace::StandardLevelInfoSaveData*, GlobalNamespace::BeatmapData*)> event) {
+        CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 
     void DeleteSong(std::string path, std::function<void()> finished) {

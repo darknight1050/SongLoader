@@ -8,10 +8,8 @@
 #include "Utils/FindComponentsUtils.hpp"
 
 #include "GlobalNamespace/FileHelpers.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/BeatmapData.hpp"
 #include "GlobalNamespace/BeatmapDataLoader.hpp"
 #include "GlobalNamespace/BeatmapLevelData.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
@@ -38,6 +36,9 @@
 #include "System/Threading/CancellationToken.hpp"
 #include "System/Threading/Tasks/Task_1.hpp"
 
+#include <vector>
+#include <mutex>
+
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 using namespace UnityEngine::Networking;
@@ -48,6 +49,14 @@ using namespace System::Threading::Tasks;
 namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     using namespace FindComponentsUtils;
+
+    std::vector<std::function<void(StandardLevelInfoSaveData*, BeatmapData*)>> BeatmapDataLoadedEvents;
+    std::mutex BeatmapDataLoadedEventsMutex;
+
+    void AddBeatmapDataLoadedEvent(std::function<void(StandardLevelInfoSaveData*, BeatmapData*)> event) {
+        std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
+        BeatmapDataLoadedEvents.push_back(event);
+    }
     
     AudioClip* GetPreviewAudioClip(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         auto start = std::chrono::high_resolution_clock::now(); 
@@ -81,20 +90,27 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     BeatmapData* LoadBeatmapData(std::string customLevelPath, std::string difficultyFileName, StandardLevelInfoSaveData* standardLevelInfoSaveData) {
         LOG_DEBUG("LoadBeatmapData Start");
         std::string path = customLevelPath + "/" + difficultyFileName;
+        BeatmapData* beatmapData = nullptr;
         if(fileexists(path)) {
             Il2CppString* json = il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path));
 
             //Temporary fix because exceptions don't work
             auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
             if(!optional.has_value()) {
+                beatmapData = *optional;
+            } else {
                 LOG_ERROR("LoadBeatmapData File %s is corrupted!", (path).c_str());
-                return nullptr;
             }
-            return *optional;
-
             //return BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
+        
+        } else {
+                LOG_ERROR("LoadBeatmapData File %s doesn't exist!", (path).c_str());
         }
-        return nullptr;
+        std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
+        for (auto& event : BeatmapDataLoadedEvents) {
+            event(standardLevelInfoSaveData, beatmapData);
+        }
+        return beatmapData;
     }
 
     CustomDifficultyBeatmap* LoadDifficultyBeatmap(std::string customLevelPath, CustomBeatmapLevel* parentCustomBeatmapLevel, CustomDifficultyBeatmapSet* parentDifficultyBeatmapSet, StandardLevelInfoSaveData* standardLevelInfoSaveData, StandardLevelInfoSaveData::DifficultyBeatmap* difficultyBeatmapSaveData) {
