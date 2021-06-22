@@ -16,12 +16,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderBeatmapLevelPackCollectionSO,
         void RemoveLevelPack(GlobalNamespace::CustomBeatmapLevelPack* pack);
         void ClearLevelPacks();
         void UpdateArray();
- 
+
     DECLARE_CTOR(ctor);
 
-    REGISTER_FUNCTION(
-        REGISTER_FIELD(customBeatmapLevelPacks);
-        
-        REGISTER_METHOD(ctor);
-    )
 )

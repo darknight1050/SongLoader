@@ -76,7 +76,7 @@ if(!name) { \
     name = System::String::_get_Empty(); \
 }
 
-DEFINE_TYPE(SongLoader);
+DEFINE_TYPE(RuntimeSongLoader, SongLoader);
 
 SongLoader* SongLoader::Instance = nullptr;
 

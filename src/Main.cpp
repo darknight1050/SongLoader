@@ -10,9 +10,9 @@
 #include "Paths.hpp"
 #include "Sprites.hpp"
 
-#include "LoadingFixHooks.hpp"
-#include "CustomCharacteristics.hpp"
 #include "CustomBeatmapLevelLoader.hpp"
+#include "CustomCharacteristics.hpp"
+#include "LoadingFixHooks.hpp"
 #include "LoadingUI.hpp"
 
 #include "Utils/FindComponentsUtils.hpp"
@@ -199,15 +199,16 @@ extern "C" void load() {
     il2cpp_functions::Init();
     QuestUI::Init();
     
+    custom_types::Register::AutoRegister();
+    
     QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
-    custom_types::Register::RegisterTypes<SongLoaderBeatmapLevelPackCollectionSO, SongLoaderCustomBeatmapLevelPack, SongLoader>();
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_ActiveSceneChanged, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_ActiveSceneChanged", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), StandardLevelDetailView_RefreshContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailView", "RefreshContent", 0));
     
     CustomBeatmapLevelLoader::InstallHooks();
-    LoadingFixHooks::InstallHooks();
     CustomCharacteristics::InstallHooks();
+    LoadingFixHooks::InstallHooks();
 
     CacheUtils::LoadFromFile();
     LOG_INFO("Successfully installed SongLoader!");

@@ -9,7 +9,7 @@ using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 
-DEFINE_TYPE(SongLoaderCustomBeatmapLevelPack);
+DEFINE_TYPE(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack);
 
 SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::New_ctor(std::string packID, std::string packName, Sprite* coverImage) {
     auto customLevelsPackID = il2cpp_utils::newcsstr(CustomLevelPackPrefixID + packID);

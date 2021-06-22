@@ -33,6 +33,17 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> LoadedLevels;
 
+        void MenuLoaded();
+
+        GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
+        GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
+        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
+        
+        void UpdateSongDuration(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
+        float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
+
+        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
+
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
 
@@ -50,17 +61,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         DECLARE_INSTANCE_FIELD(int, MaxFolders);
         DECLARE_INSTANCE_FIELD(int, CurrentFolder);
-
-        void MenuLoaded();
-
-        GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
-        GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
-        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
-        
-        void UpdateSongDuration(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
-        float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
-
-        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
 
     public:
         static SongLoader* GetInstance();
@@ -86,28 +86,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         DECLARE_CTOR(ctor);
         DECLARE_SIMPLE_DTOR();
 
-        DECLARE_METHOD(void, Awake);
-        DECLARE_METHOD(void, Update);
-
-    REGISTER_FUNCTION(
-        REGISTER_FIELD(beatmapDataLoader);
-
-        REGISTER_FIELD(CustomLevelsPack);
-        REGISTER_FIELD(CustomWIPLevelsPack);
-
-        REGISTER_FIELD(CustomBeatmapLevelPackCollectionSO);
-
-        REGISTER_FIELD(IsLoading);
-        REGISTER_FIELD(HasLoaded);
-        REGISTER_FIELD(LoadingCancelled);
-
-        REGISTER_FIELD(MaxFolders);
-        REGISTER_FIELD(CurrentFolder);
-
-        REGISTER_METHOD(ctor);
-        REGISTER_SIMPLE_DTOR();
-
-        REGISTER_METHOD(Awake);
-        REGISTER_METHOD(Update);
-    )
+        DECLARE_INSTANCE_METHOD(void, Awake);
+        DECLARE_INSTANCE_METHOD(void, Update);
 )
