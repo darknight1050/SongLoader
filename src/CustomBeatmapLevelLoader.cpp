@@ -96,7 +96,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
             //Temporary fix because exceptions don't work
             auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
-            if(!optional.has_value()) {
+            if(optional.has_value()) {
                 beatmapData = *optional;
             } else {
                 LOG_ERROR("LoadBeatmapData File %s is corrupted!", (path).c_str());
@@ -104,7 +104,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
             //return BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
         
         } else {
-                LOG_ERROR("LoadBeatmapData File %s doesn't exist!", (path).c_str());
+            LOG_ERROR("LoadBeatmapData File %s doesn't exist!", (path).c_str());
         }
         std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
         for (auto& event : BeatmapDataLoadedEvents) {
