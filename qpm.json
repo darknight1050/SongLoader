@@ -4,7 +4,7 @@
   "info": {
     "name": "songloader",
     "id": "songloader",
-    "version": "0.0.1",
+    "version": "0.4.0",
     "url": "https://github.com/darknight1050/songloader",
     "additionalData": {
       "overrideSoName": "libsongloader.so"
