@@ -1,5 +1,7 @@
 #include "Utils/FileUtils.hpp"
 
+#include "CustomLogger.hpp"
+
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include <fstream>
@@ -45,7 +47,12 @@ namespace RuntimeSongLoader::FileUtils {
         std::vector<std::string> directories;
         if(!std::filesystem::is_directory(path))
             return directories;
-        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        std::error_code ec;
+        auto directory_iterator = std::filesystem::directory_iterator(path, std::filesystem::directory_options::none, ec);
+        if (ec) {
+            LOG_ERROR("Error reading directory at %s: %s", path.data(), ec.message().c_str());
+        }
+        for (const auto& entry : directory_iterator) {
             if(entry.is_directory())
                 directories.push_back(entry.path().string());
         }
