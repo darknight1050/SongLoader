@@ -1,5 +1,6 @@
 #include <chrono>
 
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "custom-types/shared/register.hpp"
@@ -42,6 +43,7 @@
 #include "UnityEngine/UI/ContentSizeFitter.hpp"
 #include "UnityEngine/Events/UnityAction.hpp"
 #include "UnityEngine/SceneManagement/Scene.hpp"
+#include "UnityEngine/SceneManagement/SceneManager.hpp"
 #include "System/Action_1.hpp"
 
 ModInfo modInfo;
@@ -70,7 +72,9 @@ using namespace UnityEngine::Events;
 using namespace QuestUI;
 using namespace RuntimeSongLoader;
 
-MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine::SceneManagement::Scene prevScene, UnityEngine::SceneManagement::Scene nextScene) {
+MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
+                &UnityEngine::SceneManagement::SceneManager::Internal_ActiveSceneChanged,
+                void, UnityEngine::SceneManagement::Scene prevScene, UnityEngine::SceneManagement::Scene nextScene) {
     SceneManager_Internal_ActiveSceneChanged(prevScene, nextScene);
     if(prevScene.IsValid() && nextScene.IsValid()) {
         std::u16string prevSceneName(csstrtostr(prevScene.get_name()));
@@ -92,7 +96,9 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_ActiveSceneChanged, void, UnityEngine
     }
 }
 
-MAKE_HOOK_OFFSETLESS(StandardLevelDetailView_RefreshContent, void, StandardLevelDetailView* self) {
+MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
+                &StandardLevelDetailView::RefreshContent,
+                void, StandardLevelDetailView* self) {
     getLogger().debug("StandardLevelDetailView_RefreshContent");
     StandardLevelDetailView_RefreshContent(self);
     static SimpleDialogPromptViewController* deleteDialogPromptViewController = nullptr;
@@ -203,8 +209,8 @@ extern "C" void load() {
     
     QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_ActiveSceneChanged, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_ActiveSceneChanged", 2));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), StandardLevelDetailView_RefreshContent, il2cpp_utils::FindMethodUnsafe("", "StandardLevelDetailView", "RefreshContent", 0));
+    INSTALL_HOOK(getLogger(), SceneManager_Internal_ActiveSceneChanged);
+    INSTALL_HOOK(getLogger(), StandardLevelDetailView_RefreshContent);
     
     CustomBeatmapLevelLoader::InstallHooks();
     CustomCharacteristics::InstallHooks();
