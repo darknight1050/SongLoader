@@ -37,13 +37,13 @@ LOCAL_MODULE := modloader
 LOCAL_EXPORT_C_INCLUDES := extern/modloader
 LOCAL_SRC_FILES := extern/libmodloader.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: custom-types - version: 0.11.0
+# Creating prebuilt for dependency: custom-types - version: 0.12.2
 include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
 LOCAL_EXPORT_C_INCLUDES := extern/custom-types
 LOCAL_SRC_FILES := extern/libcustom-types.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: questui - version: 0.8.0
+# Creating prebuilt for dependency: questui - version: 0.9.0
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui
 LOCAL_EXPORT_C_INCLUDES := extern/questui
@@ -69,7 +69,7 @@ LOCAL_SHARED_LIBRARIES += codegen_0_10_2
 LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_SHARED_LIBRARIES += questui
 LOCAL_LDLIBS += -llog 
-LOCAL_CFLAGS += -DVERSION='"0.0.1"'
+LOCAL_CFLAGS += -DVERSION='"0.5.0"'
 LOCAL_C_INCLUDES += ./include ./shared ./src ./extern ./extern/libil2cpp/il2cpp/libil2cpp ./extern/codegen/include
 LOCAL_CPP_FEATURES += exceptions
 LOCAL_STATIC_LIBRARIES += cryptopp
