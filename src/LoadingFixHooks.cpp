@@ -45,13 +45,14 @@ using namespace Tasks;
 
 namespace RuntimeSongLoader::LoadingFixHooks {
 
-    MAKE_HOOK_FIND(BeatmapData_ctor, classof(BeatmapData*), "ctor", void, BeatmapData* self, int numberOfLines) {
+    // TODO: Use a hook that works when fixed
+    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE (BeatmapData_ctor, "", "BeatmapData", ".ctor", void, BeatmapData* self, int numberOfLines) {
         LOG_DEBUG("BeatmapData_ctor");
         BeatmapData_ctor(self, numberOfLines);
         self->prevAddedBeatmapEventDataTime = System::Single::MinValue;
     }
 
-    MAKE_HOOK_FIND(CustomBeatmapLevel_ctor, classof(CustomBeatmapLevel*), "ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel, AudioClip* previewAudioClip) {
+    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(CustomBeatmapLevel_ctor, "", "CustomBeatmapLevel", ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel, AudioClip* previewAudioClip) {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
         CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel, previewAudioClip);
         self->songDuration = customPreviewBeatmapLevel->songDuration;
