@@ -1,5 +1,6 @@
 #include "CustomBeatmapLevelLoader.hpp"
 
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "CustomLogger.hpp"
@@ -179,7 +180,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         return customBeatmapLevel;
     }
 
-    MAKE_HOOK_OFFSETLESS(BeatmapLevelsModel_GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, Il2CppString* levelID, CancellationToken cancellationToken) {
+    MAKE_HOOK_MATCH(BeatmapLevelsModel_GetBeatmapLevelAsync, &BeatmapLevelsModel::GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, Il2CppString* levelID, CancellationToken cancellationToken) {
         LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", to_utf8(csstrtostr(levelID)).c_str());
         Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>* result = BeatmapLevelsModel_GetBeatmapLevelAsync(self, levelID, cancellationToken);
         if(result->get_IsCompleted() && result->get_Result().isError) {
@@ -210,7 +211,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     }
 
     void InstallHooks() {
-        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapLevelsModel_GetBeatmapLevelAsync, il2cpp_utils::FindMethodUnsafe("", "BeatmapLevelsModel", "GetBeatmapLevelAsync", 2));
+        INSTALL_HOOK(getLogger(), BeatmapLevelsModel_GetBeatmapLevelAsync);
     }
     
 }

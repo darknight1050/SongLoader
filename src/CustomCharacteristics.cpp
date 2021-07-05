@@ -1,6 +1,7 @@
 
 #include "CustomCharacteristics.hpp"
 
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "CustomLogger.hpp"
@@ -73,7 +74,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return nullptr;
     }  
 
-    MAKE_HOOK_OFFSETLESS(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
+    MAKE_HOOK_MATCH(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName,&BeatmapCharacteristicCollectionSO::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
     {
         BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
         if(!result)
@@ -82,7 +83,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
     }
 
     void InstallHooks() {
-        INSTALL_HOOK_OFFSETLESS(getLogger(), BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, il2cpp_utils::FindMethodUnsafe("", "BeatmapCharacteristicCollectionSO", "GetBeatmapCharacteristicBySerializedName", 1));
+        INSTALL_HOOK(getLogger(), BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName);
     }
 
     void SetupCustomCharacteristics() {
