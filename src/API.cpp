@@ -23,7 +23,7 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddRefreshLevelPacksEvent(event);
     }
 
-    void AddBeatmapDataLoadedEvent(std::function<void(GlobalNamespace::StandardLevelInfoSaveData*, GlobalNamespace::BeatmapData*)> event) {
+    void AddBeatmapDataLoadedEvent(std::function<void(GlobalNamespace::StandardLevelInfoSaveData*, const std::string&, GlobalNamespace::BeatmapData*)> event) {
         CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 

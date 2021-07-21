@@ -51,10 +51,10 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     using namespace FindComponentsUtils;
 
-    std::vector<std::function<void(StandardLevelInfoSaveData*, BeatmapData*)>> BeatmapDataLoadedEvents;
+    std::vector<std::function<void(StandardLevelInfoSaveData*, const std::string&, BeatmapData*)>> BeatmapDataLoadedEvents;
     std::mutex BeatmapDataLoadedEventsMutex;
 
-    void AddBeatmapDataLoadedEvent(std::function<void(StandardLevelInfoSaveData*, BeatmapData*)> event) {
+    void AddBeatmapDataLoadedEvent(std::function<void(StandardLevelInfoSaveData*, const std::string&, BeatmapData*)> event) {
         std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
         BeatmapDataLoadedEvents.push_back(event);
     }
@@ -109,7 +109,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         }
         std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
         for (auto& event : BeatmapDataLoadedEvents) {
-            event(standardLevelInfoSaveData, beatmapData);
+            event(standardLevelInfoSaveData, difficultyFileName, beatmapData);
         }
         return beatmapData;
     }
