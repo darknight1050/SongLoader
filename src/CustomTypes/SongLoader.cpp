@@ -270,13 +270,9 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
 Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>* dictionary) {
     if(!dictionary)
         return Array<CustomPreviewBeatmapLevel*>::NewLength(0);
-    auto list = List_1<CustomPreviewBeatmapLevel*>::New_ctor();
-    auto valuesEnumerator = dictionary->GetEnumerator();
-    while(valuesEnumerator.MoveNext()) {
-        list->Add(reinterpret_cast<CustomPreviewBeatmapLevel*>(valuesEnumerator.get_Current().get_Value()));
-    }
-    valuesEnumerator.Dispose();
-    return list->ToArray();
+    auto array = Array<CustomPreviewBeatmapLevel*>::NewLength(dictionary->get_Count());
+    il2cpp_utils::RunMethodUnsafe(dictionary->get_Values(), "CopyTo", reinterpret_cast<System::Array*>(array), 0);
+    return array;
 }
 
 void SongLoader::RefreshLevelPacks() {
@@ -303,7 +299,8 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
     if(IsLoading)
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
-    if(!activeScene.IsValid() || to_utf8(csstrtostr(activeScene.get_name())).find("Menu") == std::string::npos)
+    
+    if(!activeScene.IsValid() || csstrtostr(activeScene.get_name()).find(u"Menu") == std::string::npos)
         return;
 
     IsLoading = true;

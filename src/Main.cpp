@@ -99,7 +99,7 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
 MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
                 &StandardLevelDetailView::RefreshContent,
                 void, StandardLevelDetailView* self) {
-    getLogger().debug("StandardLevelDetailView_RefreshContent");
+    LOG_DEBUG("StandardLevelDetailView_RefreshContent");
     StandardLevelDetailView_RefreshContent(self);
     static SimpleDialogPromptViewController* deleteDialogPromptViewController = nullptr;
     static auto deleteLevelButtonName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteLevelButton");
