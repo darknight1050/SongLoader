@@ -9,9 +9,9 @@
 #include "Utils/FileUtils.hpp"
 #include "Utils/CacheUtils.hpp"
 
-#include "include/cryptopp/sha.h"
-#include "include/cryptopp/hex.h"
-#include "include/cryptopp/files.h"
+#include "libcryptopp/shared/sha.h"
+#include "libcryptopp/shared/hex.h"
+#include "libcryptopp/shared/files.h"
 
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"

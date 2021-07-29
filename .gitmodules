@@ -1,4 +1,0 @@
-[submodule "include/cryptopp"]
-	path = include/cryptopp
-	branch = quest_prebuilt
-	url = https://github.com/darknight1050/cryptopp.git
