@@ -38,7 +38,7 @@ namespace RuntimeSongLoader::API {
 
     /// @brief gets if songs have been loaded
     /// @return false for not, true for loaded
-    bool GetSongsLoaded();
+    bool HaveSongsLoaded();
 
     std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
     
