@@ -35,6 +35,10 @@ namespace RuntimeSongLoader::API {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }
 
+    bool GetSongsLoaded() {
+        return SongLoader::GetInstance()->HasLoaded;
+    }
+
     std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash) {
         std::transform(hash.begin(), hash.end(), hash.begin(), toupper);
         for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
