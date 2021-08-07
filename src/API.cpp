@@ -35,7 +35,7 @@ namespace RuntimeSongLoader::API {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }
 
-    bool GetSongsLoaded() {
+    bool HasLoadedSongs() {
         return SongLoader::GetInstance()->HasLoaded;
     }
 
