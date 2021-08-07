@@ -45,6 +45,8 @@ namespace RuntimeSongLoader::API {
 
     std::string GetCustomLevelsPrefix();
 
+    std::string GetCustomLevelPacksPrefix();
+
     std::string GetCustomLevelsPath();
 
     std::string GetCustomWIPLevelsPath();

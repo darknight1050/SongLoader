@@ -59,6 +59,10 @@ namespace RuntimeSongLoader::API {
     std::string GetCustomLevelsPrefix() {
         return CustomLevelPrefixID;
     }
+    
+    std::string GetCustomLevelPacksPrefix() {
+        return CustomLevelPackPrefixID;
+    }
 
     std::string GetCustomLevelsPath() {
         return GetBaseLevelsPath() + CustomLevelsFolder + "/";
