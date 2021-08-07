@@ -18,13 +18,30 @@
 #include "GlobalNamespace/BeatmapLevelCollection.hpp"
 #include "GlobalNamespace/LevelSearchViewController.hpp"
 #include "GlobalNamespace/LevelSearchViewController_BeatmapLevelPackCollection.hpp"
+#include "GlobalNamespace/NoteData.hpp"
+#include "GlobalNamespace/BeatmapDataTransformHelper.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
+#include "GlobalNamespace/BeatmapData_-get_beatmapObjectsData-d__31.hpp"
+#include "GlobalNamespace/BeatmapObjectData.hpp"
+#include "GlobalNamespace/BeatmapLineData.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/BeatmapLevelPack.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollection.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
+#include "GlobalNamespace/NotesInTimeRowProcessor.hpp"
+#include "GlobalNamespace/BeatmapDataMirrorTransform.hpp"
+#include "GlobalNamespace/BeatmapDataZenModeTransform.hpp"
+#include "GlobalNamespace/BeatmapDataObstaclesAndBombsTransform.hpp"
+#include "GlobalNamespace/BeatmapDataNoArrowsTransform.hpp"
+#include "GlobalNamespace/BeatmapDataObstaclesMergingTransform.hpp"
+#include "GlobalNamespace/BeatmapDataNoEnvironmentEffectsTransform.hpp"
+#include "GlobalNamespace/BeatmapDataStrobeFilterTransform.hpp"
+#include "GlobalNamespace/GameplayModifiers.hpp"
+#include "GlobalNamespace/PracticeSettings.hpp"
+#include "GlobalNamespace/EnvironmentEffectsFilterPreset.hpp"
+#include "GlobalNamespace/EnvironmentIntensityReductionOptions.hpp"
 #include "GlobalNamespace/HMCache_2.hpp"
 #include "GlobalNamespace/FileHelpers.hpp"
 #include "System/Action_2.hpp"
@@ -37,6 +54,8 @@
 
 #include "NUnit/Framework/_Assert.hpp"
 
+#include <map>
+
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 using namespace System::Collections::Generic;
@@ -45,8 +64,166 @@ using namespace Tasks;
 
 namespace RuntimeSongLoader::LoadingFixHooks {
 
+    int addBeatmapObjectDataLineIndex;
+    MAKE_HOOK_MATCH(BeatmapData_AddBeatmapObjectData, &BeatmapData::AddBeatmapObjectData, void, BeatmapData* self, BeatmapObjectData* item) {
+        addBeatmapObjectDataLineIndex = item->lineIndex;
+        // Preprocess the lineIndex to be 0-3 (the real method is hard-coded to 4
+        // lines), recording the info needed to reverse it
+        if (addBeatmapObjectDataLineIndex > 3) {
+            item->lineIndex = 3;
+        } else if (addBeatmapObjectDataLineIndex < 0) {
+            item->lineIndex = 0;
+        }
+        BeatmapData_AddBeatmapObjectData(self, item);
+    }
+
+    MAKE_HOOK_MATCH(BeatmapLineData_AddBeatmapObjectData, &BeatmapLineData::AddBeatmapObjectData, void, BeatmapLineData* self, BeatmapObjectData* item) {
+        item->lineIndex = addBeatmapObjectDataLineIndex;
+        BeatmapLineData_AddBeatmapObjectData(self, item);
+    }
+
+    MAKE_HOOK_MATCH(NotesInTimeRowProcessor_ProcessAllNotesInTimeRow, &NotesInTimeRowProcessor::ProcessAllNotesInTimeRow, void, NotesInTimeRowProcessor* self, List<NoteData*>* notes) {
+        std::map<int, int> extendedLanesMap;
+        for (int i = 0; i < notes->size; ++i) {
+            auto *item = notes->items->values[i];
+            if (item->lineIndex > 3) {
+                extendedLanesMap[i] = item->lineIndex;
+                item->lineIndex = 3;
+            } else if (item->lineIndex < 0) {
+                extendedLanesMap[i] = item->lineIndex;
+                item->lineIndex = 0;
+            }
+        }
+
+        // NotesInTimeRowProcessor_ProcessAllNotesInTimeRow(self, notes);
+        // Instead, we have a reimplementation of the hooked method to deal with precision
+        // noteLineLayers:
+        for (il2cpp_array_size_t i = 0; i < self->notesInColumns->Length(); i++) {
+            self->notesInColumns->values[i]->Clear();
+        }
+        for (int j = 0; j < notes->size; j++) {
+            auto *noteData = notes->items->values[j];
+            auto *list = self->notesInColumns->values[noteData->lineIndex];
+
+            bool flag = false;
+            for (int k = 0; k < list->size; k++) {
+                if (list->items->values[k]->noteLineLayer.value > noteData->noteLineLayer.value) {
+                    list->Insert(k, noteData);
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                list->Add(noteData);
+            }
+        }
+        for (il2cpp_array_size_t l = 0; l < self->notesInColumns->Length(); l++) {
+            auto *list2 = self->notesInColumns->values[l];
+            for (int m = 0; m < list2->size; m++) {
+                auto *note = list2->items->values[m];
+                if (note->noteLineLayer.value >= 0 && note->noteLineLayer.value <= 2) {
+                    note->SetNoteStartLineLayer(m);
+                }
+            }
+        }
+
+        for (int i = 0; i < notes->size; ++i) {
+            if (extendedLanesMap.find(i) != extendedLanesMap.end()) {
+                auto *item = notes->items->values[i];
+                item->lineIndex = extendedLanesMap[i];
+            }
+        }
+    }
+
+    MAKE_HOOK_MATCH(BeatmapData_$get_beatmapObjectsData$d__31__MoveNext, &BeatmapData::$get_beatmapObjectsData$d__31::MoveNext, bool, BeatmapData::$get_beatmapObjectsData$d__31* self) {
+        int num = self->$$1__state;
+        BeatmapData *beatmapData = self->$$4__this;
+        if (num != 0) {
+            if (num != 1) {
+                return false;
+            }
+            self->$$1__state = -1;
+            // Increment index in idxs with clamped lineIndex
+            int lineIndex = self->$minBeatmapObjectData$5__4->lineIndex;
+            int clampedLineIndex = std::clamp(lineIndex, 0, 3);
+            self->$idxs$5__3->values[clampedLineIndex]++;
+            self->$minBeatmapObjectData$5__4 = nullptr;
+        } else {
+            self->$$1__state = -1;
+            auto *arr =
+                reinterpret_cast<Array<BeatmapLineData *> *>(beatmapData->get_beatmapLinesData());
+            self->$beatmapLinesData$5__2 = arr;
+            self->$idxs$5__3 = Array<int>::NewLength(self->$beatmapLinesData$5__2->Length());
+        }
+        self->$minBeatmapObjectData$5__4 = nullptr;
+        float num2 = std::numeric_limits<float>::max();
+        for (int i = 0; i < self->$beatmapLinesData$5__2->Length(); i++) {
+            int idx = self->$idxs$5__3->values[i];
+            BeatmapLineData *lineData = self->$beatmapLinesData$5__2->values[i];
+            if (idx < lineData->beatmapObjectsData->get_Count()) {
+                BeatmapObjectData *beatmapObjectData = lineData->beatmapObjectsData->get_Item(idx);
+                float time = beatmapObjectData->time;
+                if (time < num2) {
+                    num2 = time;
+                    self->$minBeatmapObjectData$5__4 = beatmapObjectData;
+                }
+            }
+        }
+        if (self->$minBeatmapObjectData$5__4 == nullptr) {
+            return false;
+        }
+        self->$$2__current = self->$minBeatmapObjectData$5__4;
+        self->$$1__state = 1;
+        return true;
+    }
+
+    MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData*, IReadonlyBeatmapData* beatmapData, IPreviewBeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, PracticeSettings* practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions* environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled) {
+        IReadonlyBeatmapData* readonlyBeatmapData = beatmapData;
+        if (leftHanded)
+		{
+			readonlyBeatmapData = BeatmapDataMirrorTransform::CreateTransformedData(readonlyBeatmapData);
+		}
+		if (gameplayModifiers->zenMode)
+		{
+			readonlyBeatmapData = BeatmapDataZenModeTransform::CreateTransformedData(readonlyBeatmapData);
+		}
+		else
+		{
+			GameplayModifiers::EnabledObstacleType enabledObstacleType = gameplayModifiers->enabledObstacleType;
+			if (gameplayModifiers->demoNoObstacles)
+			{
+				enabledObstacleType = GameplayModifiers::EnabledObstacleType::NoObstacles;
+			}
+			if (enabledObstacleType != GameplayModifiers::EnabledObstacleType::All || gameplayModifiers->noBombs)
+			{
+				readonlyBeatmapData = BeatmapDataObstaclesAndBombsTransform::CreateTransformedData(readonlyBeatmapData, enabledObstacleType, gameplayModifiers->noBombs);
+			}
+			if (gameplayModifiers->noArrows)
+			{
+				readonlyBeatmapData = BeatmapDataNoArrowsTransform::CreateTransformedData(readonlyBeatmapData);
+			}
+			if (!screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
+			{
+				readonlyBeatmapData = BeatmapDataObstaclesMergingTransform::CreateTransformedData(readonlyBeatmapData);
+			}
+		}
+		if (environmentEffectsFilterPreset >= EnvironmentEffectsFilterPreset::NoEffects)
+		{
+			readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(BeatmapDataNoEnvironmentEffectsTransform::CreateTransformedData(readonlyBeatmapData));
+		}
+		else if (environmentEffectsFilterPreset == EnvironmentEffectsFilterPreset::StrobeFilter)
+		{
+			readonlyBeatmapData = BeatmapDataStrobeFilterTransform::CreateTransformedData(readonlyBeatmapData, environmentIntensityReductionOptions);
+		}
+		if (readonlyBeatmapData == beatmapData)
+		{
+			readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(beatmapData->GetCopy());
+		}
+        return readonlyBeatmapData;
+    }
+
     // TODO: Use a hook that works when fixed
-    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE (BeatmapData_ctor, "", "BeatmapData", ".ctor", void, BeatmapData* self, int numberOfLines) {
+    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapData_ctor, "", "BeatmapData", ".ctor", void, BeatmapData* self, int numberOfLines) {
         LOG_DEBUG("BeatmapData_ctor");
         BeatmapData_ctor(self, numberOfLines);
         self->prevAddedBeatmapEventDataTime = System::Single::MinValue;
@@ -131,6 +308,11 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     void InstallHooks() {
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapData_AddBeatmapObjectData);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapLineData_AddBeatmapObjectData);
+        INSTALL_HOOK_ORIG(getLogger(), NotesInTimeRowProcessor_ProcessAllNotesInTimeRow);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapData_$get_beatmapObjectsData$d__31__MoveNext);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor);
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor);
         INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue);
@@ -142,4 +324,5 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         INSTALL_HOOK_ORIG(getLogger(), SinglePlayerLevelSelectionFlowCoordinator_get_enableCustomLevels);
         INSTALL_HOOK_ORIG(getLogger(), FileHelpers_GetEscapedURLForFilePath);
     }
+
 }
