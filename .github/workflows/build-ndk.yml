@@ -16,18 +16,22 @@ jobs:
       with:
         submodules: recursive
         lfs: true
-    - name: Install Powershell
-      run: sudo apt-get install -y powershell
+    #- name: Install Powershell
+    #  run: sudo apt-get install -y powershell
     
-    - name: Setup NDK
-      id: setup-ndk
-      uses: nttld/setup-ndk@v1.0.3
-      with:
-        ndk-version: r22
+    #- name: Setup NDK
+    #  id: setup-ndk
+    #  uses: nttld/setup-ndk@v1.0.3
+    #  with:
+    #    ndk-version: r22
       
+    #- name: Create ndkpath.txt
+    #  run: echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
+
     - name: Create ndkpath.txt
-      run: echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
-        
+      run: |
+        echo "$ANDROID_NDK_LATEST_HOME" > ${GITHUB_WORKSPACE}/ndkpath.txt
+
 #     - name: Cache QPM
 #       id: cache-qpm
 #       uses: actions/cache@v2
