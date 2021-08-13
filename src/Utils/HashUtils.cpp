@@ -54,7 +54,10 @@ namespace RuntimeSongLoader::HashUtils {
         fs.Detach();
         auto difficultyBeatmapSets = level->difficultyBeatmapSets;
         for(int i = 0; i < difficultyBeatmapSets->Length(); i++) {
-            auto difficultyBeatmaps = difficultyBeatmapSets->values[i]->difficultyBeatmaps;
+            auto val = difficultyBeatmapSets->values[i];
+            if (!val) continue;
+            auto difficultyBeatmaps = val->difficultyBeatmaps;
+            if (!difficultyBeatmaps) continue;
             for(int j = 0; j < difficultyBeatmaps->Length(); j++) {
                 std::string diffFile = to_utf8(csstrtostr(difficultyBeatmaps->values[j]->beatmapFilename));
                 std::string path = customLevelPath + "/" + diffFile;
