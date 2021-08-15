@@ -67,45 +67,45 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData*, IReadonlyBeatmapData* beatmapData, IPreviewBeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, PracticeSettings* practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions* environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled) {
         IReadonlyBeatmapData* readonlyBeatmapData = beatmapData;
         if (leftHanded)
-		{
-			readonlyBeatmapData = BeatmapDataMirrorTransform::CreateTransformedData(readonlyBeatmapData);
-		}
-		if (gameplayModifiers->zenMode)
-		{
-			readonlyBeatmapData = BeatmapDataZenModeTransform::CreateTransformedData(readonlyBeatmapData);
-		}
-		else
-		{
-			GameplayModifiers::EnabledObstacleType enabledObstacleType = gameplayModifiers->enabledObstacleType;
-			if (gameplayModifiers->demoNoObstacles)
-			{
-				enabledObstacleType = GameplayModifiers::EnabledObstacleType::NoObstacles;
-			}
-			if (enabledObstacleType != GameplayModifiers::EnabledObstacleType::All || gameplayModifiers->noBombs)
-			{
-				readonlyBeatmapData = BeatmapDataObstaclesAndBombsTransform::CreateTransformedData(readonlyBeatmapData, enabledObstacleType, gameplayModifiers->noBombs);
-			}
-			if (gameplayModifiers->noArrows)
-			{
-				readonlyBeatmapData = BeatmapDataNoArrowsTransform::CreateTransformedData(readonlyBeatmapData);
-			}
-			if (!screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
-			{
-				readonlyBeatmapData = BeatmapDataObstaclesMergingTransform::CreateTransformedData(readonlyBeatmapData);
-			}
-		}
-		if (environmentEffectsFilterPreset >= EnvironmentEffectsFilterPreset::NoEffects)
-		{
-			readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(BeatmapDataNoEnvironmentEffectsTransform::CreateTransformedData(readonlyBeatmapData));
-		}
-		else if (environmentEffectsFilterPreset == EnvironmentEffectsFilterPreset::StrobeFilter)
-		{
-			readonlyBeatmapData = BeatmapDataStrobeFilterTransform::CreateTransformedData(readonlyBeatmapData, environmentIntensityReductionOptions);
-		}
-		if (readonlyBeatmapData == beatmapData)
-		{
-			readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(beatmapData->GetCopy());
-		}
+        {
+            readonlyBeatmapData = BeatmapDataMirrorTransform::CreateTransformedData(readonlyBeatmapData);
+        }
+        if (gameplayModifiers->zenMode)
+        {
+            readonlyBeatmapData = BeatmapDataZenModeTransform::CreateTransformedData(readonlyBeatmapData);
+        }
+        else
+        {
+            GameplayModifiers::EnabledObstacleType enabledObstacleType = gameplayModifiers->enabledObstacleType;
+            if (gameplayModifiers->demoNoObstacles)
+            {
+                enabledObstacleType = GameplayModifiers::EnabledObstacleType::NoObstacles;
+            }
+            if (enabledObstacleType != GameplayModifiers::EnabledObstacleType::All || gameplayModifiers->noBombs)
+            {
+                readonlyBeatmapData = BeatmapDataObstaclesAndBombsTransform::CreateTransformedData(readonlyBeatmapData, enabledObstacleType, gameplayModifiers->noBombs);
+            }
+            if (gameplayModifiers->noArrows)
+            {
+                readonlyBeatmapData = BeatmapDataNoArrowsTransform::CreateTransformedData(readonlyBeatmapData);
+            }
+            if (!screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
+            {
+                readonlyBeatmapData = BeatmapDataObstaclesMergingTransform::CreateTransformedData(readonlyBeatmapData);
+            }
+        }
+        if (environmentEffectsFilterPreset >= EnvironmentEffectsFilterPreset::NoEffects)
+        {
+            readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(BeatmapDataNoEnvironmentEffectsTransform::CreateTransformedData(readonlyBeatmapData));
+        }
+        else if (environmentEffectsFilterPreset == EnvironmentEffectsFilterPreset::StrobeFilter)
+        {
+            readonlyBeatmapData = BeatmapDataStrobeFilterTransform::CreateTransformedData(readonlyBeatmapData, environmentIntensityReductionOptions);
+        }
+        if (readonlyBeatmapData == beatmapData)
+        {
+            readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(beatmapData->GetCopy());
+        }
         return readonlyBeatmapData;
     }
 

@@ -24,6 +24,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack, Il2Cp
 
         void SortLevels();
         
-        void AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSOt, bool addIfEmpty = false);
+        void AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty = false);
 
 )
