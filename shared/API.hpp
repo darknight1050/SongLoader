@@ -40,7 +40,7 @@ namespace RuntimeSongLoader::API {
     bool HasLoadedSongs();
 
     /// @brief gets how far along the loading progress the songloader is
-    float GetLoadedProgress();
+    float GetLoadingProgress();
 
     std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
     

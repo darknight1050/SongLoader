@@ -39,7 +39,7 @@ namespace RuntimeSongLoader::API {
         return SongLoader::GetInstance()->HasLoaded;
     }
 
-    float GetLoadedProgress()
+    float GetLoadingProgress()
     {
         auto instance = SongLoader::GetInstance();
         return (float)instance->CurrentFolder / (float)instance->MaxFolders;
