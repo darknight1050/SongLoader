@@ -19,7 +19,9 @@
     {
       "id": "libcryptopp",
       "versionRange": "^8.5.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     }
   ],
   "additionalData": {}
