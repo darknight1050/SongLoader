@@ -37,7 +37,7 @@ namespace RuntimeSongLoader::LoadingUI {
             canvas = BeatSaberUI::CreateCanvas();
             canvas->AddComponent<CurvedCanvasSettings*>()->SetRadius(100.0f);
             RectTransform* transform = canvas->GetComponent<RectTransform*>();
-            transform->set_position(UnityEngine::Vector3(0.0f, 3.1f, 3.8f));
+            transform->set_position(UnityEngine::Vector3(0.0f, 3.2f, 4.2f));
             transform->set_eulerAngles(UnityEngine::Vector3(-8.0f, 0.0f, 0.0f));
             VerticalLayoutGroup* layout = BeatSaberUI::CreateVerticalLayoutGroup(transform);
             GameObject* layoutGameObject = layout->get_gameObject();

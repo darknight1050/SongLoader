@@ -110,7 +110,8 @@
 			"numbers": "cpp",
 			"shared_mutex": "cpp",
 			"__memory": "cpp",
-			"semaphore": "cpp"
+			"semaphore": "cpp",
+			"xlocale": "cpp"
 		}
 	}
 }
