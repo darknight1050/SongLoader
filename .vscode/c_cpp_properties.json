@@ -4,15 +4,20 @@
       "defines": [
         "__GNUC__",
         "__aarch64__",
-        "VERSION=\"0.0.1\""
+        "VERSION=\"0.0.1\"",
+        "USE_CODEGEN_FIELDS"
       ],
       "includePath": [
-        "${workspaceFolder}/**",
-        "${workspaceFolder}/include/**",
-        "${workspaceFolder}/shared/**",
-        "${workspaceFolder}/extern/**",
-        "${workspaceFolder}/extern/codegen/include/**",
-        "C:/Development/Tools/android-ndk-r22b/**"
+        "${workspaceFolder}/",
+        "${workspaceFolder}/include/",
+        "${workspaceFolder}/shared/",
+        "${workspaceFolder}/extern/",
+        "${workspaceFolder}/extern/codegen/include/",
+        "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp",
+        "C:/Development/Tools/android-ndk-r22b/",
+        "C:/Development/Tools/android-ndk-r22b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
+        "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++/include/",
+        "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++abi/include/"
       ],
       "name": "Quest",
       "cStandard": "c11",

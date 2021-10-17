@@ -53,6 +53,7 @@
 #include "UnityEngine/Sprite.hpp"
 #include "UnityEngine/SceneManagement/SceneManager.hpp"
 #include "UnityEngine/SceneManagement/Scene.hpp"
+#include "System/Array.hpp"
 #include "System/Action.hpp"
 #include "System/IO/Path.hpp"
 #include "System/IO/Directory.hpp"
@@ -84,8 +85,8 @@ SongLoader* SongLoader::GetInstance() {
     if(!Instance) {
         static auto name = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("SongLoader");
         auto gameObject = GameObject::New_ctor(name);
-        Instance = gameObject->AddComponent<SongLoader*>();
         GameObject::DontDestroyOnLoad(gameObject);
+        Instance = gameObject->AddComponent<SongLoader*>();
     }
     return Instance;
 }
@@ -197,20 +198,18 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     EnvironmentInfoSO* environmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->environmentName, false);
     EnvironmentInfoSO* allDirectionsEnvironmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->allDirectionsEnvironmentName, true);
     List<PreviewDifficultyBeatmapSet*>* list = List<PreviewDifficultyBeatmapSet*>::New_ctor();
-    Array<StandardLevelInfoSaveData::DifficultyBeatmapSet*>* difficultyBeatmapSets = standardLevelInfoSaveData->difficultyBeatmapSets;
-    for(int i = 0; i < difficultyBeatmapSets->Length(); i++) {
-        StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet = difficultyBeatmapSets->values[i];
+    for(StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet : standardLevelInfoSaveData->difficultyBeatmapSets) {
         if (!difficultyBeatmapSet)
             continue;
 
         BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = GetCustomLevelLoader()->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
         LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", to_utf8(csstrtostr(difficultyBeatmapSet->beatmapCharacteristicName)).c_str());
         if(beatmapCharacteristicBySerializedName) {
-            Array<BeatmapDifficulty>* array = Array<BeatmapDifficulty>::NewLength(difficultyBeatmapSet->difficultyBeatmaps->Length());
-            for(int j = 0; j < difficultyBeatmapSet->difficultyBeatmaps->Length(); j++) {
+            ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.Length());
+            for(int j = 0; j < array.Length(); j++) {
                 BeatmapDifficulty beatmapDifficulty;
-                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSet->difficultyBeatmaps->values[j]->difficulty, beatmapDifficulty);
-                array->values[j] = beatmapDifficulty;
+                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty, beatmapDifficulty);
+                array[j] = beatmapDifficulty;
             }
             list->Add(PreviewDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName, array));
         }
@@ -267,11 +266,12 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
     return beatmapDataLoader->GetRealTimeFromBPMTime(highestTime, level->beatsPerMinute, level->shuffle, level->shufflePeriod);
 }
 
-Array<CustomPreviewBeatmapLevel*>* GetDictionaryValues(Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>* dictionary) {
+ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>* dictionary) {
     if(!dictionary)
-        return Array<CustomPreviewBeatmapLevel*>::NewLength(0);
-    auto array = Array<CustomPreviewBeatmapLevel*>::NewLength(dictionary->get_Count());
-    il2cpp_utils::RunMethodUnsafe(dictionary->get_Values(), "CopyTo", reinterpret_cast<System::Array*>(array), 0);
+        return ArrayW<CustomPreviewBeatmapLevel*>();
+    auto array = ArrayW<CustomPreviewBeatmapLevel*>(dictionary->get_Count());
+    //dictionary->get_Values()->CopyTo(array, 0);
+    il2cpp_utils::RunMethodUnsafe(dictionary->get_Values(), "CopyTo", reinterpret_cast<System::Array*>(array.convert()), 0);
     return array;
 }
 
@@ -388,8 +388,8 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                 Thread::Yield();
             }
 
-            auto customPreviewLevels = GetDictionaryValues(CustomLevels);
-            auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
+            auto customPreviewLevels = static_cast<Array<CustomPreviewBeatmapLevel*>*>(GetDictionaryValues(CustomLevels));
+            auto customWIPPreviewLevels = static_cast<Array<CustomPreviewBeatmapLevel*>*>(GetDictionaryValues(CustomWIPLevels));
             
             CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
             CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);

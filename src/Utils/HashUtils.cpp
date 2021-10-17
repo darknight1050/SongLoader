@@ -52,14 +52,12 @@ namespace RuntimeSongLoader::HashUtils {
         fs.Attach(new Redirector(hashFilter));
         fs.Pump(LWORD_MAX);
         fs.Detach();
-        auto difficultyBeatmapSets = level->difficultyBeatmapSets;
-        for(int i = 0; i < difficultyBeatmapSets->Length(); i++) {
-            auto val = difficultyBeatmapSets->values[i];
+        for(auto val : level->difficultyBeatmapSets) {
             if (!val) continue;
             auto difficultyBeatmaps = val->difficultyBeatmaps;
             if (!difficultyBeatmaps) continue;
-            for(int j = 0; j < difficultyBeatmaps->Length(); j++) {
-                std::string diffFile = to_utf8(csstrtostr(difficultyBeatmaps->values[j]->beatmapFilename));
+            for(auto difficultyBeatmap : difficultyBeatmaps) {
+                std::string diffFile = to_utf8(csstrtostr(difficultyBeatmap->beatmapFilename));
                 std::string path = customLevelPath + "/" + diffFile;
                 if(!fileexists(path)) {
                     LOG_ERROR("GetCustomLevelHash File %s did not exist", path.c_str());
