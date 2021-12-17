@@ -194,7 +194,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     void InstallHooks() {
-        INSTALL_HOOK_ORIG(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
+        // INSTALL_HOOK(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor);
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor);
         INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue);
