@@ -11,6 +11,13 @@
 #include "GlobalNamespace/FileHelpers.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
+#include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
+#include "GlobalNamespace/BeatmapSaveData_SpecialEventKeywordFiltersData.hpp"
+#include "GlobalNamespace/BeatmapSaveData_SpecialEventsForKeyword.hpp"
+#include "GlobalNamespace/BeatmapSaveData_EventData.hpp"
+#include "GlobalNamespace/BeatmapSaveData_ObstacleData.hpp"
+#include "GlobalNamespace/BeatmapSaveData_WaypointData.hpp"
+#include "GlobalNamespace/BeatmapSaveData_NoteData.hpp"
 #include "GlobalNamespace/BeatmapDataLoader.hpp"
 #include "GlobalNamespace/BeatmapLevelData.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
@@ -39,6 +46,8 @@
 
 #include <vector>
 #include <mutex>
+
+#include <stdio.h>
 
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -95,8 +104,17 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         if(fileexists(path)) {
             Il2CppString* json = il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path));
 
+            auto saveData = BeatmapSaveData::DeserializeFromJSONString(json);
+            auto notes = saveData->notes;
+            auto obstacles = saveData->obstacles;
+            auto events = saveData->events;
+            auto waypoints = saveData->waypoints;
+            auto specialEventsKeywordFilters = saveData->specialEventsKeywordFilters;
+
+            LOG_DEBUG("Save data klass %s", il2cpp_utils::ClassStandardName(saveData->klass).c_str());
+
             //Temporary fix because exceptions don't work
-            auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
+            auto optional = il2cpp_utils::RunMethod<BeatmapData *>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromBeatmapSaveData", notes, waypoints, obstacles, events, specialEventsKeywordFilters, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
             if(optional.has_value()) {
                 beatmapData = *optional;
             } else {
@@ -127,14 +145,11 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     IDifficultyBeatmapSet* LoadDifficultyBeatmapSet(std::string customLevelPath, CustomBeatmapLevel* customBeatmapLevel, StandardLevelInfoSaveData* standardLevelInfoSaveData, StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSetSaveData) {
         LOG_DEBUG("LoadDifficultyBeatmapSetAsync Start");
-        if(!GetCustomLevelLoader()->beatmapCharacteristicCollection || !difficultyBeatmapSetSaveData || !difficultyBeatmapSetSaveData->beatmapCharacteristicName || !difficultyBeatmapSetSaveData->difficultyBeatmaps) return nullptr;
         BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = GetCustomLevelLoader()->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSetSaveData->beatmapCharacteristicName);
         Array<CustomDifficultyBeatmap*>* difficultyBeatmaps = Array<CustomDifficultyBeatmap*>::NewLength(difficultyBeatmapSetSaveData->difficultyBeatmaps->Length());
         CustomDifficultyBeatmapSet* difficultyBeatmapSet = CustomDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName);
         for(int i = 0; i < difficultyBeatmapSetSaveData->difficultyBeatmaps->Length(); i++) {
-            auto beatmap =  difficultyBeatmapSetSaveData->difficultyBeatmaps->values[i];
-            if (!beatmap) continue;
-            CustomDifficultyBeatmap* customDifficultyBeatmap = LoadDifficultyBeatmap(customLevelPath, customBeatmapLevel, difficultyBeatmapSet, standardLevelInfoSaveData, beatmap);
+            CustomDifficultyBeatmap* customDifficultyBeatmap = LoadDifficultyBeatmap(customLevelPath, customBeatmapLevel, difficultyBeatmapSet, standardLevelInfoSaveData, difficultyBeatmapSetSaveData->difficultyBeatmaps->values[i]);
             if(!customDifficultyBeatmap)
                 return nullptr;
             difficultyBeatmaps->values[i] = customDifficultyBeatmap;
