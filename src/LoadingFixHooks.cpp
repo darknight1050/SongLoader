@@ -63,49 +63,35 @@ using namespace Tasks;
 
 namespace RuntimeSongLoader::LoadingFixHooks {
 
-    MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData*, IReadonlyBeatmapData* beatmapData, IPreviewBeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, PracticeSettings* practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions* environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled) {
-        IReadonlyBeatmapData* readonlyBeatmapData = beatmapData;
-        if (leftHanded)
-        {
-            readonlyBeatmapData = BeatmapDataMirrorTransform::CreateTransformedData(readonlyBeatmapData);
-        }
-        if (gameplayModifiers->zenMode)
-        {
-            readonlyBeatmapData = BeatmapDataZenModeTransform::CreateTransformedData(readonlyBeatmapData);
-        }
-        else
-        {
-            GameplayModifiers::EnabledObstacleType enabledObstacleType = gameplayModifiers->enabledObstacleType;
-            if (gameplayModifiers->demoNoObstacles)
-            {
-                enabledObstacleType = GameplayModifiers::EnabledObstacleType::NoObstacles;
-            }
-            if (enabledObstacleType != GameplayModifiers::EnabledObstacleType::All || gameplayModifiers->noBombs)
-            {
-                readonlyBeatmapData = BeatmapDataObstaclesAndBombsTransform::CreateTransformedData(readonlyBeatmapData, enabledObstacleType, gameplayModifiers->noBombs);
-            }
-            if (gameplayModifiers->noArrows)
-            {
-                readonlyBeatmapData = BeatmapDataNoArrowsTransform::CreateTransformedData(readonlyBeatmapData);
-            }
-            if (!screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
-            {
-                readonlyBeatmapData = BeatmapDataObstaclesMergingTransform::CreateTransformedData(readonlyBeatmapData);
-            }
-        }
-        if (environmentEffectsFilterPreset >= EnvironmentEffectsFilterPreset::NoEffects)
-        {
-            readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(BeatmapDataNoEnvironmentEffectsTransform::CreateTransformedData(readonlyBeatmapData));
-        }
-        else if (environmentEffectsFilterPreset == EnvironmentEffectsFilterPreset::StrobeFilter)
-        {
-            readonlyBeatmapData = BeatmapDataStrobeFilterTransform::CreateTransformedData(readonlyBeatmapData, environmentIntensityReductionOptions);
-        }
-        if (readonlyBeatmapData == beatmapData)
-        {
-            readonlyBeatmapData = reinterpret_cast<IReadonlyBeatmapData*>(beatmapData->GetCopy());
-        }
-        return readonlyBeatmapData;
+    static IPreviewBeatmapLevel *tempBeatmapLevel;
+    static bool tempScreenDisplacementEffectsEnabled;
+
+    MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData *, IReadonlyBeatmapData *beatmapData, IPreviewBeatmapLevel *beatmapLevel, GameplayModifiers *gameplayModifiers, PracticeSettings *practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions *environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled)
+    {
+        tempBeatmapLevel = beatmapLevel;
+        tempScreenDisplacementEffectsEnabled = screenDisplacementEffectsEnabled;
+       
+        auto ret = BeatmapDataTransformHelper_CreateTransformedBeatmapData(
+            beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
+            environmentEffectsFilterPreset, environmentIntensityReductionOptions,
+            screenDisplacementEffectsEnabled);
+
+        tempBeatmapLevel = nullptr;
+
+        return ret;
+    }
+
+    // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME. 
+    // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
+    // Sincerely, a quest developer
+    MAKE_HOOK_MATCH(BeatmapDataObstaclesMergingTransform_CreateTransformedData,
+                    &BeatmapDataObstaclesMergingTransform::CreateTransformedData,
+                    IReadonlyBeatmapData *, IReadonlyBeatmapData *beatmapData)
+    {
+        if (!tempScreenDisplacementEffectsEnabled && !to_utf8(csstrtostr(tempBeatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
+            return BeatmapDataObstaclesMergingTransform_CreateTransformedData(beatmapData);
+
+        return beatmapData;
     }
 
     // TODO: Use a hook that works when fixed
@@ -194,7 +180,8 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     void InstallHooks() {
-        // INSTALL_HOOK(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
+        INSTALL_HOOK(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapDataObstaclesMergingTransform_CreateTransformedData);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor);
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor);
         INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue);
