@@ -70,7 +70,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME.
         // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
         // Sincerely, a quest developer
-        bool allowObstacleMerging = screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID);
+        bool allowObstacleMerging = screenDisplacementEffectsEnabled || to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID);
 
         return BeatmapDataTransformHelper_CreateTransformedBeatmapData(
             beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
