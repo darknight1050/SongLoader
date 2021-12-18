@@ -50,8 +50,8 @@ namespace RuntimeSongLoader::CustomCharacteristics {
             characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();
             if(mainSystemInit) {
                 auto beatmapCharacteristics = mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics;
-                for(int i = 0; i < beatmapCharacteristics->Length(); i++){
-                    characteristicsList->Add(beatmapCharacteristics->values[i]);
+                for(int i = 0; i < beatmapCharacteristics.Length(); i++){
+                    characteristicsList->Add(beatmapCharacteristics[i]);
                 }
             }
         }

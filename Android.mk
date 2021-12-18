@@ -69,7 +69,7 @@ LOCAL_SHARED_LIBRARIES += questui
 LOCAL_SHARED_LIBRARIES += codegen
 LOCAL_STATIC_LIBRARIES += cryptopp
 LOCAL_LDLIBS += -llog 
-LOCAL_CFLAGS += -DVERSION='"0.0.1"'
+LOCAL_CFLAGS += -DVERSION='"0.0.1"' -DUSE_CODEGEN_FIELDS
 LOCAL_C_INCLUDES += ./include ./shared ./src ./extern ./extern/libil2cpp/il2cpp/libil2cpp ./extern/codegen/include
 LOCAL_CPP_FEATURES += exceptions
 include $(BUILD_SHARED_LIBRARY)

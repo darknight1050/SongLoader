@@ -21,7 +21,7 @@
 #include "GlobalNamespace/NoteData.hpp"
 #include "GlobalNamespace/BeatmapDataTransformHelper.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
-#include "GlobalNamespace/BeatmapData_-get_beatmapObjectsData-d__31.hpp"
+#include "GlobalNamespace/BeatmapData_-get_beatmapObjectsData-d__32.hpp"
 #include "GlobalNamespace/BeatmapObjectData.hpp"
 #include "GlobalNamespace/BeatmapLineData.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
@@ -101,19 +101,18 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
         List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
         auto levelPacks = self->beatmapLevelPacks;
-        if(levelPacks->Length() != 1 || csstrtostr(levelPacks->values[0]->get_packID()) != csstrtostr(filterName)) {
-            for(int i = 0; i < levelPacks->Length(); i++) {
-                auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPacks->values[i])->get_beatmapLevelCollection()->get_beatmapLevels();
-                for(int j = 0; j < levels->Length(); j++) {
-                    auto level = levels->values[j];
+        if(levelPacks.Length() != 1 || csstrtostr(levelPacks[0]->get_packID()) != csstrtostr(filterName)) {
+            for(auto levelPack : levelPacks) {
+                auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels();
+                for(auto level : levels) {
                     if(!newLevels->Contains(level))
                         newLevels->Add(level);
                 }
             }
             BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor(nullptr);
-            BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
-            self->beatmapLevelPacks = Array<IBeatmapLevelPack*>::NewLength(1);
-            self->beatmapLevelPacks->values[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
+            BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
+            self->beatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(1);
+            self->beatmapLevelPacks[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
             beatmapLevelCollection->levels = newLevels->ToArray();
         }
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
@@ -128,12 +127,12 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks");
         List<IBeatmapLevelPack*>* list = List<IBeatmapLevelPack*>::New_ctor();
         if(self->ostAndExtrasPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks().convert()));
         if(self->dlcLevelPackCollectionContainer && self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection->get_beatmapLevelPacks()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->dlcLevelPackCollectionContainer->beatmapLevelPackCollection->get_beatmapLevelPacks().convert()));
         self->allLoadedBeatmapLevelWithoutCustomLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
         if(self->customLevelPackCollection)
-            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks()));
+            list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->customLevelPackCollection->get_beatmapLevelPacks().convert()));
         self->allLoadedBeatmapLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
     }
 
