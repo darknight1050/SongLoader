@@ -63,36 +63,21 @@ using namespace Tasks;
 
 namespace RuntimeSongLoader::LoadingFixHooks {
 
-    static IPreviewBeatmapLevel *tempBeatmapLevel;
-    static bool tempScreenDisplacementEffectsEnabled;
+
 
     MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData *, IReadonlyBeatmapData *beatmapData, IPreviewBeatmapLevel *beatmapLevel, GameplayModifiers *gameplayModifiers, PracticeSettings *practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions *environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled)
     {
-        tempBeatmapLevel = beatmapLevel;
-        tempScreenDisplacementEffectsEnabled = screenDisplacementEffectsEnabled;
-       
-        auto ret = BeatmapDataTransformHelper_CreateTransformedBeatmapData(
+        // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME.
+        // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
+        // Sincerely, a quest developer
+        bool allowObstacleMerging = screenDisplacementEffectsEnabled && !to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID);
+
+        return BeatmapDataTransformHelper_CreateTransformedBeatmapData(
             beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
             environmentEffectsFilterPreset, environmentIntensityReductionOptions,
-            screenDisplacementEffectsEnabled);
-
-        tempBeatmapLevel = nullptr;
-
-        return ret;
+            allowObstacleMerging);
     }
 
-    // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME. 
-    // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
-    // Sincerely, a quest developer
-    MAKE_HOOK_MATCH(BeatmapDataObstaclesMergingTransform_CreateTransformedData,
-                    &BeatmapDataObstaclesMergingTransform::CreateTransformedData,
-                    IReadonlyBeatmapData *, IReadonlyBeatmapData *beatmapData)
-    {
-        if (!tempScreenDisplacementEffectsEnabled && !to_utf8(csstrtostr(tempBeatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID))
-            return BeatmapDataObstaclesMergingTransform_CreateTransformedData(beatmapData);
-
-        return beatmapData;
-    }
 
     // TODO: Use a hook that works when fixed
     MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapData_ctor, "", "BeatmapData", ".ctor", void, BeatmapData* self, int numberOfLines) {
@@ -181,7 +166,6 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     void InstallHooks() {
         INSTALL_HOOK(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
-        INSTALL_HOOK_ORIG(getLogger(), BeatmapDataObstaclesMergingTransform_CreateTransformedData);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor);
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor);
         INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue);
