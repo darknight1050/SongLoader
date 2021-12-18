@@ -22,6 +22,11 @@
       "additionalData": {
         "private": true
       }
+    },
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^2.3.2",
+      "additionalData": {}
     }
   ],
   "additionalData": {}
