@@ -25,6 +25,7 @@
 #include "GlobalNamespace/AsyncCachedLoader_2.hpp"
 #include "GlobalNamespace/HMCache_2.hpp"
 #include "GlobalNamespace/HMTask.hpp"
+#include "GlobalNamespace/AudioClipAsyncLoader.hpp"
 #include "UnityEngine/Networking/UnityWebRequestAsyncOperation.hpp"
 #include "UnityEngine/Networking/UnityWebRequest.hpp"
 #include "UnityEngine/Networking/UnityWebRequestMultimedia.hpp"
@@ -59,35 +60,6 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         BeatmapDataLoadedEvents.push_back(event);
     }
     
-    AudioClip* GetPreviewAudioClip(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
-        auto start = std::chrono::high_resolution_clock::now(); 
-        LOG_DEBUG("GetPreviewAudioClipAsync Start %p", customPreviewBeatmapLevel->previewAudioClip);
-        auto songFilename = customPreviewBeatmapLevel->standardLevelInfoSaveData->songFilename;
-        if(!customPreviewBeatmapLevel->previewAudioClip && !System::String::IsNullOrEmpty(songFilename)) {
-            Il2CppString* path = Path::Combine(customPreviewBeatmapLevel->customLevelPath, songFilename);
-            /*AudioType audioType = (to_utf8(csstrtostr(Path::GetExtension(path)->ToLower())) == ".wav") ? AudioType::WAV : AudioType::OGGVORBIS;
-            UnityWebRequest* www = UnityWebRequestMultimedia::GetAudioClip(FileHelpers::GetEscapedURLForFilePath(path), audioType);
-            ((DownloadHandlerAudioClip*)www->m_DownloadHandler)->set_streamAudio(true);
-            UnityWebRequestAsyncOperation* request = www->SendWebRequest();
-            while(!request->get_isDone()) {
-                LOG_DEBUG("GetPreviewAudioClipAsync Delay");
-                usleep(10 * 1000);
-            }
-            LOG_DEBUG("GetPreviewAudioClipAsync ErrorStatus %d %d", www->get_isHttpError(), www->get_isNetworkError());
-            if(!www->get_isHttpError() && !www->get_isNetworkError())
-                customPreviewBeatmapLevel->previewAudioClip = DownloadHandlerAudioClip::GetContent(www);*/
-            auto task = GetCachedMediaAsyncLoader()->LoadAudioClipAsync(path, CancellationToken::get_None());
-            while(!task->get_IsCompleted()) {
-                LOG_DEBUG("GetPreviewAudioClipAsync Delay");
-                usleep(10 * 1000);
-            }
-            customPreviewBeatmapLevel->previewAudioClip = task->get_Result();
-        }
-        std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
-        LOG_DEBUG("GetPreviewAudioClipAsync Stop %p Time %d", customPreviewBeatmapLevel->previewAudioClip, duration);
-        return customPreviewBeatmapLevel->previewAudioClip;
-    }
-
     BeatmapData* LoadBeatmapData(std::string customLevelPath, std::string difficultyFileName, StandardLevelInfoSaveData* standardLevelInfoSaveData) {
         LOG_DEBUG("LoadBeatmapData Start");
         std::string path = customLevelPath + "/" + difficultyFileName;
@@ -162,7 +134,11 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         ArrayW<IDifficultyBeatmapSet*> difficultyBeatmapSets = LoadDifficultyBeatmapSets(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
         if(!difficultyBeatmapSets)
             return nullptr;
-        AudioClip* audioClip = GetPreviewAudioClip(reinterpret_cast<CustomPreviewBeatmapLevel*>(customBeatmapLevel));
+        auto task = GetBeatmapLevelsModel()->audioClipAsyncLoader->LoadSong(reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+        while(!task->get_IsCompleted()) {
+            usleep(10 * 1000);
+        }
+        AudioClip* audioClip = task->get_Result();
         if(!audioClip)
             return nullptr;
         LOG_DEBUG("LoadBeatmapLevelDataAsync Stop");
@@ -173,8 +149,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         LOG_DEBUG("LoadCustomBeatmapLevel Start");
         StandardLevelInfoSaveData* standardLevelInfoSaveData = customPreviewBeatmapLevel->standardLevelInfoSaveData;
         std::string customLevelPath = to_utf8(csstrtostr(customPreviewBeatmapLevel->customLevelPath));
-        AudioClip* previewAudioClip = GetPreviewAudioClip(customPreviewBeatmapLevel);
-        CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevel::New_ctor(customPreviewBeatmapLevel, previewAudioClip);
+        CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevel::New_ctor(customPreviewBeatmapLevel);
         BeatmapLevelData* beatmapLevelData = LoadBeatmapLevelData(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
         if(!beatmapLevelData)
             return nullptr;

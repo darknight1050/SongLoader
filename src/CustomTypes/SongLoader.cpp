@@ -43,7 +43,6 @@
 #include "GlobalNamespace/EnvironmentInfoSO.hpp"
 #include "GlobalNamespace/EnvironmentsListSO.hpp"
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
-#include "GlobalNamespace/IAudioClipAsyncLoader.hpp"
 #include "GlobalNamespace/ISpriteAsyncLoader.hpp"
 #include "GlobalNamespace/HMTask.hpp"
 #include "UnityEngine/AudioClip.hpp"
@@ -150,7 +149,7 @@ StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::s
 
 EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections) {
     auto customlevelLoader = GetCustomLevelLoader();
-    EnvironmentInfoSO* environmentInfoSO = customlevelLoader->environmentSceneInfoCollection->GetEnviromentInfoBySerializedName(environmentName);
+    EnvironmentInfoSO* environmentInfoSO = customlevelLoader->environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
     if(!environmentInfoSO)
         environmentInfoSO = (allDirections ? customlevelLoader->defaultAllDirectionsEnvironmentInfo : customlevelLoader->defaultEnvironmentInfo);
     LOG_DEBUG("LoadEnvironmentInfo: %p", environmentInfoSO);
@@ -216,7 +215,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
     
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<IAudioClipAsyncLoader*>(GetCachedMediaAsyncLoader()), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
     UpdateSongDuration(result, customLevelPath);
     return result;
 }

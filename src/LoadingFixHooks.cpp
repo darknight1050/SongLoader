@@ -115,9 +115,9 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         self->prevAddedBeatmapEventDataTime = System::Single::MinValue;
     }
 
-    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(CustomBeatmapLevel_ctor, "", "CustomBeatmapLevel", ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel, AudioClip* previewAudioClip) {
+    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(CustomBeatmapLevel_ctor, "", "CustomBeatmapLevel", ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
-        CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel, previewAudioClip);
+        CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel);
         self->songDuration = customPreviewBeatmapLevel->songDuration;
     }
 
