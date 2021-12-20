@@ -35,5 +35,5 @@ void SongLoaderBeatmapLevelPackCollectionSO::ClearLevelPacks() {
 }
 
 void SongLoaderBeatmapLevelPackCollectionSO::UpdateArray() {
-    allBeatmapLevelPacks = reinterpret_cast<Array<IBeatmapLevelPack*>*>(customBeatmapLevelPacks->ToArray());
+    allBeatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(reinterpret_cast<Array<IBeatmapLevelPack*>*>(customBeatmapLevelPacks->ToArray().convert()));
 }

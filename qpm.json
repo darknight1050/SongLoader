@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "sharedDir": "shared",
   "dependenciesDir": "extern",
@@ -49,4 +50,33 @@
     }
   ],
   "additionalData": {}
+=======
+{
+  "sharedDir": "shared",
+  "dependenciesDir": "extern",
+  "info": {
+    "name": "songloader",
+    "id": "songloader",
+    "version": "0.0.1",
+    "url": "https://github.com/darknight1050/songloader",
+    "additionalData": {
+      "overrideSoName": "libsongloader.so"
+    }
+  },
+  "dependencies": [
+    {
+      "id": "questui",
+      "versionRange": "^0.11.1",
+      "additionalData": {}
+    },
+    {
+      "id": "libcryptopp",
+      "versionRange": "^8.5.0",
+      "additionalData": {
+        "private": true
+      }
+    }
+  ],
+  "additionalData": {}
+>>>>>>> 8cc2d12672caa0b7880b0443d37f34bdbd363621
 }
