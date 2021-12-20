@@ -22,7 +22,7 @@
     },
     {
       "id": "questui",
-      "versionRange": "^0.11.0",
+      "versionRange": "^0.11.1",
       "additionalData": {}
     },
     {
@@ -33,7 +33,9 @@
     {
       "id": "libcryptopp",
       "versionRange": "^8.5.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "codegen",
