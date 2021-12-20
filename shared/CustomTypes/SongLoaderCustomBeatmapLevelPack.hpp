@@ -19,11 +19,11 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack, Il2Cp
     public:
         static SongLoaderCustomBeatmapLevelPack* New_ctor(std::string packID, std::string packName, UnityEngine::Sprite* coverImage = nullptr);
 
-        Array<GlobalNamespace::CustomPreviewBeatmapLevel*>* GetCustomPreviewBeatmapLevels();
-        void SetCustomPreviewBeatmapLevels(Array<GlobalNamespace::CustomPreviewBeatmapLevel*>* customPreviewBeatmapLevels);
+        ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> GetCustomPreviewBeatmapLevels();
+        void SetCustomPreviewBeatmapLevels(ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> customPreviewBeatmapLevels);
 
         void SortLevels();
         
-        void AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSOt, bool addIfEmpty = false);
+        void AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty = false);
 
 )
