@@ -1,7 +1,7 @@
 Param(
     [Parameter(Mandatory=$false)]
     [Switch]$clean
-}
+)
 
 # if user specified clean, remove all build files
 if ($clean.IsPresent)
