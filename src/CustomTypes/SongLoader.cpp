@@ -241,6 +241,9 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, const std:
     CacheUtils::UpdateCacheData(customLevelPath, cacheData);
 }
 
+#define FindMethodGetter(methodName) \
+    ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
+
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::string& customLevelPath) {
     std::string diffFile = to_utf8(csstrtostr(QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename));
     std::string path = customLevelPath + "/" + diffFile;
@@ -248,10 +251,12 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::
         LOG_ERROR("GetLengthFromMap File %s doesn't exist!", (path).c_str());
         return 0.0f;
     }
-    
+
+    static auto DeserializeFromJSONStringMethodInfo = FindMethodGetter(&BeatmapSaveData::DeserializeFromJSONString);
+
     //Temporary fix because exceptions don't work
-    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>("", "BeatmapSaveData", "DeserializeFromJSONString", il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
-    if(!optional.has_value()) {
+    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData *>(nullptr, DeserializeFromJSONStringMethodInfo, il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+    if(!optional.has_value() || !optional.value()) {
         LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
         return 0.0f;
     }
