@@ -370,7 +370,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                                     loadedPaths.push_back(songPath);
                                     CurrentFolder++;
                                     std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel);
-                                    LOG_INFO("Loaded %s in %dms!", songPath.c_str(), durationLevel);
+                                    LOG_INFO("Loaded %s in %dms!", songPath.c_str(), (int)durationLevel.count());
                                 } else {
                                     LOG_ERROR("Failed loading %s!", songPath.c_str());
                                 }
@@ -398,7 +398,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
             auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
             
             LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
-            LOG_INFO("Loaded %d songs in %dms!", levelsCount, duration);
+            LOG_INFO("Loaded %d songs in %dms!", levelsCount, (int)duration.count());
             
             LoadedLevels.clear();
             LoadedLevels.insert(LoadedLevels.end(), customPreviewLevels->values, customPreviewLevels->values + customPreviewLevels->Length());
