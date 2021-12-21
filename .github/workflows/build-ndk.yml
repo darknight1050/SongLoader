@@ -1,9 +1,12 @@
 name: NDK build
 
+env:
+    module_id: songloader
+    qmodName: SongLoader
+
 on:
   workflow_dispatch:
   push:
-    branches: [master, qpm_rust]
     paths-ignore:
       - '**.yml'
       - '!.github/workflows/build-ndk.yml'
@@ -16,12 +19,6 @@ on:
       - '**.md'
       - '.gitignore'
   pull_request:
-    branches: master
-
-env:
-    ndkname: android-ndk-r22
-    module_id: songloader
-    qmodName: SongLoader
 
 jobs:
   build:

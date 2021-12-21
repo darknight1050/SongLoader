@@ -1,7 +1,6 @@
 name: Publish QPM Package
 
 env:
-    ndkname: android-ndk-r22
     module_id: songloader
     qmodName: SongLoader
     

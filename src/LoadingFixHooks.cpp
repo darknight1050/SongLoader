@@ -30,10 +30,6 @@
 #include "GlobalNamespace/BeatmapLevelPackCollectionSO.hpp"
 #include "GlobalNamespace/BeatmapLevelPackCollectionContainerSO.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicSO.hpp"
-<<<<<<< HEAD
-#include "GlobalNamespace/BeatmapObjectsInTimeRowProcessor.hpp"
-=======
->>>>>>> 8cc2d12672caa0b7880b0443d37f34bdbd363621
 #include "GlobalNamespace/BeatmapDataMirrorTransform.hpp"
 #include "GlobalNamespace/BeatmapDataZenModeTransform.hpp"
 #include "GlobalNamespace/BeatmapDataObstaclesAndBombsTransform.hpp"
