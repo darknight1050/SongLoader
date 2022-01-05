@@ -5,6 +5,7 @@
 
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp" 
 #include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
+#include "CustomTypes/CustomLevelInfoSaveData.hpp"
 
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp" 
 #include "GlobalNamespace/CustomBeatmapLevelCollection.hpp" 
@@ -35,9 +36,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         void MenuLoaded();
 
-        GlobalNamespace::StandardLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
+        CustomJSONData::CustomLevelInfoSaveData* GetStandardLevelInfoSaveData(const std::string& customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections);
-        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, GlobalNamespace::StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
+        GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
         
         void UpdateSongDuration(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);
         float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, const std::string& customLevelPath);

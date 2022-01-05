@@ -129,7 +129,7 @@ void SongLoader::Update() {
     LoadingUI::UpdateState();
 }
 
-StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
+CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
     std::string path = customLevelPath + "/info.dat";
     if(!fileexists(path))
         path = customLevelPath + "/Info.dat";
@@ -140,7 +140,12 @@ StandardLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::s
             LOG_ERROR("GetStandardLevelInfoSaveData File %s is corrupted!", (path).c_str());
             return nullptr;
         }
-        return *optional;
+        if (!il2cpp_utils::try_cast<CustomJSONData::CustomLevelInfoSaveData>(*optional)) {
+            LOG_ERROR("GetStandardLevelInfoSaveData File %s is not parsed as custom level info save data!", (path).c_str());
+            return nullptr;
+        }
+
+        return static_cast<CustomJSONData::CustomLevelInfoSaveData *>(*optional);
 
         //return StandardLevelInfoSaveData::DeserializeFromJSONString(il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
     }
@@ -156,7 +161,7 @@ EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(Il2CppString* environmentName
     return environmentInfoSO;
 }
 
-CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, StandardLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
+CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
     if(!standardLevelInfoSaveData) 
         return nullptr;
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel StandardLevelInfoSaveData: ");
@@ -359,7 +364,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                                         level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
                                 }
                                 if(!level) {
-                                    StandardLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
+                                    CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
                                     std::string hash;
                                     level = LoadCustomPreviewBeatmapLevel(songPath, wip, saveData, hash);
                                 }

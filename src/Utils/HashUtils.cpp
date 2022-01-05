@@ -15,13 +15,14 @@
 
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
+#include "CustomTypes/CustomLevelInfoSaveData.hpp"
 
 using namespace GlobalNamespace;
 using namespace CryptoPP;
 
 namespace RuntimeSongLoader::HashUtils {
     
-    std::optional<std::string> GetCustomLevelHash(StandardLevelInfoSaveData* level, std::string customLevelPath) {
+    std::optional<std::string> GetCustomLevelHash(CustomJSONData::CustomLevelInfoSaveData* level, std::string const& customLevelPath) {
         auto start = std::chrono::high_resolution_clock::now();
         std::string hashHex;
         LOG_DEBUG("GetCustomLevelHash Start");
@@ -58,7 +59,7 @@ namespace RuntimeSongLoader::HashUtils {
             if (!difficultyBeatmaps) continue;
             for(auto difficultyBeatmap : difficultyBeatmaps) {
                 std::string diffFile = to_utf8(csstrtostr(difficultyBeatmap->beatmapFilename));
-                std::string path = customLevelPath + "/" + diffFile;
+                std::string path(customLevelPath + "/" += diffFile);
                 if(!fileexists(path)) {
                     LOG_ERROR("GetCustomLevelHash File %s did not exist", path.c_str());
                     continue;
