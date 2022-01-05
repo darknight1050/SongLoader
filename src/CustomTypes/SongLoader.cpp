@@ -279,12 +279,15 @@ ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
-void SongLoader::RefreshLevelPacks() {
+void SongLoader::RefreshLevelPacks(bool includeDefault) {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
-    CustomLevelsPack->SortLevels();
-    CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
-    CustomWIPLevelsPack->SortLevels();
-    CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+
+    if(includeDefault) {
+        CustomLevelsPack->SortLevels();
+        CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+        CustomWIPLevelsPack->SortLevels();
+        CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+    }
     
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
     for (auto& event : RefreshLevelPacksEvents) {
@@ -412,7 +415,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
             QuestUI::MainThreadScheduler::Schedule(
                 [this, songsLoaded] {
                     
-                    RefreshLevelPacks();
+                    RefreshLevelPacks(true);
 
                     IsLoading = false;
                     HasLoaded = true;
