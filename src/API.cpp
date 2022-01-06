@@ -14,10 +14,6 @@ namespace RuntimeSongLoader::API {
     void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded) {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
-
-    void RefreshPacks() {
-        RefreshPacks(true);
-    }
     
     void RefreshPacks(bool includeDefault) {
         SongLoader::GetInstance()->RefreshLevelPacks(includeDefault);
