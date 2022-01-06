@@ -77,7 +77,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
             RefreshLevelPacksEvents.push_back(event);
         }
 
-        void RefreshLevelPacks();
+        void RefreshLevelPacks(bool includeDefault);
         
         void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded = nullptr);
 

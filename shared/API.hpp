@@ -17,6 +17,13 @@ namespace RuntimeSongLoader::API {
     /// @tparam songsLoaded gets called after songs got loaded
     void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded = nullptr);
 
+    /// @brief Loads Packs on disk
+    void RefreshPacks();
+
+    /// @brief Loads Packs on disk
+    /// @tparam includeDefault If the default custom levels playlists should be added
+    void RefreshPacks(bool includeDefault);
+
     /// @brief Add a loading callback that gets called after songs got loaded
     /// @tparam event Callback event
     void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
