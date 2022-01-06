@@ -109,7 +109,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                         newLevels->Add(level);
                 }
             }
-            BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor(nullptr);
+            BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor({});
             BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
             self->beatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(1);
             self->beatmapLevelPacks[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);

@@ -1,12 +1,12 @@
 param (
     [Parameter(Mandatory=$false)]
-    [Switch]$debug
+    [Switch]$useDebug,
     [Parameter(Mandatory=$false)]
     [Switch]$log
 )
 
 & ./build.ps1
-if ($debug.IsPresent) {
+if ($useDebug.IsPresent) {
     & adb push build/debug_libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/libs/libsongloader.so
 } else {
     & adb push build/libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/libs/libsongloader.so

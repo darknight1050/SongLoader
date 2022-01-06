@@ -122,7 +122,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         for(int i = 0; i < difficultyBeatmapSets.Length(); i++) {
             IDifficultyBeatmapSet* difficultyBeatmapSet = LoadDifficultyBeatmapSet(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData, standardLevelInfoSaveData->difficultyBeatmapSets[i]);
             if(!difficultyBeatmapSet)
-                return nullptr;
+                return {};
             difficultyBeatmapSets[i] = difficultyBeatmapSet;
         }
         LOG_DEBUG("LoadDifficultyBeatmapSetsAsync Stop");
