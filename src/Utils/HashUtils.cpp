@@ -59,7 +59,8 @@ namespace RuntimeSongLoader::HashUtils {
             if (!difficultyBeatmaps) continue;
             for(auto difficultyBeatmap : difficultyBeatmaps) {
                 std::string diffFile = to_utf8(csstrtostr(difficultyBeatmap->beatmapFilename));
-                std::string path(customLevelPath + "/" += diffFile);
+                std::string path(customLevelPath);
+                path.append("/").append(diffFile);
                 if(!fileexists(path)) {
                     LOG_ERROR("GetCustomLevelHash File %s did not exist", path.c_str());
                     continue;
