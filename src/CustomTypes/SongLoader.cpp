@@ -284,15 +284,12 @@ ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
-void SongLoader::RefreshLevelPacks(bool includeDefault) {
+void SongLoader::RefreshLevelPacks() const {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
-
-    if(includeDefault) {
-        CustomLevelsPack->SortLevels();
-        CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
-        CustomWIPLevelsPack->SortLevels();
-        CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
-    }
+    CustomLevelsPack->SortLevels();
+    CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+    CustomWIPLevelsPack->SortLevels();
+    CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
     for (auto& event : RefreshLevelPacksEvents) {
@@ -307,7 +304,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) {
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
-void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
+void SongLoader::RefreshSongs(bool fullRefresh, const std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)>& songsLoaded) {
     if(IsLoading)
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
@@ -420,7 +417,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
             QuestUI::MainThreadScheduler::Schedule(
                 [this, songsLoaded] {
                     
-                    RefreshLevelPacks(true);
+                    RefreshLevelPacks();
 
                     IsLoading = false;
                     HasLoaded = true;
@@ -440,7 +437,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
     ), nullptr)->Run();
 }
 
-void SongLoader::DeleteSong(std::string path, std::function<void()> finished) {
+void SongLoader::DeleteSong(std::string const& path, std::function<void()> const& finished) {
     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);

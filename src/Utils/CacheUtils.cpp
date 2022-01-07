@@ -14,8 +14,7 @@ namespace RuntimeSongLoader::CacheUtils {
     std::map<std::string, CacheData> cacheMap;
     std::mutex cacheMapMutex;
 
-    std::optional<CacheData> GetCacheData(std::string_view path) {
-        std::string fullPath(path);
+    std::optional<CacheData> GetCacheData(std::string const& fullPath) {
         auto directoryHash = HashUtils::GetDirectoryHash(fullPath);
         if(!directoryHash.has_value())
             return std::nullopt;
@@ -35,12 +34,12 @@ namespace RuntimeSongLoader::CacheUtils {
         return data;
     }
 
-    void UpdateCacheData(std::string path, CacheData newData) {
+    void UpdateCacheData(const std::string& path, CacheData newData) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap[path] = newData;
     }
 
-    void RemoveCacheData(std::string path) {
+    void RemoveCacheData(const std::string& path) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.erase(path);
     }
@@ -81,11 +80,11 @@ namespace RuntimeSongLoader::CacheUtils {
         }
     }
 
-    void SaveToFile(std::vector<std::string> paths) {
+    void SaveToFile(const std::vector<std::string> &paths) {
         auto& config = getConfig().config;
         config.RemoveAllMembers();
         config.SetObject();
-        if(paths.size() > 0) {
+        if(!paths.empty()) {
             rapidjson::Document::AllocatorType& allocator = config.GetAllocator();
             std::unique_lock<std::mutex> lock(cacheMapMutex);
             for (auto it = cacheMap.cbegin(), next_it = it; it != cacheMap.cend(); it = next_it) {

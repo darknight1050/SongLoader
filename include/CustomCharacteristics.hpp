@@ -5,7 +5,7 @@
 
 namespace RuntimeSongLoader::CustomCharacteristics {
 
-    GlobalNamespace::BeatmapCharacteristicSO* RegisterCustomCharacteristic(UnityEngine::Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement = false, bool containsRotationEvents = false, int sortingOrder = 99);
+    GlobalNamespace::BeatmapCharacteristicSO* RegisterCustomCharacteristic(UnityEngine::Sprite* icon, const std::string& characteristicName, const std::string& hintText, const std::string& serializedName, const std::string& compoundIdPartName, bool requires360Movement = false, bool containsRotationEvents = false, int sortingOrder = 99);
     
     GlobalNamespace::BeatmapCharacteristicSO* FindByName(const std::string& characteristicName);
 

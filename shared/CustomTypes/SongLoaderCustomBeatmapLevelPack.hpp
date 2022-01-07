@@ -9,7 +9,7 @@
 #include "GlobalNamespace/CustomBeatmapLevelCollection.hpp" 
 #include "UnityEngine/Sprite.hpp" 
  
-DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack, Il2CppObject, 
+DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack, Il2CppObject,
     
     DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelCollection*, CustomLevelsCollection);
     DECLARE_INSTANCE_FIELD(GlobalNamespace::CustomBeatmapLevelPack*, CustomLevelsPack);
@@ -17,7 +17,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack, Il2Cp
     DECLARE_CTOR(ctor, Il2CppString* packID, Il2CppString* packName, UnityEngine::Sprite* coverImage);
 
     public:
-        static SongLoaderCustomBeatmapLevelPack* New_ctor(std::string packID, std::string packName, UnityEngine::Sprite* coverImage = nullptr);
+        static SongLoaderCustomBeatmapLevelPack* New_ctor(std::string const& packID, std::string const& packName, UnityEngine::Sprite* coverImage = nullptr);
 
         ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> GetCustomPreviewBeatmapLevels();
         void SetCustomPreviewBeatmapLevels(ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> customPreviewBeatmapLevels);

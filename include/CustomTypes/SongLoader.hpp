@@ -22,7 +22,7 @@ namespace RuntimeSongLoader {
     using DictionaryType = ::System::Collections::Generic::Dictionary_2<Il2CppString*, ::GlobalNamespace::CustomPreviewBeatmapLevel*>*;
 }
 
-DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour, 
+DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     private:
         static SongLoader* Instance;
 
@@ -68,21 +68,21 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedLevels();
 
-        static void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event) {
+        static void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> const& event) {
             std::lock_guard<std::mutex> lock(LoadedEventsMutex);
             LoadedEvents.push_back(event);
         }
 
-        static void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event) {
+        static void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event) {
             std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
             RefreshLevelPacksEvents.push_back(event);
         }
 
-        void RefreshLevelPacks(bool includeDefault);
+        void RefreshLevelPacks() const;
         
-        void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded = nullptr);
+        void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> const& songsLoaded = nullptr);
 
-        void DeleteSong(std::string path, std::function<void()> finished);
+        void DeleteSong(std::string const& path, std::function<void()> const& finished);
         
         DECLARE_CTOR(ctor);
         DECLARE_SIMPLE_DTOR();

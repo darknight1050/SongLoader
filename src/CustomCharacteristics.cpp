@@ -33,7 +33,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
 
-    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite* icon, std::string characteristicName, std::string hintText, std::string serializedName, std::string compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
+    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite* icon, const std::string& characteristicName, const std::string& hintText, const std::string& serializedName, const std::string& compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
         BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
         characteristic->icon = icon;
