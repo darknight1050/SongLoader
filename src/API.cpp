@@ -14,7 +14,7 @@ namespace RuntimeSongLoader::API {
     void RefreshSongs(bool fullRefresh, const std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>& songsLoaded) {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
-    
+
     void RefreshPacks(bool includeDefault) {
         SongLoader::GetInstance()->RefreshLevelPacks(includeDefault);
     }
@@ -31,7 +31,7 @@ namespace RuntimeSongLoader::API {
         CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 
-    void DeleteSong(const std::string& path, const std::function<void()>& finished) {
+    void DeleteSong(std::string_view path, const std::function<void()>& finished) {
         SongLoader::GetInstance()->DeleteSong(path, finished);
     }
 
@@ -58,7 +58,7 @@ namespace RuntimeSongLoader::API {
         return std::nullopt;
     }
 
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(const std::string& levelID) {
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID) {
         for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
             if(to_utf8(csstrtostr(song->levelID)) == levelID)
                 return song;

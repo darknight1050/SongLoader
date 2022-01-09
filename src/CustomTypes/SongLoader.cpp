@@ -17,6 +17,7 @@
 
 #include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
+#include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
@@ -284,13 +285,16 @@ ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
-void SongLoader::RefreshLevelPacks() const {
+void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
-    CustomLevelsPack->SortLevels();
-    CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
-    CustomWIPLevelsPack->SortLevels();
-    CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
-    
+
+    if(includeDefault) {
+        CustomLevelsPack->SortLevels();
+        CustomLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+        CustomWIPLevelsPack->SortLevels();
+        CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
+    }
+
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
     for (auto& event : RefreshLevelPacksEvents) {
         event(CustomBeatmapLevelPackCollectionSO);
@@ -299,7 +303,10 @@ void SongLoader::RefreshLevelPacks() const {
     auto beatmapLevelsModel = GetBeatmapLevelsModel();
     beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
-    auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+    static QuestUI::WeakPtrGO<LevelFilteringNavigationController> levelFilteringNavigationController;
+    if (!levelFilteringNavigationController)
+        levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+
     if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
         levelFilteringNavigationController->UpdateCustomSongs();
 }
@@ -347,7 +354,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, const std::function<void(const s
                 HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
                     (std::function<void()>)[this, startIndex, endIndex, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] { 
                         for(int i = startIndex; i < endIndex; i++) {
-                            std::string songPath = customLevelsFolders[i];
+                            std::string const& songPath = customLevelsFolders[i];
                             LOG_INFO("Loading %s ...", songPath.c_str());
                             try {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
@@ -417,7 +424,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, const std::function<void(const s
             QuestUI::MainThreadScheduler::Schedule(
                 [this, songsLoaded] {
                     
-                    RefreshLevelPacks();
+                    RefreshLevelPacks(true);
 
                     IsLoading = false;
                     HasLoaded = true;
@@ -437,14 +444,14 @@ void SongLoader::RefreshSongs(bool fullRefresh, const std::function<void(const s
     ), nullptr)->Run();
 }
 
-void SongLoader::DeleteSong(std::string const& path, std::function<void()> const& finished) {
+void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& finished) {
     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);
             auto songPathCS = il2cpp_utils::newcsstr(path);
             CustomLevels->Remove(songPathCS);
             CustomWIPLevels->Remove(songPathCS);
-            LOG_INFO("Deleted Song %s!", path.c_str());
+            LOG_INFO("Deleted Song %s!", path.data());
             finished();
         }
     ), nullptr)->Run();

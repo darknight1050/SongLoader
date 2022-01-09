@@ -37,7 +37,7 @@ namespace RuntimeSongLoader::API {
     /// @brief Delets a song on filesystem (doesn't refresh songs)
     /// @tparam path Path to the song on filesystem
     /// @tparam finished Callback once done
-    void DeleteSong(const std::string& path, const std::function<void()>& finished = nullptr);
+    void DeleteSong(std::string_view path, const std::function<void()>& finished = nullptr);
     
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs();
 
@@ -49,7 +49,7 @@ namespace RuntimeSongLoader::API {
 
     std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
     
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(const std::string& levelID);
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID);
 
     std::string GetCustomLevelsPrefix();
 

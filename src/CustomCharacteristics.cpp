@@ -8,6 +8,7 @@
 
 #include "questui/shared/ArrayUtil.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
+#include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 
 #include "Sprites.hpp"
 
@@ -33,7 +34,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
 
-    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite* icon, const std::string& characteristicName, const std::string& hintText, const std::string& serializedName, const std::string& compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
+    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, std::string_view characteristicName, std::string_view hintText, std::string_view serializedName, std::string_view compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
         BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
         characteristic->icon = icon;
@@ -45,7 +46,10 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
 
-        auto mainSystemInit = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
+        static QuestUI::WeakPtrGO<MainSystemInit> mainSystemInit;
+        if (!mainSystemInit)
+            mainSystemInit = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
+
         if(!characteristicsList) {
             characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();
             if(mainSystemInit) {
@@ -62,7 +66,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return characteristic;
     }
 
-    GlobalNamespace::BeatmapCharacteristicSO* FindByName(const std::string& characteristicName) {
+    GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string_view characteristicName) {
         if(!characteristicsList)
             return nullptr;
         for(int i = 0; i < characteristicsList->get_Count(); i++){

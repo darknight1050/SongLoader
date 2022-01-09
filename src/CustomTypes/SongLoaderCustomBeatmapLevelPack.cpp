@@ -11,7 +11,7 @@ using namespace UnityEngine;
 
 DEFINE_TYPE(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack);
 
-SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::New_ctor(std::string const& packID, std::string const& packName, Sprite* coverImage) {
+SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::New_ctor(std::string const& packID, std::string_view packName, Sprite* coverImage) {
     auto customLevelsPackID = il2cpp_utils::newcsstr(CustomLevelPackPrefixID + packID);
     auto customLevelsPackName = il2cpp_utils::newcsstr(packName);
     return *il2cpp_utils::New<SongLoaderCustomBeatmapLevelPack*>(customLevelsPackID, customLevelsPackName, coverImage);

@@ -78,11 +78,11 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
             RefreshLevelPacksEvents.push_back(event);
         }
 
-        void RefreshLevelPacks() const;
+        void RefreshLevelPacks(bool includeDefault) const;
         
         void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> const& songsLoaded = nullptr);
 
-        void DeleteSong(std::string const& path, std::function<void()> const& finished);
+        void DeleteSong(std::string_view path, std::function<void()> const& finished);
         
         DECLARE_CTOR(ctor);
         DECLARE_SIMPLE_DTOR();
