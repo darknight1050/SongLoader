@@ -42,12 +42,12 @@ namespace RuntimeSongLoader::CacheUtils {
         return data;
     }
 
-    void UpdateCacheData(const std::string& path, CacheData const& newData) {
+    void UpdateCacheData(std::string const& path, CacheData const& newData) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.try_emplace(path, newData);
     }
 
-    void RemoveCacheData(const std::string& path) {
+    void RemoveCacheData(std::string const& path) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
         cacheMap.erase(path);
     }
@@ -91,7 +91,7 @@ namespace RuntimeSongLoader::CacheUtils {
         }
     }
 
-    void SaveToFile(const std::vector<std::string> &paths) {
+    void SaveToFile(std::vector<std::string> const& paths) {
         auto& config = getConfig().config;
         config.RemoveAllMembers();
         config.SetObject();

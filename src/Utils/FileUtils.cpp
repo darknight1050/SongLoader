@@ -52,7 +52,7 @@ namespace RuntimeSongLoader::FileUtils {
         if (ec) {
             LOG_ERROR("Error reading directory at %s: %s", path.data(), ec.message().c_str());
         }
-        for (const auto& entry : directory_iterator) {
+        for (auto const& entry : directory_iterator) {
             if(entry.is_directory())
                 directories.push_back(entry.path().string());
         }

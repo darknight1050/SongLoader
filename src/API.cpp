@@ -11,7 +11,7 @@ namespace RuntimeSongLoader::API {
         RefreshSongs(true, nullptr);
     }
 
-    void RefreshSongs(bool fullRefresh, const std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>& songsLoaded) {
+    void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
 
@@ -19,19 +19,19 @@ namespace RuntimeSongLoader::API {
         SongLoader::GetInstance()->RefreshLevelPacks(includeDefault);
     }
 
-    void AddSongsLoadedEvent(const std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)>& event) {
+    void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& event) {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
-    void AddRefreshLevelPacksEvent(const std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>& event) {
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event) {
         SongLoader::AddRefreshLevelPacksEvent(event);
     }
 
-    void AddBeatmapDataLoadedEvent(const std::function<void(CustomJSONData::CustomLevelInfoSaveData*, const std::string&, GlobalNamespace::BeatmapData*)>& event) {
+    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event) {
         CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 
-    void DeleteSong(std::string_view path, const std::function<void()>& finished) {
+    void DeleteSong(std::string_view path, std::function<void()> const& finished) {
         SongLoader::GetInstance()->DeleteSong(path, finished);
     }
 

@@ -91,7 +91,7 @@ SongLoader* SongLoader::GetInstance() {
     return Instance;
 }
 
-std::vector<std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
+std::vector<std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)>> SongLoader::LoadedEvents;
 std::mutex SongLoader::LoadedEventsMutex;
 
 std::vector<std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>> SongLoader::RefreshLevelPacksEvents;
@@ -130,7 +130,7 @@ void SongLoader::Update() {
     LoadingUI::UpdateState();
 }
 
-CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
+CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(std::string const& customLevelPath) {
     std::string path = customLevelPath + "/info.dat";
     if(!fileexists(path))
         path = customLevelPath + "/Info.dat";
@@ -162,7 +162,7 @@ EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(Il2CppString* environmentName
     return environmentInfoSO;
 }
 
-CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
+CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string const& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
     if(!standardLevelInfoSaveData) 
         return nullptr;
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel StandardLevelInfoSaveData: ");
@@ -226,7 +226,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     return result;
 }
 
-void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, const std::string& customLevelPath) {
+void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     float length = 0.0f;
     auto cacheDataOpt = CacheUtils::GetCacheData(customLevelPath);
     if(!cacheDataOpt.has_value())
@@ -248,7 +248,7 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, const std:
 #define FindMethodGetter(methodName) \
     ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
 
-float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::string& customLevelPath) {
+float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     std::string diffFile = to_utf8(csstrtostr(QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename));
     std::string path = customLevelPath + "/" + diffFile;
     if(!fileexists(path)) {
@@ -311,7 +311,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
-void SongLoader::RefreshSongs(bool fullRefresh, const std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)>& songsLoaded) {
+void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
     if(IsLoading)
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();

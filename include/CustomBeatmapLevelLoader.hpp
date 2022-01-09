@@ -7,7 +7,7 @@
 #include "CustomTypes/CustomLevelInfoSaveData.hpp"
 namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
-    void AddBeatmapDataLoadedEvent(const std::function<void(CustomJSONData::CustomLevelInfoSaveData*, const std::string&, GlobalNamespace::BeatmapData*)>& event);
+    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event);
 
     void InstallHooks();
 

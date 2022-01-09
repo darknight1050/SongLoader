@@ -14,14 +14,14 @@ namespace RuntimeSongLoader::CacheUtils {
 
     std::optional<CacheData> GetCacheData(std::string const& path);
 
-    void UpdateCacheData(const std::string& path, CacheData const& newData);
+    void UpdateCacheData(std::string const& path, CacheData const& newData);
 
-    void RemoveCacheData(const std::string& path);
+    void RemoveCacheData(std::string const& path);
 
     void ClearCache();
 
     void LoadFromFile();
     
-    void SaveToFile(const std::vector <std::string> &paths);
+    void SaveToFile(std::vector <std::string> const& paths);
 
 }

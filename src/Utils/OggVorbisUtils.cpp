@@ -16,7 +16,7 @@ namespace RuntimeSongLoader::OggVorbisUtils {
         float length = 0.0f;
 
         size_t dataLength;
-        const char* dataStart = FileUtils::ReadAllBytes(path, dataLength);
+        auto dataStart = FileUtils::ReadAllBytes(path, dataLength);
         if(!dataStart)
             return length;
         if(dataLength <= 0) {
