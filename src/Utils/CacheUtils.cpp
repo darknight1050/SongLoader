@@ -6,12 +6,20 @@
 
 #include "beatsaber-hook/shared/config/config-utils.hpp"
 
-#include <map>
+#include <unordered_map>
 #include <algorithm>
 
 namespace RuntimeSongLoader::CacheUtils {
 
-    std::map<std::string, CacheData> cacheMap;
+    struct StringHash {
+        using is_transparent = void; // enables heterogenous lookup
+        std::size_t operator()(std::string_view sv) const {
+            std::hash<std::string_view> hasher;
+            return hasher(sv);
+        }
+    };
+
+    std::unordered_map<std::string, CacheData, StringHash, std::equal_to<>> cacheMap;
     std::mutex cacheMapMutex;
 
     std::optional<CacheData> GetCacheData(std::string const& fullPath) {
@@ -34,9 +42,9 @@ namespace RuntimeSongLoader::CacheUtils {
         return data;
     }
 
-    void UpdateCacheData(const std::string& path, CacheData newData) {
+    void UpdateCacheData(const std::string& path, CacheData const& newData) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
-        cacheMap[path] = newData;
+        cacheMap.try_emplace(path, newData);
     }
 
     void RemoveCacheData(const std::string& path) {
@@ -62,17 +70,20 @@ namespace RuntimeSongLoader::CacheUtils {
             LOG_DEBUG("CacheUtils Loading %s from cache!", it->name.GetString());
             CacheData data;
             auto& value = it->value;
-            if(value.HasMember("directoryHash") && value["directoryHash"].IsInt())
-                data.directoryHash = value["directoryHash"].GetInt();
+            auto directoryHashIt = value.FindMember("directoryHash");
+            if(directoryHashIt != value.MemberEnd() && directoryHashIt->value.IsNumber())
+                data.directoryHash = directoryHashIt->value.GetInt();
 
-            if(value.HasMember("sha1") && value["sha1"].IsString()) {
-                data.sha1 = value["sha1"].GetString();
+            auto sha1It = value.FindMember("sha1");
+            if(sha1It != value.MemberEnd() && sha1It->value.IsString()) {
+                data.sha1 = sha1It->value.GetString();
                 if(data.sha1.value().empty())
                     data.sha1 = std::nullopt;
             }
 
-            if(value.HasMember("songDuration") && value["songDuration"].IsFloat()) {
-                data.songDuration = value["songDuration"].GetFloat();
+            auto songDurationIt = value.FindMember("songDuration");
+            if(songDurationIt != value.MemberEnd() && songDurationIt->value.IsNumber()) {
+                data.songDuration = songDurationIt->value.GetFloat();
                 if(data.songDuration.value() <= 0.0f)
                     data.songDuration = std::nullopt;
             }

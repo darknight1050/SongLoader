@@ -14,7 +14,7 @@ namespace RuntimeSongLoader::CacheUtils {
 
     std::optional<CacheData> GetCacheData(std::string const& path);
 
-    void UpdateCacheData(const std::string& path, CacheData newData);
+    void UpdateCacheData(const std::string& path, CacheData const& newData);
 
     void RemoveCacheData(const std::string& path);
 
