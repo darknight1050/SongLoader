@@ -16,7 +16,7 @@ namespace RuntimeSongLoader::API {
     /// @brief Loads Songs on disk
     /// @tparam fullRefresh If it should reload already loaded songs
     /// @tparam songsLoaded gets called after songs got loaded
-    void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded = nullptr);
+    void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded = nullptr);
 
     /// @brief Loads Packs on disk
     /// @tparam includeDefault If the default custom levels playlists should be added
@@ -24,20 +24,20 @@ namespace RuntimeSongLoader::API {
 
     /// @brief Add a loading callback that gets called after songs got loaded
     /// @tparam event Callback event
-    void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event);
+    void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& event);
 
     /// @brief Add a callback that gets called before level packs get refreshed
     /// @tparam event Callback event
-    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event);
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event);
 
     /// @brief Add a callback that gets called after it tried to load a BeatmapData
     /// @tparam event Callback event
-    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, const std::string&, GlobalNamespace::BeatmapData*)> event);
+    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event);
     
     /// @brief Delets a song on filesystem (doesn't refresh songs)
     /// @tparam path Path to the song on filesystem
     /// @tparam finished Callback once done
-    void DeleteSong(std::string path, std::function<void()> finished = nullptr);
+    void DeleteSong(std::string_view path, std::function<void()> const& finished = nullptr);
     
     std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs();
 
@@ -49,7 +49,7 @@ namespace RuntimeSongLoader::API {
 
     std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
     
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string levelID);
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID);
 
     std::string GetCustomLevelsPrefix();
 

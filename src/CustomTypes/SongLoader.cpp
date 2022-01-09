@@ -17,6 +17,7 @@
 
 #include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
+#include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
@@ -90,7 +91,7 @@ SongLoader* SongLoader::GetInstance() {
     return Instance;
 }
 
-std::vector<std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)>> SongLoader::LoadedEvents;
+std::vector<std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)>> SongLoader::LoadedEvents;
 std::mutex SongLoader::LoadedEventsMutex;
 
 std::vector<std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>> SongLoader::RefreshLevelPacksEvents;
@@ -129,7 +130,7 @@ void SongLoader::Update() {
     LoadingUI::UpdateState();
 }
 
-CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(const std::string& customLevelPath) {
+CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(std::string const& customLevelPath) {
     std::string path = customLevelPath + "/info.dat";
     if(!fileexists(path))
         path = customLevelPath + "/Info.dat";
@@ -161,7 +162,7 @@ EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(Il2CppString* environmentName
     return environmentInfoSO;
 }
 
-CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::string& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
+CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string const& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
     if(!standardLevelInfoSaveData) 
         return nullptr;
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel StandardLevelInfoSaveData: ");
@@ -225,7 +226,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(const std::
     return result;
 }
 
-void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, const std::string& customLevelPath) {
+void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     float length = 0.0f;
     auto cacheDataOpt = CacheUtils::GetCacheData(customLevelPath);
     if(!cacheDataOpt.has_value())
@@ -247,7 +248,7 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, const std:
 #define FindMethodGetter(methodName) \
     ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
 
-float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, const std::string& customLevelPath) {
+float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     std::string diffFile = to_utf8(csstrtostr(QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename));
     std::string path = customLevelPath + "/" + diffFile;
     if(!fileexists(path)) {
@@ -284,7 +285,7 @@ ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString
     return array;
 }
 
-void SongLoader::RefreshLevelPacks(bool includeDefault) {
+void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
 
     if(includeDefault) {
@@ -293,7 +294,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) {
         CustomWIPLevelsPack->SortLevels();
         CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     }
-    
+
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
     for (auto& event : RefreshLevelPacksEvents) {
         event(CustomBeatmapLevelPackCollectionSO);
@@ -302,12 +303,15 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) {
     auto beatmapLevelsModel = GetBeatmapLevelsModel();
     beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
-    auto levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+    static QuestUI::WeakPtrGO<LevelFilteringNavigationController> levelFilteringNavigationController;
+    if (!levelFilteringNavigationController)
+        levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+
     if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
-void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::vector<CustomPreviewBeatmapLevel*>&)> songsLoaded) {
+void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
     if(IsLoading)
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
@@ -350,7 +354,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
                 HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
                     (std::function<void()>)[this, startIndex, endIndex, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] { 
                         for(int i = startIndex; i < endIndex; i++) {
-                            std::string songPath = customLevelsFolders[i];
+                            std::string const& songPath = customLevelsFolders[i];
                             LOG_INFO("Loading %s ...", songPath.c_str());
                             try {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
@@ -440,14 +444,14 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(const std::ve
     ), nullptr)->Run();
 }
 
-void SongLoader::DeleteSong(std::string path, std::function<void()> finished) {
+void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& finished) {
     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);
             auto songPathCS = il2cpp_utils::newcsstr(path);
             CustomLevels->Remove(songPathCS);
             CustomWIPLevels->Remove(songPathCS);
-            LOG_INFO("Deleted Song %s!", path.c_str());
+            LOG_INFO("Deleted Song %s!", path.data());
             finished();
         }
     ), nullptr)->Run();

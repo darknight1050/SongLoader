@@ -11,27 +11,27 @@ namespace RuntimeSongLoader::API {
         RefreshSongs(true, nullptr);
     }
 
-    void RefreshSongs(bool fullRefresh, std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> songsLoaded) {
+    void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
-    
+
     void RefreshPacks(bool includeDefault) {
         SongLoader::GetInstance()->RefreshLevelPacks(includeDefault);
     }
 
-    void AddSongsLoadedEvent(std::function<void(const std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*>&)> event) {
+    void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& event) {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
-    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> event) {
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event) {
         SongLoader::AddRefreshLevelPacksEvent(event);
     }
 
-    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, const std::string&, GlobalNamespace::BeatmapData*)> event) {
+    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event) {
         CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 
-    void DeleteSong(std::string path, std::function<void()> finished) {
+    void DeleteSong(std::string_view path, std::function<void()> const& finished) {
         SongLoader::GetInstance()->DeleteSong(path, finished);
     }
 
@@ -58,7 +58,7 @@ namespace RuntimeSongLoader::API {
         return std::nullopt;
     }
 
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string levelID) {
+    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID) {
         for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
             if(to_utf8(csstrtostr(song->levelID)) == levelID)
                 return song;

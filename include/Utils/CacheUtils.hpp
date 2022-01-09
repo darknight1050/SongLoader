@@ -12,16 +12,16 @@ namespace RuntimeSongLoader::CacheUtils {
         std::optional<float> songDuration = std::nullopt;
     };
 
-    std::optional<CacheData> GetCacheData(std::string_view path);
+    std::optional<CacheData> GetCacheData(std::string const& path);
 
-    void UpdateCacheData(std::string path, CacheData newData);
+    void UpdateCacheData(std::string const& path, CacheData const& newData);
 
-    void RemoveCacheData(std::string path);
+    void RemoveCacheData(std::string const& path);
 
     void ClearCache();
 
     void LoadFromFile();
     
-    void SaveToFile(std::vector<std::string> paths);
+    void SaveToFile(std::vector <std::string> const& paths);
 
 }

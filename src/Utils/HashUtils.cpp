@@ -59,7 +59,8 @@ namespace RuntimeSongLoader::HashUtils {
             if (!difficultyBeatmaps) continue;
             for(auto difficultyBeatmap : difficultyBeatmaps) {
                 std::string diffFile = to_utf8(csstrtostr(difficultyBeatmap->beatmapFilename));
-                std::string path(customLevelPath + "/" += diffFile);
+                std::string path(customLevelPath);
+                path.append("/").append(diffFile);
                 if(!fileexists(path)) {
                     LOG_ERROR("GetCustomLevelHash File %s did not exist", path.c_str());
                     continue;
@@ -89,7 +90,7 @@ namespace RuntimeSongLoader::HashUtils {
             return std::nullopt;
         int hash = 0;
         bool hasFile = false;
-        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        for (auto const& entry : std::filesystem::directory_iterator(path)) {
             if(!entry.is_directory()) {
                 hasFile = true;
                 hash ^= entry.file_size() ^ std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(entry).time_since_epoch()).count();
