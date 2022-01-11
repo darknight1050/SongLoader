@@ -4,14 +4,14 @@
   "info": {
     "name": "songloader",
     "id": "songloader",
-    "version": "0.0.1",
+    "version": "0.8.0",
     "url": "https://github.com/darknight1050/songloader",
     "additionalData": {
       "overrideSoName": "libsongloader.so"
     }
   },
   "dependencies": [
-	{
+    {
       "id": "beatsaber-hook",
       "versionRange": "^3.4.2",
       "additionalData": {
