@@ -205,7 +205,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
 
 MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
                 &StandardLevelDetailViewController::ShowContent,
-                void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType contentType, Il2CppString* errorText, float downloadingProgress, Il2CppString* downloadingText) {
+                void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType contentType, StringW errorText, float downloadingProgress, StringW downloadingText) {
     StandardLevelDetailViewController_ShowContent(self, contentType, errorText, downloadingProgress, downloadingText);
     static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
     bool customLevel = self->previewBeatmapLevel && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->previewBeatmapLevel)));

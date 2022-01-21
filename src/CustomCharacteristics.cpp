@@ -78,7 +78,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return nullptr;
     }  
 
-    MAKE_HOOK_MATCH(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName,&BeatmapCharacteristicCollectionSO::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, Il2CppString* serializedName)
+    MAKE_HOOK_MATCH(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName,&BeatmapCharacteristicCollectionSO::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, StringW serializedName)
     {
         BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
         if(!result)

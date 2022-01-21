@@ -11,13 +11,14 @@ using namespace UnityEngine;
 
 DEFINE_TYPE(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack);
 
-SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::New_ctor(std::string const& packID, std::string_view packName, Sprite* coverImage) {
+
+SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::Make_New(std::string const& packID, std::string_view packName, Sprite* coverImage) {
     auto customLevelsPackID = il2cpp_utils::newcsstr(CustomLevelPackPrefixID + packID);
     auto customLevelsPackName = il2cpp_utils::newcsstr(packName);
     return *il2cpp_utils::New<SongLoaderCustomBeatmapLevelPack*>(customLevelsPackID, customLevelsPackName, coverImage);
 }
 
-void SongLoaderCustomBeatmapLevelPack::ctor(Il2CppString* packID, Il2CppString* packName, Sprite* coverImage) {
+void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sprite* coverImage) {
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(ArrayW<CustomPreviewBeatmapLevel*>());
     auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->defaultPackCover;
     CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(packID, packName, packName, newCoverImage, newCoverImage, CustomLevelsCollection);
