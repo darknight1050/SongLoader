@@ -137,9 +137,10 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         self->allLoadedBeatmapLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(BeatmapLevelPackCollection::New_ctor(list->ToArray()));
     }
 
-    MAKE_HOOK_MATCH(AdditionalContentModel_GetLevelEntitlementStatusAsync, &AdditionalContentModel::GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, Il2CppString* levelId, CancellationToken cancellationToken) {
-        LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", to_utf8(csstrtostr(levelId)).c_str());
-        if(to_utf8(csstrtostr(levelId)).starts_with(CustomLevelPrefixID)) {
+    MAKE_HOOK_MATCH(AdditionalContentModel_GetLevelEntitlementStatusAsync, &AdditionalContentModel::GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelId, CancellationToken cancellationToken) {
+        std::string levelIdCpp = levelId;
+        LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", levelIdCpp.c_str());
+        if(levelIdCpp.starts_with(CustomLevelPrefixID)) {
             auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
             bool loaded = beatmapLevelsModel->loadedPreviewBeatmapLevels->ContainsKey(levelId) || beatmapLevelsModel->loadedBeatmapLevels->IsInCache(levelId);
             return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(loaded ? AdditionalContentModel::EntitlementStatus::Owned : AdditionalContentModel::EntitlementStatus::NotOwned);
@@ -147,9 +148,11 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         return AdditionalContentModel_GetLevelEntitlementStatusAsync(self, levelId, cancellationToken);
     }
 
-    MAKE_HOOK_MATCH(AdditionalContentModel_GetPackEntitlementStatusAsync, &AdditionalContentModel::GetPackEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, Il2CppString* levelPackId, CancellationToken cancellationToken) {
-        LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", to_utf8(csstrtostr(levelPackId)).c_str());
-        if(to_utf8(csstrtostr(levelPackId)).starts_with(CustomLevelPackPrefixID))
+    MAKE_HOOK_MATCH(AdditionalContentModel_GetPackEntitlementStatusAsync, &AdditionalContentModel::GetPackEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelPackId, CancellationToken cancellationToken) {
+        std::string levelPackIdCpp = levelPackId;
+        LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", levelPackIdCpp.c_str());
+        
+        if(levelPackIdCpp.starts_with(CustomLevelPackPrefixID))
             return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
         return AdditionalContentModel_GetPackEntitlementStatusAsync(self, levelPackId, cancellationToken);
     }
@@ -159,14 +162,14 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         return true;
     }
 
-    MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, Il2CppString*, Il2CppString* filePath) {
+    MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, StringW, StringW filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return il2cpp_utils::newcsstr(std::u16string(u"file://") + std::u16string(csstrtostr(filePath)));
+        return il2cpp_utils::newcsstr(std::u16string(u"file://") + filePath.operator std::u16string());
     }
 
 
 // Implementation by https://github.com/StackDoubleFlow
-    MAKE_HOOK_MATCH(StandardLevelInfoSaveData_DeserializeFromJSONString, &GlobalNamespace::StandardLevelInfoSaveData::DeserializeFromJSONString, GlobalNamespace::StandardLevelInfoSaveData *, Il2CppString *stringData) {
+    MAKE_HOOK_MATCH(StandardLevelInfoSaveData_DeserializeFromJSONString, &GlobalNamespace::StandardLevelInfoSaveData::DeserializeFromJSONString, GlobalNamespace::StandardLevelInfoSaveData *, StringW stringData) {
         auto *original = StandardLevelInfoSaveData_DeserializeFromJSONString(stringData);
         if (!original)
             return nullptr;
@@ -189,7 +192,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                                                                              original->allDirectionsEnvironmentName,
                                                                              customBeatmapSets));
 
-        std::u16string str(stringData ? csstrtostr(stringData) : u"{}");
+        std::u16string str(stringData ? stringData : u"{}");
 
         auto sharedDoc = std::make_shared<CustomJSONData::DocumentUTF16>();
         customSaveData->doc = sharedDoc;
