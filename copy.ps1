@@ -7,9 +7,9 @@ param (
 
 & ./build.ps1
 if ($useDebug.IsPresent) {
-    & adb push build/debug_libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/libs/libsongloader.so
+    & adb push build/debug/libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/mods/libsongloader.so
 } else {
-    & adb push build/libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/libs/libsongloader.so
+    & adb push build/libsongloader.so /sdcard/Android/data/com.beatgames.beatsaber/files/mods/libsongloader.so
 }
 
 & adb shell am force-stop com.beatgames.beatsaber

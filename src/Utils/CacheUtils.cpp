@@ -25,10 +25,14 @@ namespace RuntimeSongLoader::CacheUtils {
     std::optional<CacheData> GetCacheData(std::string const& fullPath) {
         auto directoryHash = HashUtils::GetDirectoryHash(fullPath);
         if(!directoryHash.has_value())
+        {
+            LOG_DEBUG("Hash for %s did not have value!", fullPath.c_str());
             return std::nullopt;
+        }
         std::unique_lock<std::mutex> lock(cacheMapMutex);
         auto search = cacheMap.find(fullPath);
         if(search != cacheMap.end()) {
+            LOG_DEBUG("Found existing cache data for %s", fullPath.c_str());
             auto data = search->second;
             if(*directoryHash == data.directoryHash)
                 return search->second;
@@ -44,7 +48,7 @@ namespace RuntimeSongLoader::CacheUtils {
 
     void UpdateCacheData(std::string const& path, CacheData const& newData) {
         std::unique_lock<std::mutex> lock(cacheMapMutex);
-        cacheMap.try_emplace(path, newData);
+        cacheMap[path] = newData;
     }
 
     void RemoveCacheData(std::string const& path) {
