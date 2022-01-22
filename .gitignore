@@ -53,3 +53,4 @@ mod.json
 extern/
 build/
 *.qmod
+*.log

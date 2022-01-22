@@ -18,7 +18,7 @@ SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::Make_New(std
     return *il2cpp_utils::New<SongLoaderCustomBeatmapLevelPack*>(customLevelsPackID, customLevelsPackName, coverImage);
 }
 
-void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sprite* coverImage) {
+void SongLoaderCustomBeatmapLevelPack::ctor(Il2CppString* packID, Il2CppString* packName, Sprite* coverImage) {
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(ArrayW<CustomPreviewBeatmapLevel*>());
     auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->defaultPackCover;
     CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(packID, packName, packName, newCoverImage, newCoverImage, CustomLevelsCollection);

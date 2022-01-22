@@ -138,7 +138,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     MAKE_HOOK_MATCH(AdditionalContentModel_GetLevelEntitlementStatusAsync, &AdditionalContentModel::GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelId, CancellationToken cancellationToken) {
-        std::string levelIdCpp = levelId;
+        std::string levelIdCpp = to_utf8(csstrtostr(levelId));
         LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", levelIdCpp.c_str());
         if(levelIdCpp.starts_with(CustomLevelPrefixID)) {
             auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
@@ -149,7 +149,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     MAKE_HOOK_MATCH(AdditionalContentModel_GetPackEntitlementStatusAsync, &AdditionalContentModel::GetPackEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelPackId, CancellationToken cancellationToken) {
-        std::string levelPackIdCpp = levelPackId;
+        std::string levelPackIdCpp = to_utf8(csstrtostr(levelPackId));
         LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", levelPackIdCpp.c_str());
         
         if(levelPackIdCpp.starts_with(CustomLevelPackPrefixID))
@@ -164,7 +164,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, StringW, StringW filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return il2cpp_utils::newcsstr(std::u16string(u"file://") + filePath.operator std::u16string());
+        return il2cpp_utils::newcsstr(std::u16string(u"file://") + std::u16string(csstrtostr(filePath)));
     }
 
 
@@ -192,7 +192,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                                                                              original->allDirectionsEnvironmentName,
                                                                              customBeatmapSets));
 
-        std::u16string str(stringData ? stringData : u"{}");
+        std::u16string str(stringData ? csstrtostr(stringData) : u"{}");
 
         auto sharedDoc = std::make_shared<CustomJSONData::DocumentUTF16>();
         customSaveData->doc = sharedDoc;
