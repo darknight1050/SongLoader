@@ -65,7 +65,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         std::string path = customLevelPath + "/" + difficultyFileName;
         BeatmapData* beatmapData = nullptr;
         if(fileexists(path)) {
-            Il2CppString* json = il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path));
+            StringW json = FileUtils::ReadAllText16(path);
 
             //Temporary fix because exceptions don't work
             auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
@@ -88,7 +88,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     CustomDifficultyBeatmap* LoadDifficultyBeatmap(std::string const& customLevelPath, CustomBeatmapLevel* parentCustomBeatmapLevel, CustomDifficultyBeatmapSet* parentDifficultyBeatmapSet, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, CustomJSONData::CustomDifficultyBeatmap* difficultyBeatmapSaveData) {
         LOG_DEBUG("LoadDifficultyBeatmapAsync Start");
-        BeatmapData* beatmapData = LoadBeatmapData(customLevelPath, to_utf8(csstrtostr(difficultyBeatmapSaveData->beatmapFilename)), standardLevelInfoSaveData);
+        BeatmapData* beatmapData = LoadBeatmapData(customLevelPath, difficultyBeatmapSaveData->beatmapFilename, standardLevelInfoSaveData);
         if(!beatmapData)
             return nullptr;
         BeatmapDifficulty difficulty;
@@ -148,9 +148,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     CustomBeatmapLevel* LoadCustomBeatmapLevel(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         LOG_DEBUG("LoadCustomBeatmapLevel Start");
         auto* standardLevelInfoSaveData = il2cpp_utils::cast<CustomJSONData::CustomLevelInfoSaveData>(customPreviewBeatmapLevel->standardLevelInfoSaveData);
-        std::string customLevelPath = to_utf8(csstrtostr(customPreviewBeatmapLevel->customLevelPath));
         CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevel::New_ctor(customPreviewBeatmapLevel);
-        BeatmapLevelData* beatmapLevelData = LoadBeatmapLevelData(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
+        BeatmapLevelData* beatmapLevelData = LoadBeatmapLevelData(customPreviewBeatmapLevel->customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
         if(!beatmapLevelData)
             return nullptr;
         customBeatmapLevel->SetBeatmapLevelData(beatmapLevelData);
@@ -159,7 +158,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     }
 
     MAKE_HOOK_MATCH(BeatmapLevelsModel_GetBeatmapLevelAsync, &BeatmapLevelsModel::GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, StringW levelID, CancellationToken cancellationToken) {
-        LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", to_utf8(csstrtostr(levelID)).c_str());
+        LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", levelID.operator std::string().c_str());
         Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>* result = BeatmapLevelsModel_GetBeatmapLevelAsync(self, levelID, cancellationToken);
         if(result->get_IsCompleted() && result->get_Result().isError) {
             if(self->loadedPreviewBeatmapLevels->ContainsKey(levelID)) {

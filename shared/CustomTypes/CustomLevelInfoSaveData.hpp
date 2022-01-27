@@ -17,12 +17,12 @@ namespace CustomJSONData {
 DECLARE_CLASS_CODEGEN(CustomJSONData, CustomLevelInfoSaveData, 
 					  GlobalNamespace::StandardLevelInfoSaveData,
 	
-	DECLARE_CTOR(ctor, Il2CppString *songName, Il2CppString *songSubName, 
-				 Il2CppString *songAuthorName, Il2CppString *levelAuthorNeame, float beatsPerMinute,
+	DECLARE_CTOR(ctor, StringW songName, StringW songSubName, 
+				 StringW songAuthorName, StringW levelAuthorNeame, float beatsPerMinute,
 				 float songTimeOffset, float shuffle, float shufflePeriod, float previewStartTime, 
-				 float previewDuration, Il2CppString *songFilename, Il2CppString *coverImageFilename, 
-				 Il2CppString *environmentName, Il2CppString *allDirectionsEnvironmentName, 
-				 ::Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet*> *difficultyBeatmapSets);
+				 float previewDuration, StringW songFilename, StringW coverImageFilename, 
+				 StringW environmentName, StringW allDirectionsEnvironmentName, 
+				 ::ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet*> difficultyBeatmapSets);
 
 	DECLARE_SIMPLE_DTOR();
 
@@ -34,7 +34,7 @@ public:
 DECLARE_CLASS_CODEGEN(CustomJSONData, CustomDifficultyBeatmap, 
 					  GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap,
 	
-	DECLARE_CTOR(ctor, Il2CppString *difficultyName, int difficultyRank, Il2CppString *beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset);
+	DECLARE_CTOR(ctor, StringW difficultyName, int difficultyRank, StringW beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset);
 
 public:
 	std::optional<std::reference_wrapper<ValueUTF16>> customData;

@@ -72,7 +72,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         for(int i = 0; i < characteristicsList->get_Count(); i++){
             auto characteristic = characteristicsList->get_Item(i);
             if(characteristic && characteristic->serializedName)
-                if(to_utf8(csstrtostr(characteristic->serializedName)) == characteristicName)
+                if(characteristic->serializedName.operator std::string() == characteristicName)
                     return characteristic;
         }
         return nullptr;

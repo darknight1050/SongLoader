@@ -71,7 +71,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME.
         // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
         // Sincerely, a quest developer
-        bool allowObstacleMerging = screenDisplacementEffectsEnabled || to_utf8(csstrtostr(beatmapLevel->get_levelID())).starts_with(CustomLevelPrefixID);
+        bool allowObstacleMerging = screenDisplacementEffectsEnabled || beatmapLevel->get_levelID().operator std::string().starts_with(CustomLevelPrefixID);
 
         return BeatmapDataTransformHelper_CreateTransformedBeatmapData(
             beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
@@ -93,7 +93,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         self->songDuration = customPreviewBeatmapLevel->songDuration;
     }
 
-    MAKE_HOOK_FIND(Assert_IsTrue, classof(NUnit::Framework::_Assert*), "IsTrue", void, bool, Il2CppString* message, Array<Il2CppObject*>* args) {
+    MAKE_HOOK_FIND(Assert_IsTrue, classof(NUnit::Framework::_Assert*), "IsTrue", void, bool, StringW message, Array<Il2CppObject*>* args) {
         //LOG_DEBUG("Assert_IsTrue");
     }
 
@@ -102,7 +102,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
         List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
         auto levelPacks = self->beatmapLevelPacks;
-        if(levelPacks.Length() != 1 || csstrtostr(levelPacks[0]->get_packID()) != csstrtostr(filterName)) {
+        if(levelPacks.Length() != 1 || !levelPacks[0]->get_packID()->Equals(filterName)) {
             for(auto levelPack : levelPacks) {
                 auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels();
                 for(auto level : levels) {
@@ -138,7 +138,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     MAKE_HOOK_MATCH(AdditionalContentModel_GetLevelEntitlementStatusAsync, &AdditionalContentModel::GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelId, CancellationToken cancellationToken) {
-        std::string levelIdCpp = to_utf8(csstrtostr(levelId));
+        std::string levelIdCpp = levelId;
         LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", levelIdCpp.c_str());
         if(levelIdCpp.starts_with(CustomLevelPrefixID)) {
             auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
@@ -149,7 +149,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     MAKE_HOOK_MATCH(AdditionalContentModel_GetPackEntitlementStatusAsync, &AdditionalContentModel::GetPackEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelPackId, CancellationToken cancellationToken) {
-        std::string levelPackIdCpp = to_utf8(csstrtostr(levelPackId));
+        std::string levelPackIdCpp = levelPackId;
         LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", levelPackIdCpp.c_str());
         
         if(levelPackIdCpp.starts_with(CustomLevelPackPrefixID))
@@ -164,7 +164,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, StringW, StringW filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return il2cpp_utils::newcsstr(std::u16string(u"file://") + std::u16string(csstrtostr(filePath)));
+        return std::u16string(u"file://") + filePath.operator std::u16string();
     }
 
 
@@ -176,8 +176,8 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
         ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *> customBeatmapSets = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.Length());
 
-        CustomJSONData::CustomLevelInfoSaveData *customSaveData = CRASH_UNLESS(
-                il2cpp_utils::New<CustomJSONData::CustomLevelInfoSaveData *>(original->songName,
+        CustomJSONData::CustomLevelInfoSaveData *customSaveData =
+                CustomJSONData::CustomLevelInfoSaveData::New_ctor(original->songName,
                                                                              original->songSubName,
                                                                              original->songAuthorName,
                                                                              original->levelAuthorName,
@@ -190,9 +190,9 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                                                                              original->coverImageFilename,
                                                                              original->environmentName,
                                                                              original->allDirectionsEnvironmentName,
-                                                                             customBeatmapSets));
+                                                                             customBeatmapSets);
 
-        std::u16string str(stringData ? csstrtostr(stringData) : u"{}");
+        std::u16string str(stringData ? stringData : u"{}");
 
         auto sharedDoc = std::make_shared<CustomJSONData::DocumentUTF16>();
         customSaveData->doc = sharedDoc;

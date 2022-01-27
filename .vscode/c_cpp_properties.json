@@ -4,6 +4,7 @@
             "defines": [
                 "__GNUC__",
                 "__aarch64__",
+                "ID=\"SongLoader\"",
                 "VERSION=\"0.0.1\"",
                 "USE_CODEGEN_FIELDS"
             ],

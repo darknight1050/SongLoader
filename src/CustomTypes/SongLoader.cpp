@@ -111,8 +111,8 @@ void SongLoader::ctor() {
 
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
-    CustomLevels = Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>::New_ctor();
-    CustomWIPLevels = Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>::New_ctor();
+    CustomLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
+    CustomWIPLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels");
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomWIPLevelsCover));
@@ -153,7 +153,7 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
     return nullptr;
 }
 
-EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(Il2CppString* environmentName, bool allDirections) {
+EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(StringW environmentName, bool allDirections) {
     auto customlevelLoader = GetCustomLevelLoader();
     EnvironmentInfoSO* environmentInfoSO = customlevelLoader->environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
     if(!environmentInfoSO)
@@ -173,14 +173,14 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     std::string stringLevelID = CustomLevelPrefixID + outHash;
     if(wip)
         stringLevelID += " WIP";
-    Il2CppString* levelID = il2cpp_utils::newcsstr(stringLevelID);
-    Il2CppString* songName = standardLevelInfoSaveData->songName;
+    StringW levelID = il2cpp_utils::newcsstr(stringLevelID);
+    StringW songName = standardLevelInfoSaveData->songName;
     FixEmptyString(songName)
-    Il2CppString* songSubName = standardLevelInfoSaveData->songSubName;
+    StringW songSubName = standardLevelInfoSaveData->songSubName;
     FixEmptyString(songSubName)
-    Il2CppString* songAuthorName = standardLevelInfoSaveData->songAuthorName;
+    StringW songAuthorName = standardLevelInfoSaveData->songAuthorName;
     FixEmptyString(songAuthorName)
-    Il2CppString* levelAuthorName = standardLevelInfoSaveData->levelAuthorName;
+    StringW levelAuthorName = standardLevelInfoSaveData->levelAuthorName;
     FixEmptyString(levelAuthorName)
     float beatsPerMinute = standardLevelInfoSaveData->beatsPerMinute;
     float songTimeOffset = standardLevelInfoSaveData->songTimeOffset;
@@ -189,10 +189,10 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     float previewStartTime = standardLevelInfoSaveData->previewStartTime;
     float previewDuration = standardLevelInfoSaveData->previewDuration;
     LOG_DEBUG("levelID: %s", stringLevelID.c_str());
-    LOG_DEBUG("songName: %s", to_utf8(csstrtostr(songName)).c_str());
-    LOG_DEBUG("songSubName: %s", to_utf8(csstrtostr(songSubName)).c_str());
-    LOG_DEBUG("songAuthorName: %s", to_utf8(csstrtostr(songAuthorName)).c_str());
-    LOG_DEBUG("levelAuthorName: %s", to_utf8(csstrtostr(levelAuthorName)).c_str());
+    LOG_DEBUG("songName: %s", songName.operator std::u16string_view().c_str());
+    LOG_DEBUG("songSubName: %s", songSubName.operator std::u16string_view().c_str());
+    LOG_DEBUG("songAuthorName: %s", songAuthorName.operator std::u16string_view().c_str());
+    LOG_DEBUG("levelAuthorName: %s", levelAuthorName.operator std::u16string_view().c_str());
     LOG_DEBUG("beatsPerMinute: %f", beatsPerMinute);
     LOG_DEBUG("songTimeOffset: %f", songTimeOffset);
     LOG_DEBUG("shuffle: %f", shuffle);
@@ -208,7 +208,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
             continue;
 
         BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = GetCustomLevelLoader()->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
-        LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", to_utf8(csstrtostr(difficultyBeatmapSet->beatmapCharacteristicName)).c_str());
+        LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", difficultyBeatmapSet->beatmapCharacteristicName->chars);
         if(beatmapCharacteristicBySerializedName) {
             ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.Length());
             for(int j = 0; j < array.Length(); j++) {
@@ -237,7 +237,7 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
     if(cacheSongDuration.has_value())
         length = *cacheSongDuration;
     if(length <= 0.0f)
-        length = OggVorbisUtils::GetLengthFromOggVorbisFile(customLevelPath + "/" + to_utf8(csstrtostr(level->standardLevelInfoSaveData->songFilename)));
+        length = OggVorbisUtils::GetLengthFromOggVorbisFile(customLevelPath + "/" + level->standardLevelInfoSaveData->songFilename.operator std::string());
     if(length <= 0.0f)
         length = GetLengthFromMap(level, customLevelPath);
     level->songDuration = length;
@@ -249,7 +249,7 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
     ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
 
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
-    std::string diffFile = to_utf8(csstrtostr(QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename));
+    std::string diffFile = QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename;
     std::string path = customLevelPath + "/" + diffFile;
     if(!fileexists(path)) {
         LOG_ERROR("GetLengthFromMap File %s doesn't exist!", (path).c_str());
@@ -276,7 +276,7 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string
     return beatmapDataLoader->GetRealTimeFromBPMTime(highestTime, level->beatsPerMinute, level->shuffle, level->shufflePeriod);
 }
 
-ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<Il2CppString*, CustomPreviewBeatmapLevel*>* dictionary) {
+ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<StringW, CustomPreviewBeatmapLevel*>* dictionary) {
     if(!dictionary)
         return ArrayW<CustomPreviewBeatmapLevel*>();
     auto array = ArrayW<CustomPreviewBeatmapLevel*>(dictionary->get_Count());
@@ -316,7 +316,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
     
-    if(!activeScene.IsValid() || csstrtostr(activeScene.get_name()).find(u"Menu") == std::string::npos)
+    if(!activeScene.IsValid() || activeScene.get_name().operator std::u16string_view().find(u"Menu") == std::string::npos)
         return;
 
     IsLoading = true;
