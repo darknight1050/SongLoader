@@ -6,12 +6,12 @@ using namespace CustomJSONData;
 
 DEFINE_TYPE(CustomJSONData, CustomLevelInfoSaveData);
 
-void CustomLevelInfoSaveData::ctor(Il2CppString *songName, Il2CppString *songSubName, 
-				 Il2CppString *songAuthorName, Il2CppString *levelAuthorName, float beatsPerMinute,
+void CustomLevelInfoSaveData::ctor(StringW songName, StringW songSubName, 
+				 StringW songAuthorName, StringW levelAuthorName, float beatsPerMinute,
 				 float songTimeOffset, float shuffle, float shufflePeriod, float previewStartTime, 
-				 float previewDuration, Il2CppString *songFilename, Il2CppString *coverImageFilename, 
-				 Il2CppString *environmentName, Il2CppString *allDirectionsEnvironmentName, 
-				 Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet*> *difficultyBeatmapSets) {
+				 float previewDuration, StringW songFilename, StringW coverImageFilename, 
+				 StringW environmentName, StringW allDirectionsEnvironmentName,
+				 ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet*> difficultyBeatmapSets) {
 	INVOKE_CTOR();
 	static auto* ctor = il2cpp_utils::FindMethodUnsafe("", "StandardLevelInfoSaveData", ".ctor", 15);
 	CRASH_UNLESS(il2cpp_utils::RunMethod(this, ctor, songName, songSubName, songAuthorName, levelAuthorName, 
@@ -22,7 +22,7 @@ void CustomLevelInfoSaveData::ctor(Il2CppString *songName, Il2CppString *songSub
 
 DEFINE_TYPE(CustomJSONData, CustomDifficultyBeatmap);
 
-void CustomDifficultyBeatmap::ctor(Il2CppString *difficultyName, int difficultyRank, Il2CppString *beatmapFilename, 
+void CustomDifficultyBeatmap::ctor(StringW difficultyName, int difficultyRank, StringW beatmapFilename, 
 								   float noteJumpMovementSpeed, float noteJumpStartBeatOffset) {
 	INVOKE_CTOR();
 	this->difficulty = difficultyName;

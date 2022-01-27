@@ -58,7 +58,7 @@ namespace RuntimeSongLoader::HashUtils {
             auto difficultyBeatmaps = val->difficultyBeatmaps;
             if (!difficultyBeatmaps) continue;
             for(auto difficultyBeatmap : difficultyBeatmaps) {
-                std::string diffFile = to_utf8(csstrtostr(difficultyBeatmap->beatmapFilename));
+                std::string diffFile = difficultyBeatmap->beatmapFilename;
                 std::string path(customLevelPath);
                 path.append("/").append(diffFile);
                 if(!fileexists(path)) {
