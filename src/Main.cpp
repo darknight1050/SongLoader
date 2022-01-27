@@ -195,6 +195,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         deleteLevelButtonTransform->SetAsFirstSibling();
 
         deleteLevelButtonGameObject->GetComponent<Button*>()->set_onClick(createDeleteOnClick());
+        deleteLevelButtonGameObject->GetComponent<Button*>()->set_interactable(true);
     }
     static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
     bool customLevel = self->level && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->level)));
