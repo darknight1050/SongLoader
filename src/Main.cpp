@@ -115,20 +115,16 @@ SimpleDialogPromptViewController* getDeleteDialogPromptViewController() {
 
 std::function<void()> getDeleteFunction() {
     static std::function<void()> deleteFunction = (std::function<void()>) [] () {
-        static auto titleName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Delete song");
-        static auto deleteName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Delete");
-        static auto cancelName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Cancel");
-        auto text = u"Do you really want to delete \"" + selectedlevel->songName.operator std::u16string();
-        auto songSubName = selectedlevel->songSubName.operator std::u16string();
-        if(!songSubName.empty())
-            text += u" " + songSubName;
-        text += u"\"?";
+        static ConstString titleName("Delete song");
+        static ConstString deleteName("Delete");
+        static ConstString cancelName("Cancel");
+        auto text = u"Do you really want to delete \"" + selectedlevel->songName + u" " + selectedlevel->songSubName + u"\"?";
         getDeleteDialogPromptViewController()->Init(titleName, text, deleteName, cancelName, il2cpp_utils::MakeDelegate<System::Action_1<int>*>(classof(System::Action_1<int>*), 
             (std::function<void(int)>) [] (int selectedButton) {
                 getDeleteDialogPromptViewController()->__DismissViewController(nullptr, ViewController::AnimationDirection::Horizontal, false);
                 FindComponentsUtils::GetScreenSystem()->titleViewController->get_gameObject()->SetActive(true);
                 if (selectedButton == 0) {
-                    RuntimeSongLoader::API::DeleteSong(selectedlevel->customLevelPath.operator std::string(), 
+                    RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath), 
                         [] {
                             RuntimeSongLoader::API::RefreshSongs(false);
                         }
@@ -179,7 +175,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto imageView = iconGameObject->AddComponent<ImageView*>();
         auto iconTransform = imageView->get_rectTransform();
         iconTransform->SetParent(contentTransform, false);
-        imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name().operator std::u16string_view() == u"UINoGlow"; }));
+        imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name() == u"UINoGlow"; }));
         imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
         imageView->set_preserveAspect(true);
 
@@ -242,7 +238,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             static auto iconName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Icon");
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
-            imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name().operator std::u16string_view() == u"UINoGlow"; }));
+            imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name() == u"UINoGlow"; }));
             imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
             imageView->set_preserveAspect(true);
 
