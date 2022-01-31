@@ -67,6 +67,10 @@ jobs:
         ls -la ${GITHUB_WORKSPACE}/extern/libs
         echo cache:
         ls -la $HOME/.local/share/QPM-Rust/cache
+    
+    - name: Apply Legacy Fix
+      run: |
+        ./QPM/qpm-rust cache legacy-fix
 
     - name: Get Tag Version
       id: get_tag_version
@@ -160,7 +164,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_upload_url.outputs.upload_url }}
-        asset_path: ./build/debug_${{ steps.libname.outputs.NAME }}
+        asset_path: ./build/debug/${{ steps.libname.outputs.NAME }}
         asset_name: debug_${{ steps.libname.outputs.NAME }}
         asset_content_type: application/octet-stream
 

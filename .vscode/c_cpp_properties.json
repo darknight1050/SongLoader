@@ -1,28 +1,30 @@
 {
     "configurations": [
-        {
-            "defines": [
-                "__GNUC__",
-                "__aarch64__",
-                "ID=\"SongLoader\"",
-                "VERSION=\"0.0.1\"",
-                "USE_CODEGEN_FIELDS"
-            ],
-            "includePath": [
-                "${workspaceFolder}/",
-                "${workspaceFolder}/include/",
-                "${workspaceFolder}/shared/",
-                "${workspaceFolder}/extern/includes",
-                "${workspaceFolder}/extern/includes/codegen/include/",
-                "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
-                "${default}"
-            ],
-            "name": "Quest",
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-clang-arm64",
-            "configurationProvider": "ms-vscode.cmake-tools"
-        }
+      {
+        "defines": [
+          "__GNUC__",
+          "__aarch64__",
+          "VERSION=\"0.0.1\"",
+          "USE_CODEGEN_FIELDS"
+        ],
+        "includePath": [
+          "${workspaceFolder}/",
+          "${workspaceFolder}/include",
+          "${workspaceFolder}/shared",
+          "${workspaceFolder}/extern/includes",
+          "${workspaceFolder}/extern/includes/codegen/include",
+          "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
+          "${default}",
+          "C:/Development/Tools/android-ndk-r22b/",
+          "C:/Development/Tools/android-ndk-r22b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
+          "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++/include/",
+          "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++abi/include/"
+        ],
+        "name": "Quest",
+        "cStandard": "c11",
+        "cppStandard": "c++20",
+        "intelliSenseMode": "clang-x64"
+      }
     ],
     "version": 4
-}
+  }

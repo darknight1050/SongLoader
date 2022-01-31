@@ -20,8 +20,8 @@ if (($clean.IsPresent) -or (-not (Test-Path -Path "build")))
 }
 
 cd build
-& cmake -G "Ninja" -DCMAKE_BUILD_TYPE="Release" ../
-& cmake --build .
+& cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" ../
+& cmake --build . -j 8
 $ExitCode = $LastExitCode
 cd ..
 exit $ExitCode
