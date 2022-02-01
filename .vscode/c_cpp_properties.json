@@ -14,6 +14,7 @@
                 "${workspaceFolder}/shared/",
                 "${workspaceFolder}/extern/includes",
                 "${workspaceFolder}/extern/includes/codegen/include/",
+                "${workspaceFolder}/extern/includes/questui/shared/cppcodec",
                 "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
                 "${default}"
             ],

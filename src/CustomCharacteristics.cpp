@@ -48,7 +48,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
         static QuestUI::WeakPtrGO<MainSystemInit> mainSystemInit;
         if (!mainSystemInit)
-            mainSystemInit = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<MainSystemInit*>());
+            mainSystemInit = Resources::FindObjectsOfTypeAll<MainSystemInit*>().FirstOrDefault();
 
         if(!characteristicsList) {
             characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();

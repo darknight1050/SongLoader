@@ -249,7 +249,15 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
     ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
 
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
-    std::string diffFile = QuestUI::ArrayUtil::Last(QuestUI::ArrayUtil::First(level->standardLevelInfoSaveData->difficultyBeatmapSets)->difficultyBeatmaps)->beatmapFilename;
+    std::string diffFile = "";
+    try
+    {
+        diffFile = static_cast<std::string>(level->standardLevelInfoSaveData->difficultyBeatmapSets.First()->difficultyBeatmaps.Last()->beatmapFilename);
+    }
+    catch (std::runtime_error e)
+    {
+        LOG_INFO("Error finding diffFile: %s", e.what());
+    }
     std::string path = customLevelPath + "/" + diffFile;
     if(!fileexists(path)) {
         LOG_ERROR("GetLengthFromMap File %s doesn't exist!", (path).c_str());
@@ -305,7 +313,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
     static QuestUI::WeakPtrGO<LevelFilteringNavigationController> levelFilteringNavigationController;
     if (!levelFilteringNavigationController)
-        levelFilteringNavigationController = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>());
+        levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
 
     if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
         levelFilteringNavigationController->UpdateCustomSongs();

@@ -175,7 +175,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto imageView = iconGameObject->AddComponent<ImageView*>();
         auto iconTransform = imageView->get_rectTransform();
         iconTransform->SetParent(contentTransform, false);
-        imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+        imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
         imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
         imageView->set_preserveAspect(true);
 
@@ -238,7 +238,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             static auto iconName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Icon");
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
-            imageView->set_material(ArrayUtil::First(Resources::FindObjectsOfTypeAll<Material*>(), [] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+            imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
             imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
             imageView->set_preserveAspect(true);
 

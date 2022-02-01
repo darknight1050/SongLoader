@@ -19,7 +19,7 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     name* _##name = nullptr; \
     name* Get##name() { \
         if(!_##name) \
-            _##name = QuestUI::ArrayUtil::First(Resources::FindObjectsOfTypeAll<name*>()); \
+            _##name = Resources::FindObjectsOfTypeAll<name*>().FirstOrDefault(); \
         if(!_##name) \
             CacheNotFoundWarningLog(_##name) \
         return _##name; \
@@ -28,7 +28,7 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     name* _##name = nullptr; \
     name* Get##name() { \
         if(!_##name) \
-            _##name = QuestUI::ArrayUtil::Last(Resources::FindObjectsOfTypeAll<name*>()); \
+            _##name = Resources::FindObjectsOfTypeAll<name*>().LastOrDefault(); \
         if(!_##name) \
             CacheNotFoundWarningLog(_##name) \
         return _##name; \
