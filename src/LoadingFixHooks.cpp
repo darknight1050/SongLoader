@@ -71,7 +71,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME.
         // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
         // Sincerely, a quest developer
-        bool allowObstacleMerging = screenDisplacementEffectsEnabled || beatmapLevel->get_levelID().operator std::string().starts_with(CustomLevelPrefixID);
+        bool allowObstacleMerging = screenDisplacementEffectsEnabled || beatmapLevel->get_levelID().starts_with(CustomLevelPrefixID);
 
         return BeatmapDataTransformHelper_CreateTransformedBeatmapData(
             beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
@@ -99,10 +99,10 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, &LevelSearchViewController::UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
         LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
-        static auto filterName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("allSongs");
+        static ConstString filterName("allSongs");
         List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
         auto levelPacks = self->beatmapLevelPacks;
-        if(levelPacks.Length() != 1 || !levelPacks[0]->get_packID()->Equals(filterName)) {
+        if(levelPacks.Length() != 1 || levelPacks[0]->get_packID() != filterName) {
             for(auto levelPack : levelPacks) {
                 auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels();
                 for(auto level : levels) {
@@ -140,7 +140,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     MAKE_HOOK_MATCH(AdditionalContentModel_GetLevelEntitlementStatusAsync, &AdditionalContentModel::GetLevelEntitlementStatusAsync, Task_1<AdditionalContentModel::EntitlementStatus>*, AdditionalContentModel* self, StringW levelId, CancellationToken cancellationToken) {
         std::string levelIdCpp = levelId;
         LOG_DEBUG("AdditionalContentModel_GetLevelEntitlementStatusAsync %s", levelIdCpp.c_str());
-        if(levelIdCpp.starts_with(CustomLevelPrefixID)) {
+        if(levelId.starts_with(CustomLevelPrefixID)) {
             auto beatmapLevelsModel = FindComponentsUtils::GetBeatmapLevelsModel();
             bool loaded = beatmapLevelsModel->loadedPreviewBeatmapLevels->ContainsKey(levelId) || beatmapLevelsModel->loadedBeatmapLevels->IsInCache(levelId);
             return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(loaded ? AdditionalContentModel::EntitlementStatus::Owned : AdditionalContentModel::EntitlementStatus::NotOwned);
@@ -152,7 +152,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         std::string levelPackIdCpp = levelPackId;
         LOG_DEBUG("AdditionalContentModel_GetPackEntitlementStatusAsync %s", levelPackIdCpp.c_str());
         
-        if(levelPackIdCpp.starts_with(CustomLevelPackPrefixID))
+        if(levelPackId.starts_with(CustomLevelPackPrefixID))
             return Task_1<AdditionalContentModel::EntitlementStatus>::New_ctor(AdditionalContentModel::EntitlementStatus::Owned);
         return AdditionalContentModel_GetPackEntitlementStatusAsync(self, levelPackId, cancellationToken);
     }
@@ -164,7 +164,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, StringW, StringW filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return std::u16string(u"file://") + filePath.operator std::u16string();
+        return u"file://" + filePath;
     }
 
 

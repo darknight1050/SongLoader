@@ -31,7 +31,7 @@ void SongLoaderCustomBeatmapLevelPack::SortLevels() {
     auto arrayValues = array->values;
     auto length = array->Length();
     if(length > 0)
-        std::sort(arrayValues, arrayValues + length, [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName.operator std::u16string_view() < second->songName.operator std::u16string_view(); } );
+        std::sort(arrayValues, arrayValues + length, [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
 }
 
 ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> SongLoaderCustomBeatmapLevelPack::GetCustomPreviewBeatmapLevels() {

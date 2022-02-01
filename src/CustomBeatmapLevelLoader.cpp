@@ -158,7 +158,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
     }
 
     MAKE_HOOK_MATCH(BeatmapLevelsModel_GetBeatmapLevelAsync, &BeatmapLevelsModel::GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, StringW levelID, CancellationToken cancellationToken) {
-        LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", levelID.operator std::string().c_str());
+        LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Start %s", static_cast<std::string>(levelID).c_str());
         Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>* result = BeatmapLevelsModel_GetBeatmapLevelAsync(self, levelID, cancellationToken);
         if(result->get_IsCompleted() && result->get_Result().isError) {
             if(self->loadedPreviewBeatmapLevels->ContainsKey(levelID)) {
