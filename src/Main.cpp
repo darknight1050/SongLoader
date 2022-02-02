@@ -118,7 +118,10 @@ std::function<void()> getDeleteFunction() {
         static ConstString titleName("Delete song");
         static ConstString deleteName("Delete");
         static ConstString cancelName("Cancel");
-        auto text = u"Do you really want to delete \"" + selectedlevel->songName + u" " + selectedlevel->songSubName + u"\"?";
+        std::u16string subName = selectedlevel->songSubName;
+        if(!subName.empty())
+            subName = u" " + subName;
+        auto text = u"Do you really want to delete \"" + selectedlevel->songName + subName + u"\"?";
         getDeleteDialogPromptViewController()->Init(titleName, text, deleteName, cancelName, il2cpp_utils::MakeDelegate<System::Action_1<int>*>(classof(System::Action_1<int>*), 
             (std::function<void(int)>) [] (int selectedButton) {
                 getDeleteDialogPromptViewController()->__DismissViewController(nullptr, ViewController::AnimationDirection::Horizontal, false);

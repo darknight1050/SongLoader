@@ -173,7 +173,6 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     std::string stringLevelID = CustomLevelPrefixID + outHash;
     if(wip)
         stringLevelID += " WIP";
-    StringW levelID(stringLevelID);
     StringW songName = standardLevelInfoSaveData->songName;
     FixEmptyString(songName)
     StringW songSubName = standardLevelInfoSaveData->songSubName;
@@ -221,7 +220,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
     
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), levelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
     UpdateSongDuration(result, customLevelPath);
     return result;
 }
