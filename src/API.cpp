@@ -31,6 +31,10 @@ namespace RuntimeSongLoader::API {
         CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
     }
 
+    void AddSongDeletedEvent(std::function<void()> const& event) {
+        SongLoader::AddSongDeletedEvent(event);
+    }
+
     void DeleteSong(std::string_view path, std::function<void()> const& finished) {
         SongLoader::GetInstance()->DeleteSong(path, finished);
     }

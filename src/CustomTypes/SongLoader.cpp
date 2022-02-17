@@ -97,6 +97,9 @@ std::mutex SongLoader::LoadedEventsMutex;
 std::vector<std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>> SongLoader::RefreshLevelPacksEvents;
 std::mutex SongLoader::RefreshLevelPacksEventsMutex;
 
+std::vector<std::function<void()>> SongLoader::SongDeletedEvents;
+std::mutex SongLoader::SongDeletedEventsMutex;
+
 std::vector<CustomPreviewBeatmapLevel*> SongLoader::GetLoadedLevels() {
     return LoadedLevels;
 }
@@ -459,7 +462,15 @@ void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& 
             CustomLevels->Remove(songPathCS);
             CustomWIPLevels->Remove(songPathCS);
             LOG_INFO("Deleted Song %s!", path.data());
-            finished();
+            QuestUI::MainThreadScheduler::Schedule(
+                [this, &finished] {
+                    std::lock_guard<std::mutex> lock(SongDeletedEventsMutex);
+                    for (auto& event : SongDeletedEvents) {
+                        event();
+                    }
+                    finished();
+                }
+            );
         }
     ), nullptr)->Run();
 }
