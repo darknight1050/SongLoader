@@ -105,7 +105,7 @@ SimpleDialogPromptViewController* getDeleteDialogPromptViewController() {
     if(!deleteDialogPromptViewController) {
         deleteDialogPromptViewController = Object::Instantiate<SimpleDialogPromptViewController*>(FindComponentsUtils::GetSimpleDialogPromptViewController());
         deleteDialogPromptViewController->GetComponent<VRGraphicRaycaster*>()->physicsRaycaster = BeatSaberUI::GetPhysicsRaycasterWithCache();
-        static auto dialogViewControllerName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteDialogPromptViewController");
+        static ConstString dialogViewControllerName("DeleteDialogPromptViewController");
         deleteDialogPromptViewController->set_name(dialogViewControllerName);
         deleteDialogPromptViewController->get_gameObject()->SetActive(false);
     }
@@ -153,7 +153,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
                 void, StandardLevelDetailView* self) {
     LOG_DEBUG("StandardLevelDetailView_RefreshContent");
     StandardLevelDetailView_RefreshContent(self);
-    static auto deleteLevelButtonName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteLevelButton");
+    static ConstString deleteLevelButtonName("DeleteLevelButton");
     auto templateButton = self->practiceButton;
     auto parent = templateButton->get_transform()->get_parent();
     auto deleteLevelButtonTransform = parent->Find(deleteLevelButtonName);
@@ -164,16 +164,16 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         deleteDialogPromptViewController = nullptr;
         deleteLevelButtonGameObject = Object::Instantiate(templateButton->get_gameObject(), parent);
         deleteLevelButtonTransform = deleteLevelButtonGameObject->get_transform();
-        deleteLevelButtonGameObject->set_name(deleteLevelButtonName);
-        static auto contentName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Content");
-        static auto textName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Text");
+        deleteLevelButtonGameObject->set_name(deleteLevelButtonName);        
+        static ConstString contentName("Content");
+        static ConstString textName("Text");
         auto contentTransform = deleteLevelButtonTransform->Find(contentName);
         Object::Destroy(contentTransform->Find(textName)->get_gameObject());
         Object::Destroy(contentTransform->GetComponent<LayoutElement*>());
-        static auto underlineName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Underline");
+        static ConstString underlineName("Underline");
         Object::Destroy(deleteLevelButtonTransform->Find(underlineName)->get_gameObject());
 
-        static auto iconName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Icon");
+        static ConstString iconName("Icon");
         auto iconGameObject = GameObject::New_ctor(iconName);
         auto imageView = iconGameObject->AddComponent<ImageView*>();
         auto iconTransform = imageView->get_rectTransform();
@@ -212,7 +212,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
     if(customLevel)
         selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->previewBeatmapLevel);
     if(contentType == StandardLevelDetailViewController::ContentType::Error) {
-        static auto deleteLevelButtonName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteLevelButton");
+        static ConstString deleteLevelButtonName("DeleteLevelButton");
         auto templateButton = self->loadingControl->refreshButton;
         auto parent = templateButton->get_transform()->get_parent();
         auto deleteLevelButtonTransform = parent->Find(deleteLevelButtonName);
@@ -239,7 +239,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             deleteLevelButtonTransform = deleteLevelButtonGameObject->get_transform();
             deleteLevelButtonGameObject->set_name(deleteLevelButtonName);
 
-            static auto iconName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("Icon");
+            static ConstString iconName("Icon");
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
             imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));

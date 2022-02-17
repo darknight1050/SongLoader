@@ -34,14 +34,14 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
 
-    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, std::string_view characteristicName, std::string_view hintText, std::string_view serializedName, std::string_view compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
+    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
         BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
         characteristic->icon = icon;
-        characteristic->descriptionLocalizationKey = il2cpp_utils::newcsstr(hintText);
-        characteristic->serializedName = il2cpp_utils::newcsstr(serializedName);
-        characteristic->characteristicNameLocalizationKey = il2cpp_utils::newcsstr(characteristicName);
-        characteristic->compoundIdPartName = il2cpp_utils::newcsstr(compoundIdPartName);
+        characteristic->descriptionLocalizationKey = hintText;
+        characteristic->serializedName = serializedName;
+        characteristic->characteristicNameLocalizationKey = characteristicName;
+        characteristic->compoundIdPartName = compoundIdPartName;
         characteristic->requires360Movement = requires360Movement;
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
@@ -66,7 +66,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return characteristic;
     }
 
-    GlobalNamespace::BeatmapCharacteristicSO* FindByName(std::string_view characteristicName) {
+    GlobalNamespace::BeatmapCharacteristicSO* FindByName(StringW characteristicName) {
         if(!characteristicsList)
             return nullptr;
         for(int i = 0; i < characteristicsList->get_Count(); i++){
@@ -78,7 +78,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return nullptr;
     }  
 
-    MAKE_HOOK_MATCH(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName,&BeatmapCharacteristicCollectionSO::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, StringW serializedName)
+    MAKE_HOOK_MATCH(BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollectionSO::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollectionSO* self, StringW serializedName)
     {
         BeatmapCharacteristicSO* result = BeatmapCharacteristicCollectionSO_GetBeatmapCharacteristicBySerializedName(self, serializedName);
         if(!result)

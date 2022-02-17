@@ -1,5 +1,5 @@
 
-$NDKPath = $env:ANDROID_NDK_HOME
+$NDKPath = Get-Content $PSScriptRoot/ndkpath.txt
 
 $stackScript = "$NDKPath/ndk-stack"
 if (-not ($PSVersionTable.PSEdition -eq "Core")) {
