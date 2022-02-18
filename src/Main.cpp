@@ -101,7 +101,7 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
 ModalView* deleteDialogPromptModal = nullptr;
 CustomPreviewBeatmapLevel* selectedlevel = nullptr;
 
-ModalView* getDeleteDialogPromptModal(std::string const& songName) {
+ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
     static TMPro::TextMeshProUGUI* songText = nullptr;
     if(!deleteDialogPromptModal) {
         deleteDialogPromptModal = BeatSaberUI::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
