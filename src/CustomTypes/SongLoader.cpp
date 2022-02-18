@@ -71,6 +71,9 @@ using namespace System::Threading;
 using namespace System::Collections::Generic;
 using namespace FindComponentsUtils;
 
+#define FindMethodGetter(methodName) \
+    ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
+
 #define FixEmptyString(name) \
 if(!name) { \
     LOG_WARN("Fixed nullptr string \"%s\"! THIS SHOULDN'T HAPPEN!", #name);\
@@ -83,7 +86,7 @@ SongLoader* SongLoader::Instance = nullptr;
 
 SongLoader* SongLoader::GetInstance() {
     if(!Instance) {
-        static auto name = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("SongLoader");
+        static ConstString name("SongLoader");
         auto gameObject = GameObject::New_ctor(name);
         GameObject::DontDestroyOnLoad(gameObject);
         Instance = gameObject->AddComponent<SongLoader*>();
@@ -139,7 +142,9 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
         path = customLevelPath + "/Info.dat";
     if(fileexists(path)) {
         //Temporary fix because exceptions don't work
-        auto optional = il2cpp_utils::RunMethod<StandardLevelInfoSaveData*>("", "StandardLevelInfoSaveData", "DeserializeFromJSONString", il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+        
+        static auto deserializeFromJSONStringMethodInfo = FindMethodGetter(&StandardLevelInfoSaveData::DeserializeFromJSONString);
+        auto optional = il2cpp_utils::RunMethod<StandardLevelInfoSaveData*>(nullptr, deserializeFromJSONStringMethodInfo, StringW(FileUtils::ReadAllText16(path)));
         if(!optional.has_value()) {
             LOG_ERROR("GetStandardLevelInfoSaveData File %s is corrupted!", (path).c_str());
             return nullptr;
@@ -149,9 +154,9 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
             return nullptr;
         }
 
-        return static_cast<CustomJSONData::CustomLevelInfoSaveData *>(*optional);
+        return static_cast<CustomJSONData::CustomLevelInfoSaveData*>(*optional);
 
-        //return StandardLevelInfoSaveData::DeserializeFromJSONString(il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+        //return StandardLevelInfoSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
     }
     return nullptr;
 }
@@ -223,7 +228,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
     
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, il2cpp_utils::newcsstr(to_utf16(customLevelPath)), reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, customLevelPath, reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
     UpdateSongDuration(result, customLevelPath);
     return result;
 }
@@ -247,9 +252,6 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
     CacheUtils::UpdateCacheData(customLevelPath, cacheData);
 }
 
-#define FindMethodGetter(methodName) \
-    ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
-
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     std::string diffFile = "";
     try
@@ -266,17 +268,17 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string
         return 0.0f;
     }
 
-    static auto DeserializeFromJSONStringMethodInfo = FindMethodGetter(&BeatmapSaveData::DeserializeFromJSONString);
+    static auto deserializeFromJSONStringMethodInfo = FindMethodGetter(&BeatmapSaveData::DeserializeFromJSONString);
 
     //Temporary fix because exceptions don't work
-    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData *>(nullptr, DeserializeFromJSONStringMethodInfo, il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>(nullptr, deserializeFromJSONStringMethodInfo, StringW(FileUtils::ReadAllText16(path)));
     if(!optional.has_value() || !optional.value()) {
         LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
         return 0.0f;
     }
     auto beatmapSaveData = *optional;
 
-    //auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(il2cpp_utils::newcsstr(FileUtils::ReadAllText16(path)));
+    //auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
     float highestTime = 0.0f;
     if(beatmapSaveData->notes->get_Count() > 0) {
         highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->notes->ToArray(), [](BeatmapSaveData::NoteData* x){ return x->time; });
@@ -371,7 +373,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                                 bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
                                 
                                 CustomPreviewBeatmapLevel* level = nullptr;
-                                auto songPathCS = il2cpp_utils::newcsstr(songPath);
+                                auto songPathCS = StringW(songPath);
                                 bool containsKey = CustomLevels->ContainsKey(songPathCS);
                                 if(containsKey) {
                                     level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
@@ -414,13 +416,13 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                 Thread::Yield();
             }
 
-            auto customPreviewLevels = static_cast<Array<CustomPreviewBeatmapLevel*>*>(GetDictionaryValues(CustomLevels));
-            auto customWIPPreviewLevels = static_cast<Array<CustomPreviewBeatmapLevel*>*>(GetDictionaryValues(CustomWIPLevels));
-            
+            auto customPreviewLevels = GetDictionaryValues(CustomLevels);
+            auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
+
             CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
             CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);
 
-            int levelsCount = customPreviewLevels->Length() + customWIPPreviewLevels->Length();
+            int levelsCount = customPreviewLevels.Length() + customWIPPreviewLevels.Length();
             
             auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
             
@@ -428,8 +430,8 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
             LOG_INFO("Loaded %d songs in %dms!", levelsCount, (int)duration.count());
             
             LoadedLevels.clear();
-            LoadedLevels.insert(LoadedLevels.end(), customPreviewLevels->values, customPreviewLevels->values + customPreviewLevels->Length());
-            LoadedLevels.insert(LoadedLevels.end(), customWIPPreviewLevels->values, customWIPPreviewLevels->values + customWIPPreviewLevels->Length());
+            LoadedLevels.insert(LoadedLevels.end(), customPreviewLevels.begin(), customPreviewLevels.end());
+            LoadedLevels.insert(LoadedLevels.end(), customWIPPreviewLevels.begin(), customWIPPreviewLevels.end());
             
             QuestUI::MainThreadScheduler::Schedule(
                 [this, songsLoaded] {
@@ -458,7 +460,7 @@ void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& 
     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);
-            auto songPathCS = il2cpp_utils::newcsstr(path);
+            auto songPathCS = StringW(path);
             CustomLevels->Remove(songPathCS);
             CustomWIPLevels->Remove(songPathCS);
             LOG_INFO("Deleted Song %s!", path.data());

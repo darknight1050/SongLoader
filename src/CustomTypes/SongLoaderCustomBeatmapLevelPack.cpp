@@ -5,17 +5,15 @@
 
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp" 
 
+
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 
 DEFINE_TYPE(RuntimeSongLoader, SongLoaderCustomBeatmapLevelPack);
 
-
 SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::Make_New(std::string const& packID, std::string_view packName, Sprite* coverImage) {
-    auto customLevelsPackID = il2cpp_utils::newcsstr(CustomLevelPackPrefixID + packID);
-    auto customLevelsPackName = il2cpp_utils::newcsstr(packName);
-    return *il2cpp_utils::New<SongLoaderCustomBeatmapLevelPack*>(customLevelsPackID, customLevelsPackName, coverImage);
+    return SongLoaderCustomBeatmapLevelPack::New_ctor(StringW(CustomLevelPackPrefixID + packID), StringW(packName), coverImage);
 }
 
 void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sprite* coverImage) {
@@ -25,13 +23,11 @@ void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sp
 }
 
 void SongLoaderCustomBeatmapLevelPack::SortLevels() {
-    auto array = static_cast<Array<CustomPreviewBeatmapLevel*>*>(CustomLevelsCollection->customPreviewBeatmapLevels);
+    auto array = CustomLevelsCollection->customPreviewBeatmapLevels;
     if(!array)
         return;
-    auto arrayValues = array->values;
-    auto length = array->Length();
-    if(length > 0)
-        std::sort(arrayValues, arrayValues + length, [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
+    if(array.Length() > 0)
+        std::sort(array.begin(), array.end(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
 }
 
 ArrayW<GlobalNamespace::CustomPreviewBeatmapLevel*> SongLoaderCustomBeatmapLevelPack::GetCustomPreviewBeatmapLevels() {
