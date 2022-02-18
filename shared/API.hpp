@@ -34,6 +34,10 @@ namespace RuntimeSongLoader::API {
     /// @tparam event Callback event
     void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event);
     
+    /// @brief Add a callback that gets called when a song is deleted
+    /// @tparam event Callback event
+    void AddSongDeletedEvent(std::function<void()> const& event);
+
     /// @brief Delets a song on filesystem (doesn't refresh songs)
     /// @tparam path Path to the song on filesystem
     /// @tparam finished Callback once done

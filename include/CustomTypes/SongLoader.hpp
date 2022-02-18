@@ -31,6 +31,9 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         static std::vector<std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)>> RefreshLevelPacksEvents;
         static std::mutex RefreshLevelPacksEventsMutex;
+        
+        static std::vector<std::function<void()>> SongDeletedEvents;
+        static std::mutex SongDeletedEventsMutex;
 
         std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> LoadedLevels;
 
@@ -76,6 +79,11 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         static void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event) {
             std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
             RefreshLevelPacksEvents.push_back(event);
+        }
+
+        static void AddSongDeletedEvent(std::function<void()> const& event) {
+            std::lock_guard<std::mutex> lock(SongDeletedEventsMutex);
+            SongDeletedEvents.push_back(event);
         }
 
         void RefreshLevelPacks(bool includeDefault) const;

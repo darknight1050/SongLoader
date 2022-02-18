@@ -40,7 +40,6 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     CacheFindComponentDefineFirst(CachedMediaAsyncLoader)
     CacheFindComponentDefineLast(SimpleDialogPromptViewController)
     CacheFindComponentDefineFirst(LevelSelectionNavigationController)
-    CacheFindComponentDefineLast(ScreenSystem)
 
     void ClearCache() {
         CacheClearComponent(CustomLevelLoader)
@@ -48,7 +47,6 @@ namespace RuntimeSongLoader::FindComponentsUtils {
         CacheClearComponent(CachedMediaAsyncLoader)
         CacheClearComponent(SimpleDialogPromptViewController)
         CacheClearComponent(LevelSelectionNavigationController)
-        CacheClearComponent(ScreenSystem)
     }
  
 }

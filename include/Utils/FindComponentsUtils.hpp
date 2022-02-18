@@ -4,7 +4,6 @@
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
 #include "GlobalNamespace/SimpleDialogPromptViewController.hpp"
 #include "GlobalNamespace/LevelSelectionNavigationController.hpp"
-#include "HMUI/ScreenSystem.hpp"
 
 namespace RuntimeSongLoader::FindComponentsUtils {
 
@@ -15,7 +14,6 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     CacheFindComponentDeclare(GlobalNamespace, CachedMediaAsyncLoader)
     CacheFindComponentDeclare(GlobalNamespace, SimpleDialogPromptViewController)
     CacheFindComponentDeclare(GlobalNamespace, LevelSelectionNavigationController)
-    CacheFindComponentDeclare(HMUI, ScreenSystem)
 
     void ClearCache();
 
