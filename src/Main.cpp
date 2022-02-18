@@ -98,46 +98,47 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
     }
 }
 
-SimpleDialogPromptViewController* deleteDialogPromptViewController = nullptr;
+ModalView* deleteDialogPromptModal = nullptr;
 CustomPreviewBeatmapLevel* selectedlevel = nullptr;
 
-SimpleDialogPromptViewController* getDeleteDialogPromptViewController() {
-    if(!deleteDialogPromptViewController) {
-        deleteDialogPromptViewController = Object::Instantiate<SimpleDialogPromptViewController*>(FindComponentsUtils::GetSimpleDialogPromptViewController());
-        deleteDialogPromptViewController->GetComponent<VRGraphicRaycaster*>()->physicsRaycaster = BeatSaberUI::GetPhysicsRaycasterWithCache();
-        static auto dialogViewControllerName = il2cpp_utils::newcsstr<il2cpp_utils::CreationType::Manual>("DeleteDialogPromptViewController");
-        deleteDialogPromptViewController->set_name(dialogViewControllerName);
-        deleteDialogPromptViewController->get_gameObject()->SetActive(false);
+ModalView* getDeleteDialogPromptModal(std::string const& songName) {
+    static TMPro::TextMeshProUGUI* songText = nullptr;
+    if(!deleteDialogPromptModal) {
+        deleteDialogPromptModal = BeatSaberUI::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
+        
+        static ConstString contentName("Content");
+        auto deleteButton = BeatSaberUI::CreateUIButton(deleteDialogPromptModal->get_transform(), "Delete", Vector2(-15, -8.25), [] {
+            deleteDialogPromptModal->Hide(true, nullptr);
+            RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath), 
+                [] {
+                    RuntimeSongLoader::API::RefreshSongs(false);
+                }
+            );
+        });
+        Object::Destroy(deleteButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
+        auto cancelButton = BeatSaberUI::CreateUIButton(deleteDialogPromptModal->get_transform(), "Cancel", Vector2(15, -8.25), [] {
+            deleteDialogPromptModal->Hide(true, nullptr);
+        });
+        Object::Destroy(cancelButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
     }
-    return deleteDialogPromptViewController;
+    if(!songText) {
+        songText = BeatSaberUI::CreateText(deleteDialogPromptModal->get_transform(), u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
+        songText->set_enableWordWrapping(true);
+        songText->set_overflowMode(TMPro::TextOverflowModes::Ellipsis);
+        songText->set_alignment(TMPro::TextAlignmentOptions::Center);
+    } else
+        songText->set_text(u"Do you really want to delete \"" + songName + u"\"?");
+    deleteDialogPromptModal->get_transform()->SetAsLastSibling();
+    return deleteDialogPromptModal;
 }
 
 
 std::function<void()> getDeleteFunction() {
     static std::function<void()> deleteFunction = (std::function<void()>) [] () {
-        static ConstString titleName("Delete song");
-        static ConstString deleteName("Delete");
-        static ConstString cancelName("Cancel");
         std::u16string subName = selectedlevel->songSubName;
         if(!subName.empty())
             subName = u" " + subName;
-        auto text = u"Do you really want to delete \"" + selectedlevel->songName + subName + u"\"?";
-        getDeleteDialogPromptViewController()->Init(titleName, text, deleteName, cancelName, il2cpp_utils::MakeDelegate<System::Action_1<int>*>(classof(System::Action_1<int>*), 
-            (std::function<void(int)>) [] (int selectedButton) {
-                getDeleteDialogPromptViewController()->__DismissViewController(nullptr, ViewController::AnimationDirection::Horizontal, false);
-                FindComponentsUtils::GetScreenSystem()->titleViewController->get_gameObject()->SetActive(true);
-                if (selectedButton == 0) {
-                    RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath), 
-                        [] {
-                            RuntimeSongLoader::API::RefreshSongs(false);
-                        }
-                    );
-                    
-                }
-            }
-        ));
-        FindComponentsUtils::GetScreenSystem()->titleViewController->get_gameObject()->SetActive(false);
-        FindComponentsUtils::GetLevelSelectionNavigationController()->__PresentViewController(getDeleteDialogPromptViewController(), nullptr, ViewController::AnimationDirection::Horizontal, false);
+        getDeleteDialogPromptModal(selectedlevel->songName + subName)->Show(true, true, nullptr);
     };
     return deleteFunction;
 }
@@ -161,7 +162,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
     if(deleteLevelButtonTransform) {
         deleteLevelButtonGameObject = deleteLevelButtonTransform->get_gameObject();
     } else {
-        deleteDialogPromptViewController = nullptr;
+        deleteDialogPromptModal = nullptr;
         deleteLevelButtonGameObject = Object::Instantiate(templateButton->get_gameObject(), parent);
         deleteLevelButtonTransform = deleteLevelButtonGameObject->get_transform();
         deleteLevelButtonGameObject->set_name(deleteLevelButtonName);
@@ -220,7 +221,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
         if(deleteLevelButtonTransform) {
             deleteLevelButtonGameObject = deleteLevelButtonTransform->get_gameObject();
         } else {
-            deleteDialogPromptViewController = nullptr;
+            deleteDialogPromptModal = nullptr;
 
             ContentSizeFitter* parentContentSizeFitter = parent->get_gameObject()->AddComponent<ContentSizeFitter*>();
             parentContentSizeFitter->set_verticalFit(ContentSizeFitter::FitMode::PreferredSize);
