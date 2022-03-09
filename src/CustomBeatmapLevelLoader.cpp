@@ -7,6 +7,7 @@
 
 #include "Utils/FileUtils.hpp"
 #include "Utils/FindComponentsUtils.hpp"
+#include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
 
 #include "GlobalNamespace/FileHelpers.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
@@ -172,7 +173,11 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                             CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
                             if(customBeatmapLevel && customBeatmapLevel->beatmapLevelData) {
-                                self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                                QuestUI::MainThreadScheduler::Schedule(
+                                    [=] {
+                                        self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                                    }
+                                );
                                 task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel)));
                             } else {
                                 task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr));
