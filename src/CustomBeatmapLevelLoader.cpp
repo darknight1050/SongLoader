@@ -13,6 +13,7 @@
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
 #include "GlobalNamespace/BeatmapDataLoader.hpp"
 #include "GlobalNamespace/BeatmapLevelData.hpp"
+#include "GlobalNamespace/BeatmapDataBasicInfo.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
 #include "GlobalNamespace/CustomDifficultyBeatmap.hpp"
@@ -26,6 +27,7 @@
 #include "GlobalNamespace/HMCache_2.hpp"
 #include "GlobalNamespace/HMTask.hpp"
 #include "GlobalNamespace/AudioClipAsyncLoader.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
 #include "UnityEngine/Networking/UnityWebRequestAsyncOperation.hpp"
 #include "UnityEngine/Networking/UnityWebRequest.hpp"
 #include "UnityEngine/Networking/UnityWebRequestMultimedia.hpp"
@@ -42,6 +44,7 @@
 #include <mutex>
 
 using namespace GlobalNamespace;
+using namespace BeatmapSaveDataVersion3;
 using namespace UnityEngine;
 using namespace UnityEngine::Networking;
 using namespace System::IO;
@@ -52,49 +55,47 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
     using namespace FindComponentsUtils;
 
-    std::vector<std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapData*)>> BeatmapDataLoadedEvents;
-    std::mutex BeatmapDataLoadedEventsMutex;
+    std::vector<std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveData*, BeatmapDataBasicInfo*)>> BeatmapDataBasicInfoLoadedEvents;
+    std::mutex BeatmapDataBasicInfoLoadedEventsMutex;
 
-    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapData*)> const& event) {
-        std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
-        BeatmapDataLoadedEvents.push_back(event);
+    void AddBeatmapDataBasicInfoLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveData*, BeatmapDataBasicInfo*)> const& event) {
+        std::lock_guard<std::mutex> lock(BeatmapDataBasicInfoLoadedEventsMutex);
+        BeatmapDataBasicInfoLoadedEvents.push_back(event);
     }
     
-    BeatmapData* LoadBeatmapData(std::string const& customLevelPath, std::string const& difficultyFileName, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData) {
-        LOG_DEBUG("LoadBeatmapData Start");
+    bool LoadBeatmapDataBasicInfo(std::string const& customLevelPath, std::string const& difficultyFileName, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, BeatmapSaveData*& beatmapSaveData, BeatmapDataBasicInfo*& beatmapDataBasicInfo) {
+        LOG_DEBUG("LoadBeatmapDataBasicInfo Start");
         std::string path = customLevelPath + "/" + difficultyFileName;
-        BeatmapData* beatmapData = nullptr;
         if(fileexists(path)) {
-            StringW json = FileUtils::ReadAllText16(path);
-
-            //Temporary fix because exceptions don't work
-            auto optional = il2cpp_utils::RunMethod<BeatmapData*>(BeatmapDataLoader::New_ctor(), "GetBeatmapDataFromJson", json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
-            if(optional.has_value()) {
-                beatmapData = *optional;
-            } else {
-                LOG_ERROR("LoadBeatmapData File %s is corrupted!", (path).c_str());
+            try {
+                beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
+                beatmapDataBasicInfo = BeatmapDataLoader::GetBeatmapDataBasicInfoFromSaveData(beatmapSaveData);
+                std::lock_guard<std::mutex> lock(BeatmapDataBasicInfoLoadedEventsMutex);
+                for (auto& event : BeatmapDataBasicInfoLoadedEvents) {
+                    event(standardLevelInfoSaveData, difficultyFileName, beatmapSaveData, beatmapDataBasicInfo);
+                }
+                return true;
+            } catch(const std::runtime_error& e) {
+                LOG_ERROR("LoadBeatmapDataBasicInfo Can't Load File %s: %s!", (path).c_str(), e.what());
             }
-            //return BeatmapDataLoader::New_ctor()->GetBeatmapDataFromJson(json, standardLevelInfoSaveData->beatsPerMinute, standardLevelInfoSaveData->shuffle, standardLevelInfoSaveData->shufflePeriod);
-        
         } else {
-            LOG_ERROR("LoadBeatmapData File %s doesn't exist!", (path).c_str());
+            LOG_ERROR("LoadBeatmapDataBasicInfo File %s doesn't exist!", (path).c_str());
         }
-        std::lock_guard<std::mutex> lock(BeatmapDataLoadedEventsMutex);
-        for (auto& event : BeatmapDataLoadedEvents) {
-            event(standardLevelInfoSaveData, difficultyFileName, beatmapData);
-        }
-        return beatmapData;
+        return false;
     }
 
     CustomDifficultyBeatmap* LoadDifficultyBeatmap(std::string const& customLevelPath, CustomBeatmapLevel* parentCustomBeatmapLevel, CustomDifficultyBeatmapSet* parentDifficultyBeatmapSet, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, CustomJSONData::CustomDifficultyBeatmap* difficultyBeatmapSaveData) {
         LOG_DEBUG("LoadDifficultyBeatmapAsync Start");
-        BeatmapData* beatmapData = LoadBeatmapData(customLevelPath, difficultyBeatmapSaveData->beatmapFilename, standardLevelInfoSaveData);
-        if(!beatmapData)
+        BeatmapSaveData* beatmapSaveData = nullptr;
+        BeatmapDataBasicInfo* beatmapDataBasicInfo = nullptr;
+        if(!LoadBeatmapDataBasicInfo(customLevelPath, difficultyBeatmapSaveData->beatmapFilename, standardLevelInfoSaveData, beatmapSaveData, beatmapDataBasicInfo))
+            return nullptr;
+        if(!beatmapSaveData || !beatmapDataBasicInfo)
             return nullptr;
         BeatmapDifficulty difficulty;
         BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSaveData->difficulty, byref(difficulty));
         LOG_DEBUG("LoadDifficultyBeatmapAsync Stop");
-        return CustomDifficultyBeatmap::New_ctor(reinterpret_cast<IBeatmapLevel*>(parentCustomBeatmapLevel), reinterpret_cast<IDifficultyBeatmapSet*>(parentDifficultyBeatmapSet), difficulty, difficultyBeatmapSaveData->difficultyRank, difficultyBeatmapSaveData->noteJumpMovementSpeed, difficultyBeatmapSaveData->noteJumpStartBeatOffset, beatmapData);
+        return CustomDifficultyBeatmap::New_ctor(reinterpret_cast<IBeatmapLevel*>(parentCustomBeatmapLevel), reinterpret_cast<IDifficultyBeatmapSet*>(parentDifficultyBeatmapSet), difficulty, difficultyBeatmapSaveData->difficultyRank, difficultyBeatmapSaveData->noteJumpMovementSpeed, difficultyBeatmapSaveData->noteJumpStartBeatOffset, standardLevelInfoSaveData->beatsPerMinute, beatmapSaveData, reinterpret_cast<IBeatmapDataBasicInfo*>(beatmapDataBasicInfo));
     }
 
     IDifficultyBeatmapSet* LoadDifficultyBeatmapSet(std::string const& customLevelPath, CustomBeatmapLevel* customBeatmapLevel, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSetSaveData) {
@@ -142,7 +143,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         if(!audioClip)
             return nullptr;
         LOG_DEBUG("LoadBeatmapLevelDataAsync Stop");
-        return BeatmapLevelData::New_ctor(audioClip, difficultyBeatmapSets);
+        return BeatmapLevelData::New_ctor(audioClip, reinterpret_cast<::System::Collections::Generic::IReadOnlyList_1<IDifficultyBeatmapSet*>*>(difficultyBeatmapSets.convert()));
     }
 
     CustomBeatmapLevel* LoadCustomBeatmapLevel(CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {

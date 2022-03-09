@@ -16,10 +16,10 @@
           "${workspaceFolder}/extern/includes/questui/shared/cppcodec",
           "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
           "${default}",
-          "C:/Development/Tools/android-ndk-r22b/",
-          "C:/Development/Tools/android-ndk-r22b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
-          "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++/include/",
-          "C:/Development/Tools/android-ndk-r22b/sources/cxx-stl/llvm-libc++abi/include/"
+          "C:/Development/Tools/android-ndk-r23b/",
+          "C:/Development/Tools/android-ndk-r23b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
+          "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++/include/",
+          "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++abi/include/"
         ],
         "name": "Quest",
         "cStandard": "c11",

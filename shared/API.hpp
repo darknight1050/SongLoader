@@ -4,7 +4,8 @@
 
 #include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
-#include "GlobalNamespace/BeatmapData.hpp"
+#include "GlobalNamespace/BeatmapDataBasicInfo.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 #include "CustomTypes/CustomLevelInfoSaveData.hpp"
 
@@ -32,7 +33,7 @@ namespace RuntimeSongLoader::API {
 
     /// @brief Add a callback that gets called after it tried to load a BeatmapData
     /// @tparam event Callback event
-    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event);
+    void AddBeatmapDataBasicInfoLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveDataVersion3::BeatmapSaveData*, GlobalNamespace::BeatmapDataBasicInfo*)> const& event);
     
     /// @brief Add a callback that gets called when a song is deleted
     /// @tparam event Callback event

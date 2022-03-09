@@ -6,7 +6,6 @@
 
 #include "CustomLogger.hpp"
 
-#include "questui/shared/ArrayUtil.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 

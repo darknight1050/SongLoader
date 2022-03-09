@@ -27,8 +27,8 @@ namespace RuntimeSongLoader::API {
         SongLoader::AddRefreshLevelPacksEvent(event);
     }
 
-    void AddBeatmapDataLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, GlobalNamespace::BeatmapData*)> const& event) {
-        CustomBeatmapLevelLoader::AddBeatmapDataLoadedEvent(event);
+    void AddBeatmapDataBasicInfoLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveDataVersion3::BeatmapSaveData*, GlobalNamespace::BeatmapDataBasicInfo*)> const& event) {
+        CustomBeatmapLevelLoader::AddBeatmapDataBasicInfoLoadedEvent(event);
     }
 
     void AddSongDeletedEvent(std::function<void()> const& event) {

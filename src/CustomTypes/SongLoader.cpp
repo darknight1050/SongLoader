@@ -27,9 +27,7 @@
 #include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
 #include "GlobalNamespace/PreviewDifficultyBeatmapSet.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
-#include "GlobalNamespace/BeatmapSaveData.hpp"
-#include "GlobalNamespace/BeatmapSaveData_NoteData.hpp"
-#include "GlobalNamespace/BeatmapSaveData_EventData.hpp"
+#include "GlobalNamespace/BeatmapDataLoader_BpmTimeProcessor.hpp"
 #include "GlobalNamespace/BeatmapDifficulty.hpp"
 #include "GlobalNamespace/BeatmapDifficultySerializedMethods.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
@@ -46,6 +44,10 @@
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
 #include "GlobalNamespace/ISpriteAsyncLoader.hpp"
 #include "GlobalNamespace/HMTask.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData_ColorNoteData.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData_BasicEventData.hpp"
+#include "BeatmapSaveDataVersion3/BeatmapSaveData_BpmChangeEventData.hpp"
 #include "UnityEngine/AudioClip.hpp"
 #include "UnityEngine/GameObject.hpp"
 #include "UnityEngine/Rect.hpp"
@@ -65,14 +67,12 @@
 
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
+using namespace BeatmapSaveDataVersion3;
 using namespace UnityEngine;
 using namespace System::IO;
 using namespace System::Threading;
 using namespace System::Collections::Generic;
 using namespace FindComponentsUtils;
-
-#define FindMethodGetter(methodName) \
-    ::il2cpp_utils::il2cpp_type_check::MetadataGetter<methodName>::get();
 
 #define FixEmptyString(name) \
 if(!name) { \
@@ -141,22 +141,23 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
     if(!fileexists(path))
         path = customLevelPath + "/Info.dat";
     if(fileexists(path)) {
-        //Temporary fix because exceptions don't work
-        
-        static auto deserializeFromJSONStringMethodInfo = FindMethodGetter(&StandardLevelInfoSaveData::DeserializeFromJSONString);
-        auto optional = il2cpp_utils::RunMethod<StandardLevelInfoSaveData*>(nullptr, deserializeFromJSONStringMethodInfo, StringW(FileUtils::ReadAllText16(path)));
-        if(!optional.has_value()) {
-            LOG_ERROR("GetStandardLevelInfoSaveData File %s is corrupted!", (path).c_str());
-            return nullptr;
+        try {
+            auto standardLevelInfoSaveData = StandardLevelInfoSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
+            if (!standardLevelInfoSaveData) {
+                LOG_ERROR("GetStandardLevelInfoSaveData Can't Load File %s!", (path).c_str());
+                return nullptr;
+            }
+            auto optional = il2cpp_utils::try_cast<CustomJSONData::CustomLevelInfoSaveData>(standardLevelInfoSaveData);
+            if (!optional.has_value()) {
+                LOG_ERROR("GetStandardLevelInfoSaveData Can't Load File %s as CustomLevelInfoSaveData!", (path).c_str());
+                return nullptr;
+            }
+            return optional.value();
+        } catch(const std::runtime_error& e) {
+            LOG_ERROR("GetStandardLevelInfoSaveData Can't Load File %s: %s!", (path).c_str(), e.what());
         }
-        if (!il2cpp_utils::try_cast<CustomJSONData::CustomLevelInfoSaveData>(*optional)) {
-            LOG_ERROR("GetStandardLevelInfoSaveData File %s is not parsed as custom level info save data!", (path).c_str());
-            return nullptr;
-        }
-
-        return static_cast<CustomJSONData::CustomLevelInfoSaveData*>(*optional);
-
-        //return StandardLevelInfoSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
+    } else {
+        LOG_ERROR("GetStandardLevelInfoSaveData File %s doesn't exist!", (path).c_str());
     }
     return nullptr;
 }
@@ -227,8 +228,7 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
         }
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
-    
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, customLevelPath, reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, list->ToArray());
+    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, customLevelPath, reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, reinterpret_cast<IReadOnlyList_1<PreviewDifficultyBeatmapSet*>*>(list));
     UpdateSongDuration(result, customLevelPath);
     return result;
 }
@@ -240,13 +240,16 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
         return;
     auto cacheData = *cacheDataOpt;
     auto cacheSongDuration = cacheData.songDuration;
-
-    if(cacheSongDuration.has_value())
+    if(cacheSongDuration.has_value()) {
         length = *cacheSongDuration;
-    if(length <= 0.0f)
-        length = OggVorbisUtils::GetLengthFromOggVorbisFile(customLevelPath + "/" + static_cast<std::string>(level->standardLevelInfoSaveData->songFilename));
-    if(length <= 0.0f)
-        length = GetLengthFromMap(level, customLevelPath);
+    } else {
+        if(length <= 0.0f || length == INFINITY)
+            length = OggVorbisUtils::GetLengthFromOggVorbisFile(customLevelPath + "/" + static_cast<std::string>(level->standardLevelInfoSaveData->songFilename));
+        if(length <= 0.0f || length == INFINITY)
+            length = GetLengthFromMap(level, customLevelPath);
+    }
+    if(length < 0.0f || length == INFINITY)
+        length = 0.0f;
     level->songDuration = length;
     cacheData.songDuration = length;
     CacheUtils::UpdateCacheData(customLevelPath, cacheData);
@@ -257,43 +260,39 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string
     try
     {
         diffFile = static_cast<std::string>(level->standardLevelInfoSaveData->difficultyBeatmapSets.First()->difficultyBeatmaps.Last()->beatmapFilename);
-    }
-    catch (std::runtime_error e)
+    } catch (std::runtime_error e)
     {
-        LOG_INFO("Error finding diffFile: %s", e.what());
+        LOG_ERROR("GetLengthFromMap Error finding diffFile: %s", e.what());
     }
     std::string path = customLevelPath + "/" + diffFile;
     if(!fileexists(path)) {
         LOG_ERROR("GetLengthFromMap File %s doesn't exist!", (path).c_str());
         return 0.0f;
     }
-
-    static auto deserializeFromJSONStringMethodInfo = FindMethodGetter(&BeatmapSaveData::DeserializeFromJSONString);
-
-    //Temporary fix because exceptions don't work
-    auto optional = il2cpp_utils::RunMethod<BeatmapSaveData*>(nullptr, deserializeFromJSONStringMethodInfo, StringW(FileUtils::ReadAllText16(path)));
-    if(!optional.has_value() || !optional.value()) {
-        LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
-        return 0.0f;
+    try {
+        auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
+        if(!beatmapSaveData) {
+            LOG_ERROR("GetLengthFromMap File %s is corrupted!", (path).c_str());
+            return 0.0f;
+        }
+        float highestBeat = 0.0f;
+        if(beatmapSaveData->colorNotes->get_Count() > 0) {
+            highestBeat = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->colorNotes->ToArray(), [](BeatmapSaveData::ColorNoteData* x){ return x->b; });
+        } else if(beatmapSaveData->basicBeatmapEvents->get_Count() > 0) {
+            highestBeat = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->basicBeatmapEvents->ToArray(), [](BeatmapSaveData::BasicEventData* x){ return x->b; });
+        }
+        return BeatmapDataLoader::BpmTimeProcessor::New_ctor(level->beatsPerMinute, beatmapSaveData->bpmEvents)->ConvertBeatToTime(highestBeat);
+    } catch(const std::runtime_error& e) {
+        LOG_ERROR("GetLengthFromMap Can't Load File %s: %s!", (path).c_str(), e.what());
     }
-    auto beatmapSaveData = *optional;
-
-    //auto beatmapSaveData = BeatmapSaveData::DeserializeFromJSONString(FileUtils::ReadAllText16(path));
-    float highestTime = 0.0f;
-    if(beatmapSaveData->notes->get_Count() > 0) {
-        highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->notes->ToArray(), [](BeatmapSaveData::NoteData* x){ return x->time; });
-    } else {
-        highestTime = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->events->ToArray(), [](BeatmapSaveData::EventData* x){ return x->time; });
-    }
-    return beatmapDataLoader->GetRealTimeFromBPMTime(highestTime, level->beatsPerMinute, level->shuffle, level->shufflePeriod);
+    return 0.0f;
 }
 
 ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<StringW, CustomPreviewBeatmapLevel*>* dictionary) {
     if(!dictionary)
         return ArrayW<CustomPreviewBeatmapLevel*>();
     auto array = ArrayW<CustomPreviewBeatmapLevel*>(dictionary->get_Count());
-    //dictionary->get_Values()->CopyTo(array, 0);
-    il2cpp_utils::RunMethodUnsafe(dictionary->get_Values(), "CopyTo", reinterpret_cast<System::Array*>(array.convert()), 0);
+    dictionary->get_Values()->CopyTo(array, 0);
     return array;
 }
 

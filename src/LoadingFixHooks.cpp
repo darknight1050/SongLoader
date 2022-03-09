@@ -7,6 +7,8 @@
 
 #include "Paths.hpp"
 
+#include "LevelData.hpp"
+
 #include "Utils/FindComponentsUtils.hpp"
 
 #include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
@@ -22,7 +24,6 @@
 #include "GlobalNamespace/NoteData.hpp"
 #include "GlobalNamespace/BeatmapDataTransformHelper.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
-#include "GlobalNamespace/BeatmapData_-get_beatmapObjectsData-d__32.hpp"
 #include "GlobalNamespace/BeatmapObjectData.hpp"
 #include "GlobalNamespace/BeatmapLineData.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
@@ -44,6 +45,19 @@
 #include "GlobalNamespace/EnvironmentIntensityReductionOptions.hpp"
 #include "GlobalNamespace/HMCache_2.hpp"
 #include "GlobalNamespace/FileHelpers.hpp"
+#include "GlobalNamespace/MainSettingsModelSO.hpp"
+#include "GlobalNamespace/BeatmapObjectSpawnMovementData.hpp"
+#include "GlobalNamespace/BeatmapObjectSpawnMovementData_NoteJumpValueType.hpp"
+#include "GlobalNamespace/IJumpOffsetYProvider.hpp"
+#include "GlobalNamespace/IDifficultyBeatmap.hpp"
+#include "GlobalNamespace/BeatmapDifficulty.hpp"
+#include "GlobalNamespace/StandardLevelScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/MultiplayerLevelScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/MissionLevelScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/BoolSO.hpp"
+#include "GlobalNamespace/BeatmapSaveDataHelpers.hpp"
+
+#include "System/Version.hpp"
 #include "System/Action_2.hpp"
 #include "System/Collections/Generic/Dictionary_2.hpp"
 #include "System/Threading/CancellationToken.hpp"
@@ -55,6 +69,7 @@
 #include "NUnit/Framework/_Assert.hpp"
 
 #include <map>
+#include <regex>
 
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -64,37 +79,80 @@ using namespace Tasks;
 
 namespace RuntimeSongLoader::LoadingFixHooks {
 
+    MAKE_HOOK_MATCH(BeatmapSaveDataHelpers_GetVersion, &BeatmapSaveDataHelpers::GetVersion, System::Version*, StringW data) {
+        LOG_DEBUG("BeatmapSaveDataHelpers_GetVersion");
+        auto truncatedText = data.operator std::string().substr(0, 50);
+        static const std::regex versionRegex (R"("_?version"\s*:\s*"[0-9]+\.[0-9]+\.?[0-9]?")");
+        std::smatch matches;
+        if(std::regex_search(truncatedText, matches, versionRegex)) {
+            if(matches.size() > 0) {
+                auto version = matches[0].str();
+                version = version.substr(0, version.length()-1);
+                version = version.substr(version.find_last_of("\"")+1, version.length());
+                try {
+                    return System::Version::New_ctor(version);
+                } catch(const std::runtime_error& e) {
+                    LOG_INFO("BeatmapSaveDataHelpers_GetVersion Invalid version: \"%s\"!", version.c_str());
+                }
+            }
+        }
+        return System::Version::New_ctor("2.0.0");
+    }
 
-
-    MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData *, IReadonlyBeatmapData *beatmapData, IPreviewBeatmapLevel *beatmapLevel, GameplayModifiers *gameplayModifiers, PracticeSettings *practiceSettings, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions *environmentIntensityReductionOptions, bool screenDisplacementEffectsEnabled)
-    {
+    MAKE_HOOK_MATCH(BeatmapDataTransformHelper_CreateTransformedBeatmapData, &BeatmapDataTransformHelper::CreateTransformedBeatmapData, IReadonlyBeatmapData*, IReadonlyBeatmapData* beatmapData, IPreviewBeatmapLevel* beatmapLevel, GameplayModifiers* gameplayModifiers, bool leftHanded, EnvironmentEffectsFilterPreset environmentEffectsFilterPreset, EnvironmentIntensityReductionOptions* environmentIntensityReductionOptions, MainSettingsModelSO* mainSettingsModel) {
+        LOG_DEBUG("BeatmapDataTransformHelper_CreateTransformedBeatmapData");
         // BeatGames, why did you put the effort into making this not work on Quest IF CUSTOM LEVELS ARE NOT EVEN LOADED IN THE FIRST PLACE BASEGAME.
         // THERE WAS NO POINT IN CHANGING THE IF STATEMENT SPECIFICALLY FOR QUEST
         // Sincerely, a quest developer
-        bool allowObstacleMerging = screenDisplacementEffectsEnabled || beatmapLevel->get_levelID().starts_with(CustomLevelPrefixID);
+        bool& screenDisplacementEffectsEnabled = mainSettingsModel->screenDisplacementEffectsEnabled->value;
+        bool oldScreenDisplacementEffectsEnabled = screenDisplacementEffectsEnabled;
 
-        return BeatmapDataTransformHelper_CreateTransformedBeatmapData(
-            beatmapData, beatmapLevel, gameplayModifiers, practiceSettings, leftHanded,
+        if(beatmapLevel->get_levelID().starts_with(CustomLevelPrefixID))
+            screenDisplacementEffectsEnabled = screenDisplacementEffectsEnabled || beatmapLevel->get_levelID().starts_with(CustomLevelPrefixID);
+        
+        auto result = BeatmapDataTransformHelper_CreateTransformedBeatmapData(
+            beatmapData, beatmapLevel, gameplayModifiers, leftHanded,
             environmentEffectsFilterPreset, environmentIntensityReductionOptions,
-            allowObstacleMerging);
+            mainSettingsModel);
+        
+        screenDisplacementEffectsEnabled = oldScreenDisplacementEffectsEnabled;
+        
+        return result;
     }
-
 
     // TODO: Use a hook that works when fixed
-    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapData_ctor, "", "BeatmapData", ".ctor", void, BeatmapData* self, int numberOfLines) {
-        LOG_DEBUG("BeatmapData_ctor");
-        BeatmapData_ctor(self, numberOfLines);
-        self->prevAddedBeatmapEventDataTime = System::Single::MinValue;
-    }
-
     MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(CustomBeatmapLevel_ctor, "", "CustomBeatmapLevel", ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
         CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel);
         self->songDuration = customPreviewBeatmapLevel->songDuration;
     }
 
-    MAKE_HOOK_FIND(Assert_IsTrue, classof(NUnit::Framework::_Assert*), "IsTrue", void, bool, StringW message, Array<Il2CppObject*>* args) {
-        //LOG_DEBUG("Assert_IsTrue");
+    MAKE_HOOK_MATCH(StandardLevelScenesTransitionSetupDataSO_Init, &StandardLevelScenesTransitionSetupDataSO::Init, void, StandardLevelScenesTransitionSetupDataSO* self, StringW gameMode, IDifficultyBeatmap* difficultyBeatmap, IPreviewBeatmapLevel* previewBeatmapLevel, OverrideEnvironmentSettings* overrideEnvironmentSettings, ColorScheme* overrideColorScheme, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, StringW backButtonText, bool useTestNoteCutSoundEffects, bool startPaused) {
+        LOG_DEBUG("StandardLevelScenesTransitionSetupDataSO_Init");
+        StandardLevelScenesTransitionSetupDataSO_Init(self, gameMode, difficultyBeatmap, previewBeatmapLevel, overrideEnvironmentSettings, overrideColorScheme, gameplayModifiers, playerSpecificSettings, practiceSettings, backButtonText, useTestNoteCutSoundEffects, startPaused); 
+        LevelData::difficultyBeatmap = difficultyBeatmap;
+    }
+ 
+    MAKE_HOOK_MATCH(MultiplayerLevelScenesTransitionSetupDataSO_Init, &MultiplayerLevelScenesTransitionSetupDataSO::Init, void, MultiplayerLevelScenesTransitionSetupDataSO* self, StringW gameMode, IPreviewBeatmapLevel* previewBeatmapLevel, BeatmapDifficulty beatmapDifficulty, BeatmapCharacteristicSO* beatmapCharacteristic, IDifficultyBeatmap* difficultyBeatmap, ColorScheme* overrideColorScheme, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects) {
+        LOG_DEBUG("MultiplayerLevelScenesTransitionSetupDataSO_Init");
+        MultiplayerLevelScenesTransitionSetupDataSO_Init(self, gameMode, previewBeatmapLevel, beatmapDifficulty, beatmapCharacteristic, difficultyBeatmap, overrideColorScheme, gameplayModifiers, playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects); 
+        LevelData::difficultyBeatmap = difficultyBeatmap;
+    }
+
+    MAKE_HOOK_MATCH(MissionLevelScenesTransitionSetupDataSO_Init, &MissionLevelScenesTransitionSetupDataSO::Init, void, MissionLevelScenesTransitionSetupDataSO* self, StringW missionId, IDifficultyBeatmap* difficultyBeatmap, IPreviewBeatmapLevel* previewBeatmapLevel, ArrayW<MissionObjective*> missionObjectives, ColorScheme* overrideColorScheme, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, StringW backButtonText) {
+        LOG_DEBUG("MissionLevelScenesTransitionSetupDataSO_Init");
+        MissionLevelScenesTransitionSetupDataSO_Init(self, missionId, difficultyBeatmap, previewBeatmapLevel, missionObjectives, overrideColorScheme, gameplayModifiers, playerSpecificSettings, backButtonText); 
+        LevelData::difficultyBeatmap = difficultyBeatmap;
+    }
+
+    MAKE_HOOK_MATCH(BeatmapObjectSpawnMovementData_Init, &BeatmapObjectSpawnMovementData::Init, void, BeatmapObjectSpawnMovementData* self, int noteLinesCount, float startNoteJumpMovementSpeed, float startBpm, BeatmapObjectSpawnMovementData::NoteJumpValueType noteJumpValueType, float noteJumpValue, IJumpOffsetYProvider* jumpOffsetYProvider, UnityEngine::Vector3 rightVec, UnityEngine::Vector3 forwardVec) {
+        LOG_DEBUG("BeatmapObjectSpawnMovementData_Init");
+        if(LevelData::difficultyBeatmap) {
+            auto noteJumpMovementSpeed = LevelData::difficultyBeatmap->get_noteJumpMovementSpeed();
+            if(noteJumpMovementSpeed < 0)
+                startNoteJumpMovementSpeed = noteJumpMovementSpeed;
+        }
+        BeatmapObjectSpawnMovementData_Init(self, noteLinesCount, startNoteJumpMovementSpeed, startBpm, noteJumpValueType, noteJumpValue, jumpOffsetYProvider, rightVec, forwardVec); 
     }
 
     MAKE_HOOK_MATCH(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, &LevelSearchViewController::UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
@@ -104,7 +162,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         auto levelPacks = self->beatmapLevelPacks;
         if(levelPacks.Length() != 1 || levelPacks[0]->get_packID() != filterName) {
             for(auto levelPack : levelPacks) {
-                auto levels = reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels();
+                auto levels = ArrayW<IPreviewBeatmapLevel*>(reinterpret_cast<Array<IPreviewBeatmapLevel*>*>(reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels()));
                 for(auto level : levels) {
                     if(!newLevels->Contains(level))
                         newLevels->Add(level);
@@ -114,7 +172,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection));
             self->beatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(1);
             self->beatmapLevelPacks[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
-            beatmapLevelCollection->levels = newLevels->ToArray();
+            beatmapLevelCollection->levels = reinterpret_cast<IReadOnlyList_1<IPreviewBeatmapLevel*>*>(newLevels);
         }
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
     }
@@ -170,6 +228,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
 // Implementation by https://github.com/StackDoubleFlow
     MAKE_HOOK_MATCH(StandardLevelInfoSaveData_DeserializeFromJSONString, &GlobalNamespace::StandardLevelInfoSaveData::DeserializeFromJSONString, GlobalNamespace::StandardLevelInfoSaveData *, StringW stringData) {
+        LOG_DEBUG("StandardLevelInfoSaveData_DeserializeFromJSONString");
         auto *original = StandardLevelInfoSaveData_DeserializeFromJSONString(stringData);
         if (!original)
             return nullptr;
@@ -207,14 +266,9 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
         CustomJSONData::ValueUTF16 &beatmapSetsArr = doc.FindMember(u"_difficultyBeatmapSets")->value;
 
-        LOG_INFO("beatmapSets length orig: %lu", original->difficultyBeatmapSets.Length());
-        LOG_INFO("beatmapSets length json: %d", beatmapSetsArr.Size());
-
         for (rapidjson::SizeType i = 0; i < beatmapSetsArr.Size(); i++) {
             CustomJSONData::ValueUTF16 &beatmapSetJson = beatmapSetsArr[i];
             GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *standardBeatmapSet = original->difficultyBeatmapSets[i];
-            LOG_INFO("beatmapset: %p", standardBeatmapSet);
-            LOG_INFO("standardBeatmapSet->difficultyBeatmaps: %p", (Il2CppArray *) standardBeatmapSet->difficultyBeatmaps);
             ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *> customBeatmaps = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.Length());
 
             for (rapidjson::SizeType j = 0; j < standardBeatmapSet->difficultyBeatmaps.Length(); j++) {
@@ -243,11 +297,13 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     void InstallHooks() {
-        INSTALL_HOOK_ORIG(getLogger(), StandardLevelInfoSaveData_DeserializeFromJSONString);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapSaveDataHelpers_GetVersion);
         INSTALL_HOOK(getLogger(), BeatmapDataTransformHelper_CreateTransformedBeatmapData);
-        INSTALL_HOOK_ORIG(getLogger(), BeatmapData_ctor);
         INSTALL_HOOK_ORIG(getLogger(), CustomBeatmapLevel_ctor);
-        INSTALL_HOOK_ORIG(getLogger(), Assert_IsTrue);
+        INSTALL_HOOK_ORIG(getLogger(), StandardLevelScenesTransitionSetupDataSO_Init);
+        INSTALL_HOOK_ORIG(getLogger(), MultiplayerLevelScenesTransitionSetupDataSO_Init);
+        INSTALL_HOOK_ORIG(getLogger(), MissionLevelScenesTransitionSetupDataSO_Init);
+        INSTALL_HOOK_ORIG(getLogger(), BeatmapObjectSpawnMovementData_Init);
         INSTALL_HOOK_ORIG(getLogger(), LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapLevelsModel_ReloadCustomLevelPackCollectionAsync);
         INSTALL_HOOK_ORIG(getLogger(), BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks);
@@ -255,6 +311,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         INSTALL_HOOK_ORIG(getLogger(), AdditionalContentModel_GetPackEntitlementStatusAsync);
         INSTALL_HOOK_ORIG(getLogger(), SinglePlayerLevelSelectionFlowCoordinator_get_enableCustomLevels);
         INSTALL_HOOK_ORIG(getLogger(), FileHelpers_GetEscapedURLForFilePath);
+        INSTALL_HOOK_ORIG(getLogger(), StandardLevelInfoSaveData_DeserializeFromJSONString);
     }
 
 }

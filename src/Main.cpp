@@ -10,6 +10,7 @@
 
 #include "Paths.hpp"
 #include "Sprites.hpp"
+#include "LevelData.hpp"
 
 #include "CustomBeatmapLevelLoader.hpp"
 #include "CustomCharacteristics.hpp"
@@ -86,6 +87,7 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
             hasInited = true;
         }
         if(nextSceneName.find(u"Menu") != std::string::npos) {
+            LevelData::difficultyBeatmap = nullptr;
             if(hasInited && prevSceneName == u"EmptyTransition") {
                 hasInited = false;
                 CustomCharacteristics::SetupCustomCharacteristics();
