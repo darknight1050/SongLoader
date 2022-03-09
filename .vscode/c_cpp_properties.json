@@ -1,31 +1,32 @@
 {
-    "configurations": [
-      {
-        "defines": [
-          "__GNUC__",
-          "__aarch64__",
-          "VERSION=\"0.0.1\"",
-          "USE_CODEGEN_FIELDS"
-        ],
-        "includePath": [
-          "${workspaceFolder}/",
-          "${workspaceFolder}/include",
-          "${workspaceFolder}/shared",
-          "${workspaceFolder}/extern/includes",
-          "${workspaceFolder}/extern/includes/codegen/include",
-          "${workspaceFolder}/extern/includes/questui/shared/cppcodec",
-          "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
-          "${default}",
-          "C:/Development/Tools/android-ndk-r23b/",
-          "C:/Development/Tools/android-ndk-r23b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
-          "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++/include/",
-          "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++abi/include/"
-        ],
-        "name": "Quest",
-        "cStandard": "c11",
-        "cppStandard": "c++20",
-        "intelliSenseMode": "clang-x64"
-      }
-    ],
-    "version": 4
-  }
+  "configurations": [
+    {
+      "defines": [
+        "__GNUC__",
+        "__aarch64__",
+        "VERSION=\"0.0.1\"",
+        "USE_CODEGEN_FIELDS"
+      ],
+      "includePath": [
+        "${workspaceFolder}/",
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/shared",
+        "${workspaceFolder}/extern/includes",
+        "${workspaceFolder}/extern/includes/codegen/include",
+        "${workspaceFolder}/extern/includes/questui/shared",
+        "${workspaceFolder}/extern/includes/questui/shared/cppcodec",
+        "${workspaceFolder}/extern/includes/libil2cpp/il2cpp/libil2cpp",
+        "${default}",
+        "C:/Development/Tools/android-ndk-r23b/",
+        "C:/Development/Tools/android-ndk-r23b/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/",
+        "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++/include/",
+        "C:/Development/Tools/android-ndk-r23b/sources/cxx-stl/llvm-libc++abi/include/"
+      ],
+      "name": "Quest",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "clang-x64"
+    }
+  ],
+  "version": 4
+}
