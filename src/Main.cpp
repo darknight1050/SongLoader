@@ -106,6 +106,7 @@ CustomPreviewBeatmapLevel* selectedlevel = nullptr;
 ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
     static TMPro::TextMeshProUGUI* songText = nullptr;
     if(!deleteDialogPromptModal) {
+        songText = nullptr;
         deleteDialogPromptModal = BeatSaberUI::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
         
         static ConstString contentName("Content");
