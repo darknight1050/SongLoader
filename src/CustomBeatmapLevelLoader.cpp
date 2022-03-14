@@ -175,7 +175,18 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                             if(customBeatmapLevel && customBeatmapLevel->beatmapLevelData) {
                                 QuestUI::MainThreadScheduler::Schedule(
                                     [=] {
-                                        self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                                        try {
+                                            self->loadedBeatmapLevels->PutToCache(levelID,
+                                                                                  reinterpret_cast<IBeatmapLevel *>(customBeatmapLevel));
+                                        } catch (il2cpp_utils::RunMethodException const& e) {
+                                            getLogger().Backtrace(20);
+                                            LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync failed to put to cache il2cpp exception: %s (%s)",
+                                                      e.what(), il2cpp_utils::ExceptionToString(const_cast<Il2CppException *>(e.ex)).c_str());
+                                        }
+                                        catch (std::runtime_error const& e) {
+                                            getLogger().Backtrace(20);
+                                            LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync failed to put to cache: %s", e.what());
+                                        }
                                     }
                                 );
                                 task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel)));
