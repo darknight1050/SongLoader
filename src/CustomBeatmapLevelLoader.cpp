@@ -175,7 +175,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                 if(il2cpp_functions::class_is_assignable_from(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(previewBeatmapLevel)))) {
                     auto task = Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor();
                     HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
-                        (std::function<void()>)[=] { 
+                        (std::function<void()>)[=] () mutable { 
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                             CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
                             auto result = BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr);
@@ -192,8 +192,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                                 );
                                 result = BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
                             } 
-                            //if(!cancellationToken.get_IsCancellationRequested()) {  
-                            if(!(cancellationToken.m_source && cancellationToken.m_source->get_IsCancellationRequested())) {          
+                            if(!cancellationToken.get_IsCancellationRequested()) {  
                                 task->TrySetResult(result);
                             } else {
                                 task->TrySetCanceled(cancellationToken);
