@@ -39,6 +39,7 @@
 #include "System/Collections/Generic/Dictionary_2.hpp"
 #include "System/IO/Path.hpp"
 #include "System/Threading/CancellationToken.hpp"
+#include "System/Threading/CancellationTokenSource.hpp"
 #include "System/Threading/Tasks/Task_1.hpp"
 
 #include <vector>
@@ -177,6 +178,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                         (std::function<void()>)[=] { 
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                             CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
+                            auto result = BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr);
                             if(customBeatmapLevel && customBeatmapLevel->beatmapLevelData) {
                                 QuestUI::MainThreadScheduler::Schedule(
                                     [=] {
@@ -184,13 +186,18 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                                             self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
                                         } catch (std::runtime_error const& e) {
                                             getLogger().Backtrace(20);
-                                            LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync failed to put to cache: %s", e.what());
+                                            LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync Failed to put (%s) to cache: %s!", static_cast<std::string>(levelID).c_str(), e.what());
                                         }
                                     }
                                 );
-                                task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel)));
+                                result = BeatmapLevelsModel::GetBeatmapLevelResult(false, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                            } 
+                            //if(!cancellationToken.get_IsCancellationRequested()) {  
+                            if(!(cancellationToken.m_source && cancellationToken.m_source->get_IsCancellationRequested())) {          
+                                task->TrySetResult(result);
                             } else {
-                                task->TrySetResult(BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr));
+                                task->TrySetCanceled(cancellationToken);
+                                LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Loading canceled: %s!", static_cast<std::string>(levelID).c_str());
                             }
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Stop");
                         }
