@@ -136,9 +136,14 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         ArrayW<IDifficultyBeatmapSet*> difficultyBeatmapSets = LoadDifficultyBeatmapSets(customLevelPath, customBeatmapLevel, standardLevelInfoSaveData);
         if(!difficultyBeatmapSets)
             return nullptr;
-        auto task = GetBeatmapLevelsModel()->audioClipAsyncLoader->LoadSong(reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
-        while(!task->get_IsCompleted()) {
-            usleep(10 * 1000);
+        Task_1<AudioClip*>* task = nullptr;
+        QuestUI::MainThreadScheduler::Schedule(
+            [&] {
+                task = GetBeatmapLevelsModel()->audioClipAsyncLoader->LoadSong(reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+            }
+        );
+        while(!task || !task->get_IsCompleted()) {
+            usleep(1 * 1000);
         }
         AudioClip* audioClip = task->get_Result();
         if(!audioClip)
@@ -176,14 +181,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                                 QuestUI::MainThreadScheduler::Schedule(
                                     [=] {
                                         try {
-                                            self->loadedBeatmapLevels->PutToCache(levelID,
-                                                                                  reinterpret_cast<IBeatmapLevel *>(customBeatmapLevel));
-                                        } catch (il2cpp_utils::RunMethodException const& e) {
-                                            getLogger().Backtrace(20);
-                                            LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync failed to put to cache il2cpp exception: %s (%s)",
-                                                      e.what(), il2cpp_utils::ExceptionToString(const_cast<Il2CppException *>(e.ex)).c_str());
-                                        }
-                                        catch (std::runtime_error const& e) {
+                                            self->loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
+                                        } catch (std::runtime_error const& e) {
                                             getLogger().Backtrace(20);
                                             LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync failed to put to cache: %s", e.what());
                                         }
