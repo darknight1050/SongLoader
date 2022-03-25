@@ -362,7 +362,6 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                         int i = index++;
                         while(i < MaxFolders) {
                             std::string const& songPath = customLevelsFolders[i];
-                            i = index++;
                             LOG_INFO("Loading %s ...", songPath.c_str());
                             try {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
@@ -402,6 +401,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                             } catch (...) {
                                 LOG_ERROR("Failed loading %s!", songPath.c_str());
                             }
+                            i = index++;
                         }
                         threadsFinished++;
                     }
