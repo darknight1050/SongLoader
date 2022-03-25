@@ -62,6 +62,7 @@
 #include "System/Threading/Thread.hpp"
 
 #include <vector>
+#include <atomic>
 
 #define MAX_THREADS 8
 
@@ -352,20 +353,16 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
             customLevelsFolders.insert(std::end(customLevelsFolders), std::begin(customWIPLevelsFolders), std::end(customWIPLevelsFolders));
 
             MaxFolders = customLevelsFolders.size();
-
-            int songsPerThread = (MaxFolders / MAX_THREADS) + 1;
-            int threadsCount = 0;
-            int threadsFinished = 0;
-            for(int threadIndex = 0; threadIndex < MAX_THREADS; threadIndex++) {
-                int startIndex = threadIndex*songsPerThread;
-                int endIndex = std::min<int>((threadIndex+1)*songsPerThread, MaxFolders);
-                if(startIndex >= endIndex)
-                    break;
-                threadsCount++;
+            std::atomic_int threadsFinished = 0;
+            std::atomic_int index = 0;
+            int threadsCount = std::min(MaxFolders, MAX_THREADS);
+            for(int threadIndex = 0; threadIndex < threadsCount; threadIndex++) {
                 HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
-                    (std::function<void()>)[this, startIndex, endIndex, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] { 
-                        for(int i = startIndex; i < endIndex; i++) {
+                    (std::function<void()>)[this, &index, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] {
+                        int i = index++;
+                        while(i < MaxFolders) {
                             std::string const& songPath = customLevelsFolders[i];
+                            i = index++;
                             LOG_INFO("Loading %s ...", songPath.c_str());
                             try {
                                 auto startLevel = std::chrono::high_resolution_clock::now(); 
