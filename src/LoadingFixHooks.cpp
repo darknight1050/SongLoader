@@ -37,7 +37,6 @@
 #include "GlobalNamespace/BeatmapDataObstaclesAndBombsTransform.hpp"
 #include "GlobalNamespace/BeatmapDataNoArrowsTransform.hpp"
 #include "GlobalNamespace/BeatmapDataObstaclesMergingTransform.hpp"
-#include "GlobalNamespace/BeatmapDataNoEnvironmentEffectsTransform.hpp"
 #include "GlobalNamespace/BeatmapDataStrobeFilterTransform.hpp"
 #include "GlobalNamespace/GameplayModifiers.hpp"
 #include "GlobalNamespace/PracticeSettings.hpp"
