@@ -47,7 +47,7 @@ namespace RuntimeSongLoader::OggVorbisUtils {
             length = lastSample / (float)rate;
 
         std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
-        LOG_DEBUG("GetLengthFromOggVorbisFile Stop Result %f Time %d", length, duration);
+        LOG_DEBUG("GetLengthFromOggVorbisFile Stop Result %f Time %d", length, (int)duration.count());
         return length;
     }
 

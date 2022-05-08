@@ -81,7 +81,7 @@ namespace RuntimeSongLoader::HashUtils {
         CacheUtils::UpdateCacheData(customLevelPath, cacheData);
 
         std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
-        LOG_DEBUG("GetCustomLevelHash Stop Result %s Time %d", hashHex.c_str(), duration);
+        LOG_DEBUG("GetCustomLevelHash Stop Result %s Time %d", hashHex.c_str(), (int)duration.count());
         return hashHex;
     }
 
