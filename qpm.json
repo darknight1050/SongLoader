@@ -2,10 +2,10 @@
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
-    "name": "songloader",
+    "name": "SongLoader",
     "id": "songloader",
     "version": "0.0.1",
-    "url": "https://github.com/darknight1050/songloader",
+    "url": "https://github.com/darknight1050/SongLoader",
     "additionalData": {
       "overrideSoName": "libsongloader.so"
     }
