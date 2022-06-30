@@ -24,16 +24,18 @@ using namespace System::Threading;
 namespace RuntimeSongLoader::LoadingUI {
 
     std::string newText;
+    std::string finalText;
     bool needsUpdate = false;
 
-    GameObject* canvas = nullptr;
-    TextMeshProUGUI* textObject = nullptr;
-    
+    QuestUI::ProgressBar* bar = nullptr;
+    float barProgress = 0.0f;
     std::chrono::high_resolution_clock::time_point lastActive;
     bool isActive = false;
+    bool finished = false;
+    void CreateLoadingBar() {
+        bar = QuestUI::BeatSaberUI::CreateProgressBar({0.0f,3.0f,4.0f}, {0,0,0}, {1.5f,1.5f,1.5f} ,"Loading Songs...", "Loading Songs", "Quest SongLoader");
 
-    void CreateCanvas() {
-        if(!canvas) {
+        /*if(!canvas) {
             canvas = BeatSaberUI::CreateCanvas();
             canvas->AddComponent<CurvedCanvasSettings*>()->SetRadius(100.0f);
             RectTransform* transform = canvas->GetComponent<RectTransform*>();
@@ -49,35 +51,38 @@ namespace RuntimeSongLoader::LoadingUI {
             textObject->set_alignment(TextAlignmentOptions::Center);
             textObject->set_fontSize(5.4f);
             Object::DontDestroyOnLoad(canvas);
-        }
+        }*/
     }
 
     void SetText(std::string_view text) {
-        if(textObject)
-            textObject->set_text(text);
+        if(bar)
+            bar->subText1->set_text(text);
     }
 
     void UpdateLoadingProgress(int maxFolders, int currentFolder) {
-        newText = string_format("Loading Songs %d/%d (%.1f%%)", currentFolder, maxFolders, (float)currentFolder / (float)maxFolders * 100.0f);
+        newText = string_format("%d/%d (%.1f%%)", currentFolder, maxFolders, (float)currentFolder / (float)maxFolders * 100.0f);
+        barProgress = (float)currentFolder / (float)maxFolders;
         needsUpdate = true;
     }
 
     void UpdateLoadedProgress(int levelsCount, int time) {
-        newText = string_format("Loaded %d Songs in %.1fs", levelsCount, (float)time / 1000.0f);
+        newText = string_format("Time Taken: %.1fs", (float)time / 1000.0f);
+        finalText = string_format("Loaded %d Songs", levelsCount);
         needsUpdate = true;
+        finished = true;
     }
 
     void SetActive(bool active) {
         isActive = active;
         if(active)
             lastActive = std::chrono::high_resolution_clock::now();
-        if(canvas)
-            canvas->SetActive(active);
+        if(bar)
+            bar->get_gameObject()->SetActive(active);
     }
 
     void UpdateState() {
-        if(!canvas) {
-            LoadingUI::CreateCanvas();
+        if(!bar) {
+            LoadingUI::CreateLoadingBar();
             return;
         }
 
@@ -85,14 +90,26 @@ namespace RuntimeSongLoader::LoadingUI {
             needsUpdate = false;
             SetActive(true);
             SetText(newText);
+            bar->SetProgress(barProgress);
+            if(finished){
+                bar->loadingBar->get_gameObject()->set_active(false);
+                bar->loadingBackground->get_gameObject()->set_active(false);
+                bar->headerText->SetText(finalText);
+                finished = false;
+            }else if(!bar->loadingBar->get_gameObject()->get_active()){
+                bar->loadingBar->get_gameObject()->set_active(true);
+                bar->loadingBackground->get_gameObject()->set_active(true);
+                bar->headerText->SetText("Loading Songs...");
+            }
         }
 
         if(!isActive)
             return;
 
         std::chrono::milliseconds delay = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - lastActive);
-        if(delay.count() > ACTIVE_TIME)
+        if(delay.count() > ACTIVE_TIME){
             SetActive(false);
+        }
     }
 
 }

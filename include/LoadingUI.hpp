@@ -2,7 +2,7 @@
 
 namespace RuntimeSongLoader::LoadingUI {
 
-    void CreateCanvas();
+    void CreateLoadingBar();
 
     void UpdateLoadingProgress(int maxFolders, int currentFolder);
 
