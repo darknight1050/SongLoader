@@ -22,17 +22,17 @@
     },
     {
       "id": "codegen",
-      "versionRange": "^0.23.0",
+      "versionRange": "^0.24.1",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.12",
+      "versionRange": "^0.15.13",
       "additionalData": {}
     },
     {
       "id": "questui",
-      "versionRange": "^0.15.3",
+      "versionRange": "^0.16.0",
       "additionalData": {}
     },
     {
