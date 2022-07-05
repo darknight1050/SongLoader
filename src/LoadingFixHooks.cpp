@@ -84,10 +84,10 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         static const std::regex versionRegex (R"("_?version"\s*:\s*"[0-9]+\.[0-9]+\.?[0-9]?")");
         std::smatch matches;
         if(std::regex_search(truncatedText, matches, versionRegex)) {
-            if(matches.size() > 0) {
+            if(!matches.empty()) {
                 auto version = matches[0].str();
                 version = version.substr(0, version.length()-1);
-                version = version.substr(version.find_last_of("\"")+1, version.length());
+                version = version.substr(version.find_last_of('\"')+1, version.length());
                 try {
                     return System::Version::New_ctor(version);
                 } catch(const std::runtime_error& e) {
@@ -232,7 +232,11 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         if (!original)
             return nullptr;
 
-        ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *> customBeatmapSets = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.Length());
+        SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>> customBeatmapSetsSafe =
+                Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.Length());
+
+        ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *> customBeatmapSets =
+                (Array<StandardLevelInfoSaveData::DifficultyBeatmapSet *> *) customBeatmapSetsSafe;
 
         CustomJSONData::CustomLevelInfoSaveData *customSaveData =
                 CustomJSONData::CustomLevelInfoSaveData::New_ctor(original->songName,
@@ -263,15 +267,20 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             customSaveData->customData = dataItr->value;
         }
 
-        CustomJSONData::ValueUTF16 &beatmapSetsArr = doc.FindMember(u"_difficultyBeatmapSets")->value;
+        CustomJSONData::ValueUTF16 const& beatmapSetsArr = doc.FindMember(u"_difficultyBeatmapSets")->value;
+
+        SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>> customBeatmapsSafe;
 
         for (rapidjson::SizeType i = 0; i < beatmapSetsArr.Size(); i++) {
-            CustomJSONData::ValueUTF16 &beatmapSetJson = beatmapSetsArr[i];
+            CustomJSONData::ValueUTF16 const& beatmapSetJson = beatmapSetsArr[i];
             GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *standardBeatmapSet = original->difficultyBeatmapSets[i];
-            ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *> customBeatmaps = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.Length());
+            customBeatmapsSafe = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.Length());
+            ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *> customBeatmaps = (Array<StandardLevelInfoSaveData::DifficultyBeatmap *> *) customBeatmapsSafe;
+
+            auto const& difficultyBeatmaps = beatmapSetJson.FindMember(u"_difficultyBeatmaps")->value;
 
             for (rapidjson::SizeType j = 0; j < standardBeatmapSet->difficultyBeatmaps.Length(); j++) {
-                CustomJSONData::ValueUTF16 &difficultyBeatmapJson = beatmapSetJson.FindMember(u"_difficultyBeatmaps")->value[j];
+                CustomJSONData::ValueUTF16 const& difficultyBeatmapJson = difficultyBeatmaps[j];
                 GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *standardBeatmap = standardBeatmapSet->difficultyBeatmaps[j];
 
                 CustomJSONData::CustomDifficultyBeatmap *customBeatmap = CRASH_UNLESS(

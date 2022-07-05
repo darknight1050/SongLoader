@@ -28,7 +28,7 @@ DECLARE_CLASS_CODEGEN(CustomJSONData, CustomLevelInfoSaveData,
 
 public:
 	std::shared_ptr<DocumentUTF16> doc;
-	std::optional< std::reference_wrapper<ValueUTF16>> customData;
+	std::optional< std::reference_wrapper<const ValueUTF16>> customData;
 )
 
 DECLARE_CLASS_CODEGEN(CustomJSONData, CustomDifficultyBeatmap, 
@@ -37,5 +37,5 @@ DECLARE_CLASS_CODEGEN(CustomJSONData, CustomDifficultyBeatmap,
 	DECLARE_CTOR(ctor, StringW difficultyName, int difficultyRank, StringW beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset);
 
 public:
-	std::optional<std::reference_wrapper<ValueUTF16>> customData;
+	std::optional<std::reference_wrapper<const ValueUTF16>> customData;
 )
