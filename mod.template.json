@@ -5,7 +5,7 @@
   "author": "darknight1050",
   "version": "${version}",
   "packageId": "com.beatgames.beatsaber",
-  "packageVersion": "1.23.0",
+  "packageVersion": "1.24.0",
   "description": "Load Custom Songs at Runtime",
   "coverImage": "cover.png",
   "dependencies": [],
