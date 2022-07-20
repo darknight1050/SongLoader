@@ -37,7 +37,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> LoadedLevels;
 
-        void MenuLoaded();
+        std::optional<bool> queuedRefresh = std::nullopt;
+        std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> queuedCallback = nullptr;
 
         CustomJSONData::CustomLevelInfoSaveData* GetStandardLevelInfoSaveData(std::string const& customLevelPath);
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(StringW environmentName, bool allDirections);
@@ -91,6 +92,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded = nullptr);
 
         void DeleteSong(std::string_view path, std::function<void()> const& finished);
+
+        void MenuLoaded();
         
         DECLARE_CTOR(ctor);
         DECLARE_SIMPLE_DTOR();

@@ -137,6 +137,14 @@ void SongLoader::Update() {
     LoadingUI::UpdateState();
 }
 
+void SongLoader::MenuLoaded() {
+    if(queuedRefresh) {
+        RefreshSongs(queuedRefresh.value(), queuedCallback);
+        queuedRefresh = std::nullopt;
+        queuedCallback = nullptr;
+    }
+}
+
 CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveData(std::string const& customLevelPath) {
     std::string path = customLevelPath + "/info.dat";
     if(!fileexists(path))
@@ -319,7 +327,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     if (!levelFilteringNavigationController)
         levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
 
-    if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
+    if(levelFilteringNavigationController)
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
@@ -328,8 +336,17 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
         return;
     SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
     
-    if(!activeScene.IsValid() || static_cast<std::string>(activeScene.get_name()).find("Menu") == std::string::npos)
+    if(!activeScene.IsValid() || static_cast<std::string>(activeScene.get_name()).find("Menu") == std::string::npos) {
+        queuedRefresh = queuedRefresh.value_or(fullRefresh) | fullRefresh;
+        if(songsLoaded) {
+            queuedCallback = [songsLoaded = std::move(songsLoaded), queuedCallback = std::move(queuedCallback)](std::vector<CustomPreviewBeatmapLevel*> const& levels) {
+                if(queuedCallback)
+                    queuedCallback(levels);
+                songsLoaded(levels);
+            };
+        }
         return;
+    }
 
     IsLoading = true;
     HasLoaded = false;
