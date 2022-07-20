@@ -91,7 +91,8 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
                 CustomCharacteristics::SetupCustomCharacteristics();
                 FindComponentsUtils::ClearCache();
                 API::RefreshSongs(false);
-            }
+            } else
+                SongLoader::GetInstance()->MenuLoaded();
         } else {
             LoadingUI::SetActive(false);
         }
