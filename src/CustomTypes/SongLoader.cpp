@@ -327,7 +327,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     if (!levelFilteringNavigationController)
         levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
 
-    if(levelFilteringNavigationController && levelFilteringNavigationController->get_isActiveAndEnabled())
+    if(levelFilteringNavigationController)
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
