@@ -9,6 +9,8 @@
 
 #include "API.hpp"
 
+#include "custom-types/shared/delegate.hpp"
+
 #include "Utils/HashUtils.hpp"
 #include "Utils/FileUtils.hpp"
 #include "Utils/CacheUtils.hpp"
@@ -352,7 +354,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
     HasLoaded = false;
     CurrentFolder = 0;
 
-    HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
+    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
         (std::function<void()>)[=] {
 
             auto start = std::chrono::high_resolution_clock::now();
@@ -374,7 +376,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
             std::atomic_int index = 0;
             int threadsCount = std::min(MaxFolders, MAX_THREADS);
             for(int threadIndex = 0; threadIndex < threadsCount; threadIndex++) {
-                HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
+                HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
                     (std::function<void()>)[this, &index, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] {
                         int i = index++;
                         while(i < MaxFolders) {
@@ -470,7 +472,7 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
 }
 
 void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& finished) {
-    HMTask::New_ctor(il2cpp_utils::MakeDelegate<System::Action*>(classof(System::Action*),
+    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);
             auto songPathCS = StringW(path);

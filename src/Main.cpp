@@ -2,6 +2,7 @@
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 #include "custom-types/shared/register.hpp"
+#include "custom-types/shared/delegate.hpp"
 
 #include "CustomLogger.hpp"
 #include "CustomConfig.hpp"
@@ -147,7 +148,7 @@ std::function<void()> getDeleteFunction() {
 
 Button::ButtonClickedEvent* createDeleteOnClick() {
     auto onClick = Button::ButtonClickedEvent::New_ctor();
-    onClick->AddListener(il2cpp_utils::MakeDelegate<UnityAction*>(classof(UnityAction*), getDeleteFunction()));
+    onClick->AddListener(custom_types::MakeDelegate<UnityAction*>(getDeleteFunction()));
     return onClick;
 }
 
