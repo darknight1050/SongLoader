@@ -176,7 +176,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                 LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync previewBeatmapLevel %p", previewBeatmapLevel);
                 if(il2cpp_functions::class_is_assignable_from(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(previewBeatmapLevel)))) {
                     auto task = Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor();
-                    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(classof(System::Action*),
+                    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
                         (std::function<void()>)[=] () mutable { 
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                             CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));

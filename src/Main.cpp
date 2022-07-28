@@ -148,7 +148,7 @@ std::function<void()> getDeleteFunction() {
 
 Button::ButtonClickedEvent* createDeleteOnClick() {
     auto onClick = Button::ButtonClickedEvent::New_ctor();
-    onClick->AddListener(custom_types::MakeDelegate<UnityAction*>(classof(UnityAction*), getDeleteFunction()));
+    onClick->AddListener(custom_types::MakeDelegate<UnityAction*>(getDeleteFunction()));
     return onClick;
 }
 
