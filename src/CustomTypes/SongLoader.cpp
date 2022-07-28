@@ -120,9 +120,6 @@ void SongLoader::ctor() {
 
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
-    CustomLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
-    CustomWIPLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
-
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels");
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomWIPLevelsCover));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
@@ -299,13 +296,6 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string
     return 0.0f;
 }
 
-ArrayW<CustomPreviewBeatmapLevel*> GetDictionaryValues(Dictionary_2<StringW, CustomPreviewBeatmapLevel*>* dictionary) {
-    if(!dictionary)
-        return ArrayW<CustomPreviewBeatmapLevel*>();
-    auto array = ArrayW<CustomPreviewBeatmapLevel*>(dictionary->get_Count());
-    dictionary->get_Values()->CopyTo(array, 0);
-    return array;
-}
 
 void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     CustomBeatmapLevelPackCollectionSO->ClearLevelPacks();
@@ -360,8 +350,8 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
             auto start = std::chrono::high_resolution_clock::now();
 
             if(fullRefresh) {
-                CustomLevels->Clear();
-                CustomWIPLevels->Clear();
+                CustomLevels.clear();
+                CustomWIPLevels.clear();
             }
 
             std::mutex valuesMutex;
@@ -387,14 +377,13 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                                 bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
                                 
                                 CustomPreviewBeatmapLevel* level = nullptr;
-                                auto songPathCS = StringW(songPath);
-                                bool containsKey = CustomLevels->ContainsKey(songPathCS);
+                                bool containsKey = CustomLevels.contains(songPath);
                                 if(containsKey) {
-                                    level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
+                                    level = il2cpp_utils::cast<CustomPreviewBeatmapLevel>(CustomLevels.at(songPath));
                                 } else {
-                                    containsKey = CustomWIPLevels->ContainsKey(songPathCS);
-                                    if(containsKey) 
-                                        level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
+                                    containsKey = CustomWIPLevels.contains(songPath);
+                                    if(containsKey)
+                                        level = il2cpp_utils::cast<CustomPreviewBeatmapLevel>(CustomWIPLevels.at(songPath));
                                 }
                                 if(!level) {
                                     CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
@@ -405,9 +394,9 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                                     std::lock_guard<std::mutex> lock(valuesMutex);
                                     if(!containsKey) {
                                         if(wip) {
-                                            CustomWIPLevels->Add(songPathCS, level);
+                                            CustomWIPLevels.emplace(songPath, level);
                                         } else {
-                                            CustomLevels->Add(songPathCS, level);
+                                            CustomLevels.emplace(songPath, level);
                                         }
                                     }
                                     loadedPaths.push_back(songPath);
@@ -431,8 +420,20 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
                 Thread::Yield();
             }
 
-            auto customPreviewLevels = GetDictionaryValues(CustomLevels);
-            auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
+            auto customPreviewLevels = ArrayW<CustomPreviewBeatmapLevel*>(CustomLevels.size());
+            auto customWIPPreviewLevels = ArrayW<CustomPreviewBeatmapLevel*>(CustomWIPLevels.size());
+
+            int i = 0;
+            for (auto const &[_, l] : CustomLevels) {
+                customPreviewLevels[i] = l;
+                i++;
+            }
+            i = 0;
+            for (auto const &[_, l] : CustomWIPLevels)
+            {
+                customWIPPreviewLevels[i] = l;
+                i++;
+            }
 
             CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
             CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);
@@ -475,9 +476,8 @@ void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& 
     HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
         (std::function<void()>)[this, path, finished] {
             FileUtils::DeleteFolder(path);
-            auto songPathCS = StringW(path);
-            CustomLevels->Remove(songPathCS);
-            CustomWIPLevels->Remove(songPathCS);
+            CustomLevels.erase(path);
+            CustomWIPLevels.erase(path);
             LOG_INFO("Deleted Song %s!", path.data());
             QuestUI::MainThreadScheduler::Schedule(
                 [this, &finished] {

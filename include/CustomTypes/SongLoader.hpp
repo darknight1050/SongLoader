@@ -1,5 +1,6 @@
 #pragma once 
 #include "beatsaber-hook/shared/utils/typedefs.h"
+#include "beatsaber-hook/shared/utils/gc-alloc.hpp"
 
 #include "custom-types/shared/macros.hpp" 
 
@@ -17,9 +18,15 @@
 #include "System/Collections/Generic/Dictionary_2.hpp"
 
 #include <vector>
+#include <string_view>
+#include <unordered_map>
 
 namespace RuntimeSongLoader {
-    using DictionaryType = ::System::Collections::Generic::Dictionary_2<StringW, ::GlobalNamespace::CustomPreviewBeatmapLevel*>*;
+    using DictionaryType = std::unordered_map<const std::string_view, ::GlobalNamespace::CustomPreviewBeatmapLevel *, 
+        std::hash<std::string_view>, 
+        std::equal_to<const std::string_view>, 
+        gc_allocator<std::pair<const std::string_view, ::GlobalNamespace::CustomPreviewBeatmapLevel *>>
+    >;
 }
 
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
@@ -49,8 +56,8 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
 
         List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
 
-        DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
-        DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
+        DictionaryType CustomLevels;
+        DictionaryType CustomWIPLevels;
 
         DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
 
