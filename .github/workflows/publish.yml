@@ -208,4 +208,4 @@ jobs:
 #       TODO
         
     - name: QPM Publish
-      run: ./QPM/qpm-rust publish
+      run: ./QPM/qpm-rust publish "${{secrets.QPM_PUBLISH_KEY}}"

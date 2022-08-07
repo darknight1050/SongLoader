@@ -27,12 +27,12 @@
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.16",
+      "versionRange": "^0.15.18",
       "additionalData": {}
     },
     {
       "id": "questui",
-      "versionRange": "^0.16.2",
+      "versionRange": "^0.16.3",
       "additionalData": {}
     },
     {
