@@ -24,6 +24,24 @@ namespace RuntimeSongLoader {
 
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
     private:
+        DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
+        DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
+
+        DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
+
+        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomLevelsPack);
+        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomWIPLevelsPack);
+
+        DECLARE_INSTANCE_FIELD(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO);
+
+        DECLARE_INSTANCE_FIELD(bool, IsLoading);
+        DECLARE_INSTANCE_FIELD(bool, HasLoaded);
+
+        DECLARE_INSTANCE_FIELD(bool, LoadingCancelled); //TODO: Implement this
+
+        DECLARE_INSTANCE_FIELD(int, MaxFolders);
+        DECLARE_INSTANCE_FIELD(int, CurrentFolder); 
+
         static SongLoader* Instance;
 
         static std::vector<std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)>> LoadedEvents;
@@ -48,24 +66,6 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, std::string const& customLevelPath);
 
         List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
-
-        DECLARE_INSTANCE_FIELD(DictionaryType, CustomLevels);
-        DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
-
-        DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
-
-        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomLevelsPack);
-        DECLARE_INSTANCE_FIELD(SongLoaderCustomBeatmapLevelPack*, CustomWIPLevelsPack);
-
-        DECLARE_INSTANCE_FIELD(SongLoaderBeatmapLevelPackCollectionSO*, CustomBeatmapLevelPackCollectionSO);
-
-        DECLARE_INSTANCE_FIELD(bool, IsLoading);
-        DECLARE_INSTANCE_FIELD(bool, HasLoaded);
-
-        DECLARE_INSTANCE_FIELD(bool, LoadingCancelled); //TODO: Implement this
-
-        DECLARE_INSTANCE_FIELD(int, MaxFolders);
-        DECLARE_INSTANCE_FIELD(int, CurrentFolder);
 
     public:
         static SongLoader* GetInstance();
