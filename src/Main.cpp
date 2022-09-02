@@ -31,6 +31,8 @@
 #include "GlobalNamespace/StandardLevelDetailView.hpp"
 #include "GlobalNamespace/StandardLevelDetailViewController.hpp"
 #include "GlobalNamespace/LoadingControl.hpp"
+#include "GlobalNamespace/PlayerDataFileManagerSO.hpp"
+#include "GlobalNamespace/PlayerSaveData.hpp"
 #include "HMUI/ImageView.hpp"
 #include "HMUI/ViewController.hpp"
 #include "HMUI/ViewController_AnimationDirection.hpp"
@@ -89,7 +91,6 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
             LevelData::difficultyBeatmap = nullptr;
             if(hasInited && prevSceneName == u"EmptyTransition") {
                 hasInited = false;
-                CustomCharacteristics::SetupCustomCharacteristics();
                 FindComponentsUtils::ClearCache();
                 API::RefreshSongs(false);
             } else
@@ -266,6 +267,11 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
     }
 }
 
+MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileManagerSO::LoadFromCurrentVersion, PlayerData*, PlayerDataFileManagerSO* self, PlayerSaveData* playerSaveData){
+    CustomCharacteristics::SetupCustomCharacteristics();
+    return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData);
+}
+
 extern "C" void setup(ModInfo& info) {
     modInfo.id = "SongLoader";
     modInfo.version = VERSION;
@@ -291,6 +297,7 @@ extern "C" void load() {
     INSTALL_HOOK(getLogger(), SceneManager_Internal_ActiveSceneChanged);
     INSTALL_HOOK(getLogger(), StandardLevelDetailView_RefreshContent);
     INSTALL_HOOK(getLogger(), StandardLevelDetailViewController_ShowContent);
+    INSTALL_HOOK(getLogger(), PlayerDataFileManagerSO_LoadFromCurrentVersion);
     
     CustomBeatmapLevelLoader::InstallHooks();
     CustomCharacteristics::InstallHooks();
