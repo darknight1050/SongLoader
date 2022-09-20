@@ -120,7 +120,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     // TODO: Use a hook that works when fixed
-    MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(CustomBeatmapLevel_ctor, "", "CustomBeatmapLevel", ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
+    MAKE_HOOK_FIND_INSTANCE(CustomBeatmapLevel_ctor, classof(CustomBeatmapLevel*), ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
         CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel);
         self->songDuration = customPreviewBeatmapLevel->songDuration;
@@ -131,7 +131,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         StandardLevelScenesTransitionSetupDataSO_Init(self, gameMode, difficultyBeatmap, previewBeatmapLevel, overrideEnvironmentSettings, overrideColorScheme, gameplayModifiers, playerSpecificSettings, practiceSettings, backButtonText, useTestNoteCutSoundEffects, startPaused); 
         LevelData::difficultyBeatmap = difficultyBeatmap;
     }
- 
+
     MAKE_HOOK_MATCH(MultiplayerLevelScenesTransitionSetupDataSO_Init, &MultiplayerLevelScenesTransitionSetupDataSO::Init, void, MultiplayerLevelScenesTransitionSetupDataSO* self, StringW gameMode, IPreviewBeatmapLevel* previewBeatmapLevel, BeatmapDifficulty beatmapDifficulty, BeatmapCharacteristicSO* beatmapCharacteristic, IDifficultyBeatmap* difficultyBeatmap, ColorScheme* overrideColorScheme, GameplayModifiers* gameplayModifiers, PlayerSpecificSettings* playerSpecificSettings, PracticeSettings* practiceSettings, bool useTestNoteCutSoundEffects) {
         LOG_DEBUG("MultiplayerLevelScenesTransitionSetupDataSO_Init");
         MultiplayerLevelScenesTransitionSetupDataSO_Init(self, gameMode, previewBeatmapLevel, beatmapDifficulty, beatmapCharacteristic, difficultyBeatmap, overrideColorScheme, gameplayModifiers, playerSpecificSettings, practiceSettings, useTestNoteCutSoundEffects); 
