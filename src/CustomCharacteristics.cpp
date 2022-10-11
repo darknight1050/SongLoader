@@ -22,6 +22,7 @@
 #include "UnityEngine/TextureWrapMode.hpp"
 #include "UnityEngine/ImageConversion.hpp"
 #include "UnityEngine/Resources.hpp"
+#include "UnityEngine/HideFlags.hpp"
 #include "System/Convert.hpp"
 
 
@@ -34,7 +35,8 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
-        BeatmapCharacteristicSO* characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
+        SafePtrUnity<BeatmapCharacteristicSO> characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
+        characteristic->set_hideFlags(characteristic->get_hideFlags() | UnityEngine::HideFlags::DontUnloadUnusedAsset);
         characteristic->icon = icon;
         characteristic->descriptionLocalizationKey = hintText;
         characteristic->serializedName = serializedName;
@@ -52,16 +54,15 @@ namespace RuntimeSongLoader::CustomCharacteristics {
             characteristicsList = List<BeatmapCharacteristicSO*>::New_ctor<il2cpp_utils::CreationType::Manual>();
             if(mainSystemInit) {
                 auto beatmapCharacteristics = mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics;
-                for(int i = 0; i < beatmapCharacteristics.Length(); i++){
-                    characteristicsList->Add(beatmapCharacteristics[i]);
-                }
+                characteristicsList->EnsureCapacity(beatmapCharacteristics.Length());
+                for (auto characteristic : beatmapCharacteristics) characteristicsList->Add(characteristic);
             }
         }
-        characteristicsList->Add(characteristic);
+        characteristicsList->Add(characteristic.ptr());
         if(mainSystemInit)
             mainSystemInit->beatmapCharacteristicCollection->beatmapCharacteristics = characteristicsList->ToArray();
 
-        return characteristic;
+        return characteristic.ptr();
     }
 
     GlobalNamespace::BeatmapCharacteristicSO* FindByName(StringW characteristicName) {
@@ -92,10 +93,10 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         static bool created = false;
         if(!created) {
             created = true;
-            
-            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
-            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
-            CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
+
+            static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
+            static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
+            static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
         }
     }
 
