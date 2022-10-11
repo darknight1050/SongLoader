@@ -7,7 +7,6 @@
 #include "CustomLogger.hpp"
 
 #include "questui/shared/BeatSaberUI.hpp"
-#include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 
 #include "Sprites.hpp"
 
@@ -45,7 +44,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         characteristic->containsRotationEvents = containsRotationEvents;
         characteristic->sortingOrder = sortingOrder;
 
-        static QuestUI::WeakPtrGO<MainSystemInit> mainSystemInit;
+        static SafePtrUnity<MainSystemInit> mainSystemInit;
         if (!mainSystemInit)
             mainSystemInit = Resources::FindObjectsOfTypeAll<MainSystemInit*>().FirstOrDefault();
 

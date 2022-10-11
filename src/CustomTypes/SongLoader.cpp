@@ -19,7 +19,6 @@
 
 #include "questui/shared/BeatSaberUI.hpp"
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
-#include "questui/shared/CustomTypes/Components/WeakPtrGO.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
@@ -325,7 +324,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     auto beatmapLevelsModel = GetBeatmapLevelsModel();
     beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
-    static QuestUI::WeakPtrGO<LevelFilteringNavigationController> levelFilteringNavigationController;
+    static SafePtrUnity<LevelFilteringNavigationController> levelFilteringNavigationController;
     if (!levelFilteringNavigationController)
         levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
 
