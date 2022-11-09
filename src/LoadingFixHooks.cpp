@@ -64,6 +64,7 @@
 #include "System/Linq/Enumerable.hpp"
 
 #include "UnityEngine/AudioClip.hpp"
+#include "UnityEngine/Networking/UnityWebRequest.hpp"
 
 #include "NUnit/Framework/_Assert.hpp"
 
@@ -221,7 +222,12 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(FileHelpers_GetEscapedURLForFilePath, &FileHelpers::GetEscapedURLForFilePath, StringW, StringW filePath) {
         LOG_DEBUG("FileHelpers_GetEscapedURLForFilePath");
-        return u"file://" + filePath;
+        std::u16string str = static_cast<std::u16string>(filePath);
+        int index = str.find_last_of('/') + 1;
+        StringW dir = str.substr(0, index);
+        StringW fileName = Networking::UnityWebRequest::EscapeURL(str.substr(index, str.size()));
+        std::replace(fileName.begin(), fileName.end(), u'+', u' '); // '+' breaks stuff even though it's supposed to be valid encoding ¯\_(ツ)_/¯
+        return u"file://" + dir + fileName;
     }
 
 
