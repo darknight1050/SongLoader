@@ -22,18 +22,20 @@
     },
     {
       "id": "codegen",
-      "versionRange": "^0.28.0",
+      "versionRange": "^0.29.0",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.21",
+      "versionRange": "^0.15.22",
       "additionalData": {}
     },
     {
       "id": "questui",
-      "versionRange": "^0.17.3",
-      "additionalData": {}
+      "versionRange": "^0.17.6",
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "modloader",
