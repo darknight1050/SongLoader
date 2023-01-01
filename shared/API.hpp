@@ -8,6 +8,7 @@
 #include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
 #include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
 #include "CustomTypes/CustomLevelInfoSaveData.hpp"
+#include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
 
 namespace RuntimeSongLoader::API {
 
@@ -64,4 +65,9 @@ namespace RuntimeSongLoader::API {
 
     std::string GetCustomWIPLevelsPath();
 
+    /// @brief gets custom levels pack from the songloader instance
+    RuntimeSongLoader::SongLoaderCustomBeatmapLevelPack* GetCustomLevelsPack();
+
+    /// @brief gets custom wip levels collection from the songloader instance
+    RuntimeSongLoader::SongLoaderCustomBeatmapLevelPack* GetCustomWIPLevelsPack();
 }

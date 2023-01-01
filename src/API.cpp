@@ -85,4 +85,12 @@ namespace RuntimeSongLoader::API {
     std::string GetCustomWIPLevelsPath() {
         return GetBaseLevelsPath() + CustomWIPLevelsFolder + "/";
     }
+
+    RuntimeSongLoader::SongLoaderCustomBeatmapLevelPack* GetCustomLevelsPack(){
+        return SongLoader::GetInstance()->CustomLevelsPack;
+    };
+
+    RuntimeSongLoader::SongLoaderCustomBeatmapLevelPack* GetCustomWIPLevelsPack() {
+        return SongLoader::GetInstance()->CustomWIPLevelsPack;
+    };
 }
