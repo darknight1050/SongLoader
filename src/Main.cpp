@@ -48,6 +48,10 @@
 #include "UnityEngine/Events/UnityAction.hpp"
 #include "UnityEngine/SceneManagement/Scene.hpp"
 #include "UnityEngine/SceneManagement/SceneManager.hpp"
+#include "GlobalNamespace/RichPresenceManager.hpp"
+#include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/MenuScenesTransitionSetupDataSO.hpp"
+#include "Zenject/DiContainer.hpp"
 #include "System/Action_1.hpp"
 
 ModInfo modInfo;
@@ -76,13 +80,51 @@ using namespace UnityEngine::Events;
 using namespace QuestUI;
 using namespace RuntimeSongLoader;
 
+// These don't need to be atomics since they will only ever be called by the main thread
+static bool hasInited = false;
+static bool shouldRefresh = false;
+
+MAKE_HOOK_MATCH(RichPresenceManager_HandleGameScenesManagerTransitionDidFinish,
+                &GlobalNamespace::RichPresenceManager::HandleGameScenesManagerTransitionDidFinish,
+                void, GlobalNamespace::RichPresenceManager* self, GlobalNamespace::ScenesTransitionSetupDataSO* setupData,
+                Zenject::DiContainer* container) {
+    // We can always safely call our orig first
+    RichPresenceManager_HandleGameScenesManagerTransitionDidFinish(self, setupData, container);
+    // First, check to see if we need to refresh. If we do, do that right away.
+    if (shouldRefresh) {
+        shouldRefresh = false;
+        hasInited = false;
+        FindComponentsUtils::ClearCache();
+        API::RefreshSongs(false);
+        return;
+    }
+    // First, check to make sure both instances are non-null
+    // This is mostly just a failsafe
+    if (self == nullptr || self->menuScenesTransitionSetupData == nullptr) [[unlikely]] {
+        LOG_WARN("SHOULD NOT GET TO THIS POINT! " EXPAND_FILE " self: %p, with potentially also null menuScenesTransitionSetupData!", self);
+        return;
+    }
+    if (setupData == nullptr && self->menuWasLoaded) {
+        // We know the menu was loaded once already, so we would be displaying the menu transition at this point.
+        // So, we can simply perform a MenuLoad at this point.
+        SongLoader::GetInstance()->MenuLoaded();
+    } else if (setupData != nullptr && static_cast<void*>(setupData->m_CachedPtr) == static_cast<void*>(self->menuScenesTransitionSetupData->m_CachedPtr)) {
+        // We check to see if we have transitioned to anything to do with menu
+        // We do this by doing a raw unity pointer check
+        SongLoader::GetInstance()->MenuLoaded();
+    } else {
+        // We know we aren't in a menu scene, so set the loading UI activity to false
+        LoadingUI::SetActive(false);
+    }
+}
+
 MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
                 &UnityEngine::SceneManagement::SceneManager::Internal_ActiveSceneChanged,
                 void, UnityEngine::SceneManagement::Scene prevScene, UnityEngine::SceneManagement::Scene nextScene) {
     SceneManager_Internal_ActiveSceneChanged(prevScene, nextScene);
     if(prevScene.IsValid() && nextScene.IsValid()) {
-        std::u16string prevSceneName(prevScene.get_name());
-        std::u16string nextSceneName(nextScene.get_name());
+        std::u16string_view prevSceneName(prevScene.get_name());
+        std::u16string_view nextSceneName(nextScene.get_name());
         static bool hasInited = false;
         if(prevSceneName == u"QuestInit"){
             hasInited = true;
@@ -90,11 +132,8 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
         if(nextSceneName.find(u"Menu") != std::string::npos) {
             LevelData::difficultyBeatmap = nullptr;
             if(hasInited && prevSceneName == u"EmptyTransition") {
-                hasInited = false;
-                FindComponentsUtils::ClearCache();
-                API::RefreshSongs(false);
-            } else
-                SongLoader::GetInstance()->MenuLoaded();
+                shouldRefresh = true;
+            }
         } else {
             LoadingUI::SetActive(false);
         }
@@ -298,6 +337,7 @@ extern "C" void load() {
     INSTALL_HOOK(getLogger(), StandardLevelDetailView_RefreshContent);
     INSTALL_HOOK(getLogger(), StandardLevelDetailViewController_ShowContent);
     INSTALL_HOOK(getLogger(), PlayerDataFileManagerSO_LoadFromCurrentVersion);
+    INSTALL_HOOK(getLogger(), RichPresenceManager_HandleGameScenesManagerTransitionDidFinish);
     
     CustomBeatmapLevelLoader::InstallHooks();
     CustomCharacteristics::InstallHooks();

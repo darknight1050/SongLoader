@@ -1,5 +1,9 @@
 #pragma once
 
+#define STRINGIFY(val) #val
+#define STRINGIFY1(val) STRINGIFY(val)
+#define EXPAND_FILE __FILE__ ":" STRINGIFY1(__LINE__)
+
 //#define LOG_INFO(...)
 #define LOG_INFO(...) getLogger().info(__VA_ARGS__) 
 #define LOG_DEBUG(...) 
