@@ -82,7 +82,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     MAKE_HOOK_MATCH(BeatmapSaveDataHelpers_GetVersion, &BeatmapSaveDataHelpers::GetVersion, System::Version*, StringW data) {
         LOG_DEBUG("BeatmapSaveDataHelpers_GetVersion");
         auto truncatedText = data.operator std::string().substr(0, 50);
-        static const std::regex versionRegex (R"("_?version"\s*:\s*"[0-9]+\.[0-9]+\.?[0-9]?")");
+        static const std::regex versionRegex (R"("_?version"\s*:\s*"[0-9]+\.[0-9]+\.?[0-9]?")", std::regex_constants::optimize);
         std::smatch matches;
         if(std::regex_search(truncatedText, matches, versionRegex)) {
             if(!matches.empty()) {
@@ -249,7 +249,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             // for compatibility
             static const std::regex versionRegex(
                 R"(\"version\"\s*:\s*\"(2\.\d\.\d)\")",
-                std::regex_constants::ECMAScript);
+                std::regex_constants::ECMAScript | std::regex_constants::optimize);
 
             std::smatch matches;
             std::string str(stringData);
