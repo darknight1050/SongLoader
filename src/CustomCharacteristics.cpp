@@ -97,6 +97,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
             static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
             static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
             static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
+            static SafePtrUnity<BeatmapCharacteristicSO> legacy = CustomCharacteristics::RegisterCustomCharacteristic(QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomCharacteristics::LegacyBase64), "Legacy", "Legacy - 1.31 Backport", "Legacy", "Legacy", false, false, 2);
         }
     }
 
