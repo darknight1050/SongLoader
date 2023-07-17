@@ -235,14 +235,14 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     MAKE_HOOK_MATCH(StandardLevelInfoSaveData_DeserializeFromJSONString, &GlobalNamespace::StandardLevelInfoSaveData::DeserializeFromJSONString, GlobalNamespace::StandardLevelInfoSaveData *, StringW stringData) {
         LOG_DEBUG("StandardLevelInfoSaveData_DeserializeFromJSONString");
 
-        GlobalNamespace::StandardLevelInfoSaveData *original;
+        SafePtr<GlobalNamespace::StandardLevelInfoSaveData> original;
 
         // replacing the 2.x.x version with 2.0.0 is assumed safe because
         // minor/patch versions should NOT break the schema and therefore deemed
         // readable by RSL even if the new fields are not parsed
         // short circuit
         // 1.0.0 and 2.0.0 are supported by basegame through string equality checks
-        if (!stringData->Contains("1.0.0") && !stringData->Contains("2.0.0")) {
+        // if (!stringData->Contains("1.0.0") && !stringData->Contains("2.0.0")) {
             // https://regex101.com/r/jJAvvE/3
             // Verified result: https://godbolt.org/z/MvfW3eh7q
             // Checks if version is 2.0.0 range and then replaces it with 2.0.0
@@ -252,9 +252,9 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 std::regex_constants::ECMAScript | std::regex_constants::optimize);
 
             std::smatch matches;
-            std::string str(stringData);
+            std::string cppStr(stringData);
 
-            if (std::regex_search(str, matches, versionRegex)) {
+            if (std::regex_search(cppStr, matches, versionRegex)) {
                 // Does not match supported version
                 if (matches.empty() || matches.size() < 1) {
                     return nullptr;
@@ -263,19 +263,19 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 // match group is index 1 because we're matching for (2.x.x)
                 auto badVersion = matches[1].str();
                 // mutates the string does not copy
-                str.replace(matches[1].first, matches[1].second, "2.0.0");
+                cppStr.replace(matches[1].first, matches[1].second, "2.0.0");
 
                 original = StandardLevelInfoSaveData_DeserializeFromJSONString(
-                    str);
+                    StringW(cppStr));
             }
-        }
+        // }
 
-        if (!original) {
+        if (!original || !original.ptr()) {
             original = StandardLevelInfoSaveData_DeserializeFromJSONString(
                 stringData);
         }
             
-        if (!original)
+        if (!original || !original.ptr())
             return nullptr;
 
         SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>> customBeatmapSetsSafe =
