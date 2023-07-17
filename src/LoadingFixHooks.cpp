@@ -254,7 +254,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             std::smatch matches;
             std::string str(stringData);
 
-            if (!std::regex_search(str, matches, versionRegex)) {
+            if (std::regex_search(str, matches, versionRegex)) {
                 // Does not match supported version
                 if (matches.empty() || matches.size() < 1) {
                     return nullptr;
