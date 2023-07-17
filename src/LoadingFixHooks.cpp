@@ -248,7 +248,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             // Checks if version is 2.0.0 range and then replaces it with 2.0.0
             // for compatibility
             static const std::regex versionRegex(
-                R"(\"version\"\s*:\s*\"(2\.\d\.\d)\")",
+                R"(\"_version\"\s*:\s*\"(2\.\d\.\d)\")",
                 std::regex_constants::ECMAScript | std::regex_constants::optimize);
 
             std::smatch matches;
