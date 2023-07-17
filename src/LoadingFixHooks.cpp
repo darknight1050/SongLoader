@@ -261,7 +261,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 }
 
                 // match group is index 1 because we're matching for (2.x.x)
-                auto badVersion = matches[0].str();
+                auto badVersion = matches[1].str();
                 // mutates the string does not copy
                 str.replace(matches[1].first, matches[1].second, "2.0.0");
 
