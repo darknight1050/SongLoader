@@ -70,6 +70,7 @@
 
 #include <map>
 #include <regex>
+#include <string>
 
 using namespace GlobalNamespace;
 using namespace UnityEngine;
@@ -243,32 +244,29 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         // short circuit
         // 1.0.0 and 2.0.0 are supported by basegame through string equality checks
         // if (!stringData->Contains("1.0.0") && !stringData->Contains("2.0.0")) {
-            // https://regex101.com/r/jJAvvE/3
-            // Verified result: https://godbolt.org/z/MvfW3eh7q
-            // Checks if version is 2.0.0 range and then replaces it with 2.0.0
-            // for compatibility
-            static const std::regex versionRegex(
-                R"(\"_version\"\s*:\s*\"(2\.\d\.\d)\")",
-                std::regex_constants::ECMAScript | std::regex_constants::optimize);
+        // https://regex101.com/r/jJAvvE/3
+        // Verified result: https://godbolt.org/z/MvfW3eh7q
+        // Checks if version is 2.0.0 range and then replaces it with 2.0.0
+        // for compatibility
+        static const std::basic_regex<char16_t> versionRegex(
+            uR"(\"_version\"\s*:\s*\"(2\.\d\.\d)\")",
+            std::regex_constants::ECMAScript | std::regex_constants::optimize);
 
-            std::smatch matches;
-            std::string cppStr(stringData);
+        std::match_results<std::u16string::const_iterator> matches;
+        std::u16string cppStr(stringData);
 
-            if (std::regex_search(cppStr, matches, versionRegex)) {
-                // Does not match supported version
-                if (matches.empty() || matches.size() < 1) {
-                    return nullptr;
-                }
-
+        if (std::regex_search(cppStr, matches, versionRegex)) {
+            // Has 2.x.x
+            if (matches.size() >= 1) {
                 // match group is index 1 because we're matching for (2.x.x)
                 auto badVersion = matches[1].str();
                 // mutates the string does not copy
-                cppStr.replace(matches[1].first, matches[1].second, "2.0.0");
+                cppStr.replace(matches[1].first, matches[1].second, u"2.0.0");
 
-                original = StandardLevelInfoSaveData_DeserializeFromJSONString(
-                    StringW(cppStr));
+                original =
+                    StandardLevelInfoSaveData_DeserializeFromJSONString(StringW(cppStr));
             }
-        // }
+        }
 
         if (!original || !original.ptr()) {
             original = StandardLevelInfoSaveData_DeserializeFromJSONString(
