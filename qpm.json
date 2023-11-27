@@ -7,13 +7,14 @@
     "version": "0.0.1",
     "url": "https://github.com/darknight1050/SongLoader",
     "additionalData": {
-      "overrideSoName": "libsongloader.so"
+      "overrideSoName": "libsongloader.so",
+      "cmake": true
     }
   },
   "dependencies": [
 	{
       "id": "beatsaber-hook",
-      "versionRange": "^3.14.0",
+      "versionRange": "^4.0.2",
       "additionalData": {
         "extraFiles": [
           "src/inline-hook"
@@ -22,25 +23,29 @@
     },
     {
       "id": "codegen",
-      "versionRange": "^0.33.0",
+      "versionRange": "^0.34.1",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.22",
+      "versionRange": "^0.15.27",
       "additionalData": {}
     },
     {
       "id": "questui",
-      "versionRange": "^0.17.11",
+      "versionRange": "^0.18.0",
       "additionalData": {
-        "private": true
+        "private": true,
+        "includeQmod": false
       }
     },
     {
-      "id": "modloader",
-      "versionRange": "^1.2.3",
-      "additionalData": {}
+      "id": "scotland2",
+      "versionRange": "^0.1.3",
+      "additionalData": {
+        "includeQmod": false,
+        "private": true
+      }
     },
     {
       "id": "libcryptopp",

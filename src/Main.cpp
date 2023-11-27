@@ -53,8 +53,9 @@
 #include "GlobalNamespace/MenuScenesTransitionSetupDataSO.hpp"
 #include "Zenject/DiContainer.hpp"
 #include "System/Action_1.hpp"
+#include "scotland2/shared/loader.hpp"
 
-ModInfo modInfo;
+modloader::ModInfo modInfo = {MOD_ID, VERSION, GIT_COMMIT};
 
 Logger& getLogger() {
     static auto logger = new Logger(modInfo, LoggerOptions(false, true)); 
@@ -311,10 +312,11 @@ MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileM
     return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData);
 }
 
-extern "C" void setup(ModInfo& info) {
-    modInfo.id = "SongLoader";
+extern "C" void setup(CModInfo& info) {
+    modInfo.id = MOD_ID;
     modInfo.version = VERSION;
-    info = modInfo;
+    modInfo.versionLong = GIT_COMMIT;
+    modInfo.assign(info);
 
     auto baseLevelsPath = GetBaseLevelsPath();
     if(!direxists(baseLevelsPath))
@@ -324,7 +326,7 @@ extern "C" void setup(ModInfo& info) {
     LOG_INFO("Base path is: %s", baseLevelsPath.c_str());
 }
 
-extern "C" void load() {
+extern "C" void late_load() {
     LOG_INFO("Starting SongLoader installation...");
     il2cpp_functions::Init();
     QuestUI::Init();
