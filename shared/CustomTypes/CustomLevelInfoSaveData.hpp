@@ -6,9 +6,6 @@
 #include "beatsaber-hook/shared/rapidjson/include/rapidjson/document.h"
 
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
-
 namespace CustomJSONData {
 	using ValueUTF16 = rapidjson::GenericValue<rapidjson::UTF16<char16_t>>;
 	using DocumentUTF16 = rapidjson::GenericDocument<rapidjson::UTF16<char16_t>>;

@@ -1,17 +1,16 @@
 #include "LoadingUI.hpp"
 
-#include "GlobalNamespace/HMTask.hpp"
 #include "UnityEngine/RectOffset.hpp"
 #include "HMUI/CurvedCanvasSettings.hpp"
 #include "System/Action.hpp"
 #include "System/Threading/Thread.hpp"
 
-#include "questui/shared/BeatSaberUI.hpp"
-#include "questui/shared/CustomTypes/Components/Backgroundable.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
+#include "bsml/shared/BSML/Components/Backgroundable.hpp"
 
 #include <chrono>
 
-using namespace QuestUI;
+using namespace BSML;
 using namespace GlobalNamespace;
 using namespace UnityEngine;
 using namespace UnityEngine::UI;
@@ -27,13 +26,14 @@ namespace RuntimeSongLoader::LoadingUI {
     std::string finalText;
     bool needsUpdate = false;
 
-    QuestUI::ProgressBar* bar = nullptr;
+    BSML::ProgressBar* bar = nullptr;
     float barProgress = 0.0f;
     std::chrono::high_resolution_clock::time_point lastActive;
     bool isActive = false;
     bool finished = false;
+
     void CreateLoadingBar() {
-        bar = QuestUI::BeatSaberUI::CreateProgressBar({0.0f,3.0f,4.0f}, {0,0,0}, {1.5f,1.5f,1.5f} ,"Loading Songs...", "Loading Songs", "Quest SongLoader");
+        bar = BSML::Lite::CreateProgressBar({0.0f,3.0f,4.0f}, {0,0,0}, {1.5f,1.5f,1.5f} ,"Loading Songs...", "Loading Songs", "Quest SongLoader");
 
         /*if(!canvas) {
             canvas = BeatSaberUI::CreateCanvas();
@@ -94,12 +94,12 @@ namespace RuntimeSongLoader::LoadingUI {
             if(finished){
                 bar->loadingBar->get_gameObject()->set_active(false);
                 bar->loadingBackground->get_gameObject()->set_active(false);
-                bar->headerText->SetText(finalText);
+                bar->headerText->SetText(finalText, false);
                 finished = false;
             }else if(!bar->loadingBar->get_gameObject()->get_active()){
                 bar->loadingBar->get_gameObject()->set_active(true);
                 bar->loadingBackground->get_gameObject()->set_active(true);
-                bar->headerText->SetText("Loading Songs...");
+                bar->headerText->SetText("Loading Songs...", false);
             }
         }
 

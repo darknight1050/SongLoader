@@ -1,5 +1,4 @@
 #include "Utils/FindComponentsUtils.hpp"
-#include "questui/shared/ArrayUtil.hpp"
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -48,5 +47,5 @@ namespace RuntimeSongLoader::FindComponentsUtils {
         CacheClearComponent(SimpleDialogPromptViewController)
         CacheClearComponent(LevelSelectionNavigationController)
     }
- 
+
 }

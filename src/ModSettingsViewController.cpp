@@ -1,13 +1,12 @@
 #include "ModSettingsViewController.hpp"
 
+#include "bsml/shared/BSML-Lite.hpp"
 #include "HMUI/Touchable.hpp"
 
-#include "questui/shared/BeatSaberUI.hpp"
 #include "CustomTypes/SongLoader.hpp"
 #include "API.hpp"
 #include "Utils/CacheUtils.hpp"
 
-using namespace QuestUI;
 using namespace UnityEngine;
 using namespace UnityEngine::UI;
 using namespace HMUI;
@@ -17,19 +16,19 @@ void DidActivate(ViewController* self, bool firstActivation, bool addedToHierarc
     if(firstActivation) {
         self->get_gameObject()->AddComponent<Touchable*>();
 
-        GameObject* container = BeatSaberUI::CreateScrollableSettingsContainer(self->get_transform());
+        GameObject* container = BSML::Lite::CreateScrollableSettingsContainer(self->get_transform());
         Transform* parent = container->get_transform();
 
-        BeatSaberUI::CreateUIButton(parent, "Reload New Songs", [] { 
-                API::RefreshSongs(false); 
+        BSML::Lite::CreateUIButton(parent, "Reload New Songs", [] {
+                API::RefreshSongs(false);
             }
         );
-        BeatSaberUI::CreateUIButton(parent, "Reload All Songs", [] { 
-                API::RefreshSongs(); 
+        BSML::Lite::CreateUIButton(parent, "Reload All Songs", [] {
+                API::RefreshSongs();
             }
         );
-        BeatSaberUI::CreateUIButton(parent, "Clear Cache", [] { 
-                CacheUtils::ClearCache(); 
+        BSML::Lite::CreateUIButton(parent, "Clear Cache", [] {
+                CacheUtils::ClearCache();
             }
         );
 
