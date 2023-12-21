@@ -114,7 +114,10 @@ void SongLoader::ctor() {
     LoadingCancelled = false;
     MaxFolders = 0;
     CurrentFolder = 0;
+}
 
+void SongLoader::Awake() {
+    LOG_INFO("SongLoader Awake");
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
     CustomLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
@@ -123,9 +126,7 @@ void SongLoader::ctor() {
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels");
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::Base64ToSprite(Sprites::CustomWIPLevelsCover));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
-}
 
-void SongLoader::Awake() {
     if(IsLoading)
         LoadingCancelled = true;
 }
