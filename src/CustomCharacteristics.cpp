@@ -36,7 +36,7 @@ static inline UnityEngine::HideFlags operator |(UnityEngine::HideFlags a, UnityE
 
 namespace RuntimeSongLoader::CustomCharacteristics {
 
-    List<BeatmapCharacteristicSO*>* characteristicsList = nullptr;
+    ListW<BeatmapCharacteristicSO*> characteristicsList = nullptr;
 
     BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
@@ -57,9 +57,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
         if(!characteristicsList) {
             // manual creation
-            characteristicsList = reinterpret_cast<List<BeatmapCharacteristicSO*>*>(il2cpp_functions::gc_alloc_fixed(sizeof(List<BeatmapCharacteristicSO*>)));
-            characteristicsList->klass = classof(List<BeatmapCharacteristicSO*>*);
-            characteristicsList->_ctor();
+            characteristicsList = ListW<BeatmapCharacteristicSO*>::New<il2cpp_utils::CreationType::Manual>();
 
             if(mainSystemInit) {
                 auto beatmapCharacteristics = mainSystemInit->_beatmapCharacteristicCollection->_beatmapCharacteristics;

@@ -68,6 +68,7 @@
 #include "System/Threading/Tasks/Task_1.hpp"
 #include "System/Linq/Enumerable.hpp"
 
+#include "UnityEngine/Vector3.hpp"
 #include "UnityEngine/AudioClip.hpp"
 #include "UnityEngine/Networking/UnityWebRequest.hpp"
 
@@ -124,7 +125,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     }
 
     // TODO: Use a hook that works when fixed
-    MAKE_HOOK_FIND_INSTANCE(CustomBeatmapLevel_ctor, classof(CustomBeatmapLevel*), ".ctor", void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
+    MAKE_HOOK_MATCH(CustomBeatmapLevel_ctor, &CustomBeatmapLevel::_ctor, void, CustomBeatmapLevel* self, CustomPreviewBeatmapLevel* customPreviewBeatmapLevel) {
         LOG_DEBUG("CustomBeatmapLevel_ctor");
         CustomBeatmapLevel_ctor(self, customPreviewBeatmapLevel);
         self->_songDuration_k__BackingField = customPreviewBeatmapLevel->songDuration;
@@ -148,6 +149,8 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         LevelData::difficultyBeatmap = difficultyBeatmap;
     }
 
+    // https://github.com/Kylemc1413/SongCore/blob/master/source/SongCore/HarmonyPatches/NegativeNjsPatch.cs
+    // patch to allow negative NJS
     MAKE_HOOK_MATCH(BeatmapObjectSpawnMovementData_Init, &BeatmapObjectSpawnMovementData::Init, void, BeatmapObjectSpawnMovementData* self, int noteLinesCount, float startNoteJumpMovementSpeed, float startBpm, BeatmapObjectSpawnMovementData::NoteJumpValueType noteJumpValueType, float noteJumpValue, IJumpOffsetYProvider* jumpOffsetYProvider, UnityEngine::Vector3 rightVec, UnityEngine::Vector3 forwardVec) {
         LOG_DEBUG("BeatmapObjectSpawnMovementData_Init");
         if(LevelData::difficultyBeatmap) {
@@ -161,7 +164,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
     MAKE_HOOK_MATCH(LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync, &LevelSearchViewController::UpdateBeatmapLevelPackCollectionAsync, void, LevelSearchViewController* self) {
         LOG_DEBUG("LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync");
         static ConstString filterName("allSongs");
-        List_1<IPreviewBeatmapLevel*>* newLevels = List_1<IPreviewBeatmapLevel*>::New_ctor();
+        auto newLevels = ListW<IPreviewBeatmapLevel*>::New();
         auto levelPacks = self->_beatmapLevelPacks;
         if(levelPacks.Length() != 1 || levelPacks[0]->get_packID() != filterName) {
             for(auto levelPack : levelPacks) {
@@ -175,7 +178,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection), ::GlobalNamespace::PlayerSensitivityFlag::Unknown);
             self->_beatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(1);
             self->_beatmapLevelPacks[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
-            beatmapLevelCollection->_levels = reinterpret_cast<IReadOnlyList_1<IPreviewBeatmapLevel*>*>(newLevels);
+            beatmapLevelCollection->_levels = reinterpret_cast<IReadOnlyList_1<IPreviewBeatmapLevel*>*>(newLevels.convert());
         }
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
     }
@@ -187,7 +190,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
     MAKE_HOOK_MATCH(BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks, &BeatmapLevelsModel::UpdateAllLoadedBeatmapLevelPacks, void, BeatmapLevelsModel* self) {
         LOG_DEBUG("BeatmapLevelsModel_UpdateAllLoadedBeatmapLevelPacks");
-        List<IBeatmapLevelPack*>* list = List<IBeatmapLevelPack*>::New_ctor();
+        auto list = ListW<IBeatmapLevelPack*>::New();
         if(self->ostAndExtrasPackCollection)
             list->AddRange(reinterpret_cast<IEnumerable_1<IBeatmapLevelPack*>*>(self->ostAndExtrasPackCollection->get_beatmapLevelPacks().convert()));
         if(self->_dlcLevelPackCollectionContainer && self->_dlcLevelPackCollectionContainer->_beatmapLevelPackCollection)
@@ -287,20 +290,25 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 (Array<StandardLevelInfoSaveData::DifficultyBeatmapSet *> *) customBeatmapSetsSafe;
 
         CustomJSONData::CustomLevelInfoSaveData *customSaveData =
-                CustomJSONData::CustomLevelInfoSaveData::New_ctor(original->songName,
-                                                                             original->songSubName,
-                                                                             original->songAuthorName,
-                                                                             original->levelAuthorName,
-                                                                             original->beatsPerMinute,
-                                                                             original->songTimeOffset,
-                                                                             original->shuffle, original->shufflePeriod,
-                                                                             original->previewStartTime,
-                                                                             original->previewDuration,
-                                                                             original->songFilename,
-                                                                             original->coverImageFilename,
-                                                                             original->environmentName,
-                                                                             original->allDirectionsEnvironmentName,
-                                                                             customBeatmapSets);
+                CustomJSONData::CustomLevelInfoSaveData::New_ctor(
+                    original->songName,
+                    original->songSubName,
+                    original->songAuthorName,
+                    original->levelAuthorName,
+                    original->beatsPerMinute,
+                    original->songTimeOffset,
+                    original->shuffle,
+                    original->shufflePeriod,
+                    original->previewStartTime,
+                    original->previewDuration,
+                    original->songFilename,
+                    original->coverImageFilename,
+                    original->environmentName,
+                    original->allDirectionsEnvironmentName,
+                    original->environmentNames,
+                    original->colorSchemes,
+                    customBeatmapSets
+                );
 
         std::u16string str(stringData ? stringData : u"{}");
 
@@ -331,12 +339,16 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 CustomJSONData::ValueUTF16 const& difficultyBeatmapJson = difficultyBeatmaps[j];
                 GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *standardBeatmap = standardBeatmapSet->difficultyBeatmaps[j];
 
-                CustomJSONData::CustomDifficultyBeatmap *customBeatmap = CRASH_UNLESS(
-                        il2cpp_utils::New<CustomJSONData::CustomDifficultyBeatmap *>(standardBeatmap->difficulty,
-                                                                                     standardBeatmap->difficultyRank,
-                                                                                     standardBeatmap->beatmapFilename,
-                                                                                     standardBeatmap->noteJumpMovementSpeed,
-                                                                                     standardBeatmap->noteJumpStartBeatOffset));
+                auto customBeatmap =
+                    CustomJSONData::CustomDifficultyBeatmap::New_ctor(
+                        standardBeatmap->difficulty,
+                        standardBeatmap->difficultyRank,
+                        standardBeatmap->beatmapFilename,
+                        standardBeatmap->noteJumpMovementSpeed,
+                        standardBeatmap->noteJumpStartBeatOffset,
+                        standardBeatmap->beatmapColorSchemeIdx,
+                        standardBeatmap->environmentNameIdx
+                    );
 
                 auto customDataItr = difficultyBeatmapJson.FindMember(u"_customData");
                 if (customDataItr != difficultyBeatmapJson.MemberEnd()) {

@@ -18,7 +18,8 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_compile_options(-frtti -fPIE -fPIC -fexceptions -O3)
 # compile definitions used
 add_compile_definitions(VERSION=\"${MOD_VERSION}\")
-add_compile_definitions(ID=\"${MOD_ID}\")
+add_compile_definitions(MOD_ID=\"${MOD_ID}\")
+add_compile_definitions(RUNTIME_FIELD_NULL_CHECKS)
 
 # recursively get all src files
 RECURSE_FILES(cpp_file_list ${SOURCE_DIR}/*.cpp)

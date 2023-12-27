@@ -29,7 +29,6 @@
 #include "GlobalNamespace/BeatmapCharacteristicCollection.hpp"
 #include "GlobalNamespace/AsyncCachedLoader_2.hpp"
 #include "GlobalNamespace/HMCache_2.hpp"
-#include "BGNet/Core/DefaultTaskUtility.hpp"
 #include "GlobalNamespace/AudioClipAsyncLoader.hpp"
 #include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
 #include "UnityEngine/Networking/UnityWebRequestAsyncOperation.hpp"
@@ -44,6 +43,7 @@
 #include "System/Threading/CancellationToken.hpp"
 #include "System/Threading/CancellationTokenSource.hpp"
 #include "System/Threading/Tasks/Task_1.hpp"
+#include "System/Threading/Tasks/Task.hpp"
 
 #include <vector>
 #include <mutex>
@@ -55,7 +55,6 @@ using namespace UnityEngine::Networking;
 using namespace System::IO;
 using namespace System::Threading;
 using namespace System::Threading::Tasks;
-using namespace BGNet::Core;
 
 namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
@@ -192,9 +191,8 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                 LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync previewBeatmapLevel %p", previewBeatmapLevel);
                 if(il2cpp_functions::class_is_assignable_from(classof(CustomPreviewBeatmapLevel*), il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(previewBeatmapLevel)))) {
                     auto task = Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>::New_ctor();
-                    // TODO: this could actually not be the way to fix this, as this doesn't run on main thread now
-                    DefaultTaskUtility::New_ctor()->Run(custom_types::MakeDelegate<System::Action*>(
-                        (std::function<void()>)[=] () mutable {
+                    il2cpp_utils::il2cpp_aware_thread(
+                        [=] () mutable {
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                             CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(reinterpret_cast<CustomPreviewBeatmapLevel*>(previewBeatmapLevel));
                             auto result = BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr);
@@ -219,7 +217,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                             }
                             LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Stop");
                         }
-                    ), System::Threading::CancellationToken(nullptr));
+                    ).detach();
                     return task;
                 }
             }

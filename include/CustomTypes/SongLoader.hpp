@@ -64,13 +64,16 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         GlobalNamespace::EnvironmentInfoSO* LoadEnvironmentInfo(StringW environmentName, bool allDirections);
         ArrayW<GlobalNamespace::EnvironmentInfoSO*> LoadEnvironmentInfos(ArrayW<StringW> environmentNames);
         ArrayW<GlobalNamespace::ColorScheme*> LoadColorSchemes(ArrayW<GlobalNamespace::BeatmapLevelColorSchemeSaveData*> colorSchemeDatas);
+        void RefreshSong_thread(std::atomic_int& index, std::atomic_int& threadsFinished, std::vector<std::string>& customLevelsFolders, std::vector<std::string>& loadedPaths, std::mutex& valuesMutex);
+        void RefreshSongs_internal(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> songsLoaded);
+
 
         GlobalNamespace::CustomPreviewBeatmapLevel* LoadCustomPreviewBeatmapLevel(std::string const& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash);
 
         void UpdateSongDuration(GlobalNamespace::CustomPreviewBeatmapLevel* level, std::string const& customLevelPath);
         float GetLengthFromMap(GlobalNamespace::CustomPreviewBeatmapLevel* level, std::string const& customLevelPath);
 
-        List<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
+        ListW<GlobalNamespace::CustomPreviewBeatmapLevel*>* LoadSongsFromPath(std::string_view path, std::vector<std::string>& loadedPaths);
 
     public:
         static SongLoader* GetInstance();

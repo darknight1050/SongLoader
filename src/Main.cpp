@@ -323,11 +323,10 @@ extern "C" void setup(CModInfo* info) {
     LOG_INFO("Base path is: %s", baseLevelsPath.c_str());
 }
 
-extern "C" void load() {
+extern "C" void late_load() {
     LOG_INFO("Starting SongLoader installation...");
-    il2cpp_functions::Init();
-    BSML::Init();
 
+    BSML::Init();
     custom_types::Register::AutoRegister();
     BSML::Register::RegisterSettingsMenu(MOD_ID, DidActivate, false);
 
