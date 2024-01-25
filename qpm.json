@@ -4,43 +4,43 @@
   "info": {
     "name": "SongLoader",
     "id": "songloader",
-    "version": "0.0.1",
+    "version": "0.11.0",
     "url": "https://github.com/darknight1050/SongLoader",
     "additionalData": {
+      "cmake": true,
       "overrideSoName": "libsongloader.so"
     }
   },
   "dependencies": [
-	{
+    {
       "id": "beatsaber-hook",
-      "versionRange": "^3.14.0",
-      "additionalData": {
-        "extraFiles": [
-          "src/inline-hook"
-        ]
-      }
+      "versionRange": "^5.0.0",
+      "additionalData": {}
     },
     {
-      "id": "codegen",
-      "versionRange": "^0.33.0",
+      "id": "bs-cordl",
+      "versionRange": "^3402.*",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.22",
+      "versionRange": "^0.16.9",
       "additionalData": {}
     },
     {
-      "id": "questui",
-      "versionRange": "^0.17.11",
+      "id": "bsml",
+      "versionRange": "^0.4.2",
       "additionalData": {
         "private": true
       }
     },
     {
-      "id": "modloader",
-      "versionRange": "^1.2.3",
-      "additionalData": {}
+      "id": "scotland2",
+      "versionRange": "^0.1.0",
+      "additionalData": {
+        "includeQmod": false,
+        "private": true
+      }
     },
     {
       "id": "libcryptopp",
@@ -48,7 +48,12 @@
       "additionalData": {
         "private": true
       }
+    },
+    {
+      "id": "fmt",
+      "versionRange": "^10.0.0",
+      "additionalData": {}
     }
   ],
-  "additionalData": {}
+  "workspace": null
 }
