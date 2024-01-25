@@ -48,6 +48,7 @@
 #include "GlobalNamespace/BeatmapObjectSpawnMovementData.hpp"
 #include "GlobalNamespace/IJumpOffsetYProvider.hpp"
 #include "GlobalNamespace/IDifficultyBeatmap.hpp"
+#include "GlobalNamespace/IAnnotatedBeatmapLevelCollection.hpp"
 #include "GlobalNamespace/BeatmapDifficulty.hpp"
 #include "GlobalNamespace/StandardLevelScenesTransitionSetupDataSO.hpp"
 #include "GlobalNamespace/MultiplayerLevelScenesTransitionSetupDataSO.hpp"
@@ -166,18 +167,20 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         static ConstString filterName("allSongs");
         auto newLevels = ListW<IPreviewBeatmapLevel*>::New();
         auto levelPacks = self->_beatmapLevelPacks;
-        if(levelPacks.Length() != 1 || levelPacks[0]->get_packID() != filterName) {
+        if(levelPacks.size() != 1 || levelPacks[0]->packID != filterName) {
             for(auto levelPack : levelPacks) {
-                auto levels = ArrayW<IPreviewBeatmapLevel*>(reinterpret_cast<Array<IPreviewBeatmapLevel*>*>(reinterpret_cast<BeatmapLevelPack*>(levelPack)->get_beatmapLevelCollection()->get_beatmapLevels()));
+                GlobalNamespace::IAnnotatedBeatmapLevelCollection* levelCollection = *levelPack;
+                ArrayW<GlobalNamespace::IPreviewBeatmapLevel*> levels{levelCollection->beatmapLevelCollection->beatmapLevels};
                 for(auto level : levels) {
                     if(!newLevels->Contains(level))
                         newLevels->Add(level);
                 }
             }
+
             BeatmapLevelCollection* beatmapLevelCollection = BeatmapLevelCollection::New_ctor({});
             BeatmapLevelPack* beatmapLevelPack = BeatmapLevelPack::New_ctor(filterName, filterName, filterName, nullptr, nullptr, reinterpret_cast<IBeatmapLevelCollection*>(beatmapLevelCollection), ::GlobalNamespace::PlayerSensitivityFlag::Unknown);
             self->_beatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(1);
-            self->_beatmapLevelPacks[0] = reinterpret_cast<IBeatmapLevelPack*>(beatmapLevelPack);
+            self->_beatmapLevelPacks[0] = *beatmapLevelPack;
             beatmapLevelCollection->_levels = reinterpret_cast<IReadOnlyList_1<IPreviewBeatmapLevel*>*>(newLevels.convert());
         }
         LevelSearchViewController_UpdateBeatmapLevelPackCollectionAsync(self);
@@ -260,12 +263,18 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         std::smatch matches;
         std::string cppStr(stringData);
 
+        std::string sub(cppStr.substr(0, 100));
+
+        LOG_DEBUG("First 100 chars from json: %s", sub.c_str());
+
         if (std::regex_search(cppStr, matches, versionRegex)) {
             // Does not match supported version
             if (matches.size() >= 1) {
 
                 // match group is index 1 because we're matching for (2.x.x)
                 auto badVersion = matches[1].str();
+                LOG_DEBUG("Performing fixup for version %s", badVersion.c_str());
+
                 // mutates the string does not copy
                 cppStr.replace(matches[1].first, matches[1].second, "2.0.0");
 
@@ -276,15 +285,18 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         // }
 
         if (!original || !original.ptr()) {
+            LOG_DEBUG("No fixup performed for map version");
             original = StandardLevelInfoSaveData_DeserializeFromJSONString(
                 stringData);
         }
 
-        if (!original || !original.ptr())
+        if (!original || !original.ptr()) {
+            LOG_DEBUG("Orig call did not produce valid savedata!");
             return nullptr;
+        }
 
         SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>> customBeatmapSetsSafe =
-                Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.Length());
+                Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.size());
 
         ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *> customBeatmapSets =
                 (Array<StandardLevelInfoSaveData::DifficultyBeatmapSet *> *) customBeatmapSetsSafe;
@@ -330,12 +342,12 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         for (rapidjson::SizeType i = 0; i < beatmapSetsArr.Size(); i++) {
             CustomJSONData::ValueUTF16 const& beatmapSetJson = beatmapSetsArr[i];
             GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *standardBeatmapSet = original->difficultyBeatmapSets[i];
-            customBeatmapsSafe = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.Length());
+            customBeatmapsSafe = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.size());
             ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *> customBeatmaps = (Array<StandardLevelInfoSaveData::DifficultyBeatmap *> *) customBeatmapsSafe;
 
             auto const& difficultyBeatmaps = beatmapSetJson.FindMember(u"_difficultyBeatmaps")->value;
 
-            for (rapidjson::SizeType j = 0; j < standardBeatmapSet->difficultyBeatmaps.Length(); j++) {
+            for (rapidjson::SizeType j = 0; j < standardBeatmapSet->difficultyBeatmaps.size(); j++) {
                 CustomJSONData::ValueUTF16 const& difficultyBeatmapJson = difficultyBeatmaps[j];
                 GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *standardBeatmap = standardBeatmapSet->difficultyBeatmaps[j];
 

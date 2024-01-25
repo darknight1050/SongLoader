@@ -16,7 +16,7 @@ void DidActivate(ViewController* self, bool firstActivation, bool addedToHierarc
     if(firstActivation) {
         self->get_gameObject()->AddComponent<Touchable*>();
 
-        GameObject* container = BSML::Lite::CreateScrollableSettingsContainer(self->get_transform());
+        GameObject* container = BSML::Lite::CreateScrollableSettingsContainer(self->transform.unsafePtr());
         Transform* parent = container->get_transform();
 
         BSML::Lite::CreateUIButton(parent, "Reload New Songs", [] {

@@ -63,7 +63,7 @@
 #include <vector>
 #include <atomic>
 
-#define MAX_THREADS 8
+#define MAX_THREADS 1
 
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
@@ -282,8 +282,8 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
         BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
         LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", static_cast<std::string>(difficultyBeatmapSet->beatmapCharacteristicName).c_str());
         if(beatmapCharacteristicBySerializedName) {
-            ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.Length());
-            for(int j = 0; j < array.Length(); j++) {
+            ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.size());
+            for(int j = 0; j < array.size(); j++) {
                 BeatmapDifficulty beatmapDifficulty;
                 BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty, beatmapDifficulty);
                 array[j] = beatmapDifficulty;
@@ -353,11 +353,15 @@ static inline Out Max(ArrayW<T> array, Predicate pred) {
 
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     std::string diffFile = "";
-    try
-    {
-        diffFile = static_cast<std::string>(level->standardLevelInfoSaveData->difficultyBeatmapSets.First()->difficultyBeatmaps.Last()->beatmapFilename);
-    } catch (std::runtime_error e)
-    {
+    try {
+        auto saveData = level->standardLevelInfoSaveData;
+        auto sets = saveData ? saveData->difficultyBeatmapSets : nullptr;
+        auto firstSet = sets ? sets->First() : nullptr;
+        auto maps = firstSet ? firstSet->get_difficultyBeatmaps() : nullptr;
+        auto lastMap = maps ? maps->Last() : nullptr;
+        auto filename = lastMap ? lastMap->beatmapFilename : nullptr;
+        diffFile = static_cast<std::string>(filename ? filename : "");
+    } catch (std::runtime_error e) {
         LOG_ERROR("GetLengthFromMap Error finding diffFile: %s", e.what());
     }
     std::string path = customLevelPath + "/" + diffFile;
@@ -412,7 +416,7 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
     static SafePtrUnity<LevelFilteringNavigationController> levelFilteringNavigationController;
     if (!levelFilteringNavigationController)
-        levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
+        levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>()->FirstOrDefault();
 
     if(levelFilteringNavigationController)
         levelFilteringNavigationController->UpdateCustomSongs();
@@ -461,7 +465,7 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
         } catch(il2cpp_utils::RunMethodException const& e) {
             LOG_ERROR("RunMethodException thrown while loading %s: %s", songPath.c_str(), e.what());
             e.log_backtrace();
-        } catch (std::exception& e) {
+        } catch (std::exception const& e) {
             LOG_ERROR("Exception thrown while loading %s: %s", songPath.c_str(), e.what());
         } catch (...) {
             LOG_ERROR("Unknown exception thrown while loading %s!", songPath.c_str());
@@ -521,7 +525,7 @@ void SongLoader::RefreshSongs_internal(bool fullRefresh, std::function<void(std:
     CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
     CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);
 
-    int levelsCount = customPreviewLevels.Length() + customWIPPreviewLevels.Length();
+    int levelsCount = customPreviewLevels.size() + customWIPPreviewLevels.size();
 
     auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
 

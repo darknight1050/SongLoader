@@ -22,7 +22,7 @@ SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::Make_New(std
 
 void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sprite* coverImage) {
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(ArrayW<CustomPreviewBeatmapLevel*>());
-    auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->_defaultPackCover;
+    auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->_defaultPackCover.unsafePtr();
     CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(packID, packName, packName, newCoverImage, newCoverImage, CustomLevelsCollection, GlobalNamespace::PlayerSensitivityFlag::Unknown);
 }
 
@@ -30,8 +30,8 @@ void SongLoaderCustomBeatmapLevelPack::SortLevels() {
     auto array = listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels);
     if(!array)
         return;
-    if(array.Length() > 0)
-        std::sort(array.begin(), array.end(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
+    if(array.size() > 0)
+        std::sort(array->begin(), array->end(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
 }
 
 ArrayW<CustomPreviewBeatmapLevel*> SongLoaderCustomBeatmapLevelPack::GetCustomPreviewBeatmapLevels() {
@@ -43,7 +43,7 @@ void SongLoaderCustomBeatmapLevelPack::SetCustomPreviewBeatmapLevels(ArrayW<Cust
 }
 
 void SongLoaderCustomBeatmapLevelPack::AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty) {
-    if(addIfEmpty || listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels).Length() > 0) {
+    if(addIfEmpty || listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels).size() > 0) {
         customBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
     }
 }

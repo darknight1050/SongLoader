@@ -36,7 +36,7 @@ static inline UnityEngine::HideFlags operator |(UnityEngine::HideFlags a, UnityE
 
 namespace RuntimeSongLoader::CustomCharacteristics {
 
-    ListW<BeatmapCharacteristicSO*> characteristicsList = nullptr;
+    ListW<UnityW<BeatmapCharacteristicSO>> characteristicsList = nullptr;
 
     BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
     {
@@ -53,15 +53,15 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
         static SafePtrUnity<MainSystemInit> mainSystemInit;
         if (!mainSystemInit)
-            mainSystemInit = Resources::FindObjectsOfTypeAll<MainSystemInit*>().FirstOrDefault();
+            mainSystemInit = Resources::FindObjectsOfTypeAll<MainSystemInit*>()->FirstOrDefault();
 
         if(!characteristicsList) {
             // manual creation
-            characteristicsList = ListW<BeatmapCharacteristicSO*>::New<il2cpp_utils::CreationType::Manual>();
+            characteristicsList = ListW<UnityW<BeatmapCharacteristicSO>>::New<il2cpp_utils::CreationType::Manual>();
 
             if(mainSystemInit) {
                 auto beatmapCharacteristics = mainSystemInit->_beatmapCharacteristicCollection->_beatmapCharacteristics;
-                characteristicsList->EnsureCapacity(beatmapCharacteristics.Length());
+                characteristicsList->EnsureCapacity(beatmapCharacteristics.size());
                 for (auto characteristic : beatmapCharacteristics) characteristicsList->Add(characteristic);
             }
         }
@@ -84,9 +84,9 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         return nullptr;
     }
 
-    MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, BeatmapCharacteristicSO*, BeatmapCharacteristicCollection* self, StringW serializedName)
+    MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, UnityW<BeatmapCharacteristicSO>, BeatmapCharacteristicCollection* self, StringW serializedName)
     {
-        BeatmapCharacteristicSO* result = BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName(self, serializedName);
+        UnityW<BeatmapCharacteristicSO> result = BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName(self, serializedName);
         if(!result)
             result = FindByName("MissingCharacteristic");
         return result;

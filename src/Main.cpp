@@ -149,7 +149,7 @@ ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
         deleteDialogPromptModal = BSML::Lite::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
 
         static ConstString contentName("Content");
-        auto deleteButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal->get_transform(), "Delete", Vector2(-15, -8.25), [] {
+        auto deleteButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Delete", Vector2(-15, -8.25), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
             RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath),
                 [] {
@@ -158,13 +158,13 @@ ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
             );
         });
         Object::Destroy(deleteButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
-        auto cancelButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal->get_transform(), "Cancel", Vector2(15, -8.25), [] {
+        auto cancelButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Cancel", Vector2(15, -8.25), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
         });
         Object::Destroy(cancelButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
     }
     if(!songText) {
-        songText = BSML::Lite::CreateText(deleteDialogPromptModal->get_transform(), u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
+        songText = BSML::Lite::CreateText(deleteDialogPromptModal, u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
         songText->set_enableWordWrapping(true);
         songText->set_overflowMode(TMPro::TextOverflowModes::Ellipsis);
         songText->set_alignment(TMPro::TextAlignmentOptions::Center);
@@ -221,7 +221,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto imageView = iconGameObject->AddComponent<ImageView*>();
         auto iconTransform = imageView->get_rectTransform();
         iconTransform->SetParent(contentTransform, false);
-        imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+        imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
         imageView->set_sprite(BSML::Lite::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
         imageView->set_preserveAspect(true);
 
@@ -268,7 +268,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             ContentSizeFitter* parentContentSizeFitter = parent->get_gameObject()->AddComponent<ContentSizeFitter*>();
             parentContentSizeFitter->set_verticalFit(ContentSizeFitter::FitMode::PreferredSize);
 
-            auto layout = BSML::Lite::CreateHorizontalLayoutGroup(parent);
+            auto layout = BSML::Lite::CreateHorizontalLayoutGroup(parent.unsafePtr());
             GameObject* layoutGameObject = layout->get_gameObject();
             auto layoutTransform = layoutGameObject->get_transform();
 
@@ -285,7 +285,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             static ConstString iconName("Icon");
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
-            imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+            imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
             imageView->set_sprite(BSML::Lite::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
             imageView->set_preserveAspect(true);
 
