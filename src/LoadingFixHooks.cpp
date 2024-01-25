@@ -295,11 +295,7 @@ namespace RuntimeSongLoader::LoadingFixHooks {
             return nullptr;
         }
 
-        SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>> customBeatmapSetsSafe =
-                Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *>::NewLength(original->difficultyBeatmapSets.size());
-
-        ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *> customBeatmapSets =
-                (Array<StandardLevelInfoSaveData::DifficultyBeatmapSet *> *) customBeatmapSetsSafe;
+        auto customBeatmapSets = ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet*>(il2cpp_array_size_t(original->difficultyBeatmapSets.size()));
 
         CustomJSONData::CustomLevelInfoSaveData *customSaveData =
                 CustomJSONData::CustomLevelInfoSaveData::New_ctor(
@@ -337,29 +333,30 @@ namespace RuntimeSongLoader::LoadingFixHooks {
 
         CustomJSONData::ValueUTF16 const& beatmapSetsArr = doc.FindMember(u"_difficultyBeatmapSets")->value;
 
-        SafePtr<Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>> customBeatmapsSafe;
-
         for (rapidjson::SizeType i = 0; i < beatmapSetsArr.Size(); i++) {
             CustomJSONData::ValueUTF16 const& beatmapSetJson = beatmapSetsArr[i];
-            GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet *standardBeatmapSet = original->difficultyBeatmapSets[i];
-            customBeatmapsSafe = Array<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>::NewLength(standardBeatmapSet->difficultyBeatmaps.size());
-            ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *> customBeatmaps = (Array<StandardLevelInfoSaveData::DifficultyBeatmap *> *) customBeatmapsSafe;
+
+            LOG_DEBUG("Handling set %d", i);
+            auto originalBeatmapSet = original->difficultyBeatmapSets[i];
+            auto customBeatmaps = ArrayW<GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *>(originalBeatmapSet->difficultyBeatmaps.size());
 
             auto const& difficultyBeatmaps = beatmapSetJson.FindMember(u"_difficultyBeatmaps")->value;
 
-            for (rapidjson::SizeType j = 0; j < standardBeatmapSet->difficultyBeatmaps.size(); j++) {
+            for (rapidjson::SizeType j = 0; j < originalBeatmapSet->difficultyBeatmaps.size(); j++) {
+                LOG_DEBUG("Handling map %d", j);
+
                 CustomJSONData::ValueUTF16 const& difficultyBeatmapJson = difficultyBeatmaps[j];
-                GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmap *standardBeatmap = standardBeatmapSet->difficultyBeatmaps[j];
+                auto originalBeatmap = originalBeatmapSet->difficultyBeatmaps[j];
 
                 auto customBeatmap =
                     CustomJSONData::CustomDifficultyBeatmap::New_ctor(
-                        standardBeatmap->difficulty,
-                        standardBeatmap->difficultyRank,
-                        standardBeatmap->beatmapFilename,
-                        standardBeatmap->noteJumpMovementSpeed,
-                        standardBeatmap->noteJumpStartBeatOffset,
-                        standardBeatmap->beatmapColorSchemeIdx,
-                        standardBeatmap->environmentNameIdx
+                        originalBeatmap->difficulty,
+                        originalBeatmap->difficultyRank,
+                        originalBeatmap->beatmapFilename,
+                        originalBeatmap->noteJumpMovementSpeed,
+                        originalBeatmap->noteJumpStartBeatOffset,
+                        originalBeatmap->beatmapColorSchemeIdx,
+                        originalBeatmap->environmentNameIdx
                     );
 
                 auto customDataItr = difficultyBeatmapJson.FindMember(u"_customData");
@@ -370,7 +367,10 @@ namespace RuntimeSongLoader::LoadingFixHooks {
                 customBeatmaps[j] = customBeatmap;
             }
 
-            customBeatmapSets[i] = GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet::New_ctor(standardBeatmapSet->beatmapCharacteristicName, customBeatmaps);
+            customBeatmapSets[i] = GlobalNamespace::StandardLevelInfoSaveData::DifficultyBeatmapSet::New_ctor(
+                originalBeatmapSet->beatmapCharacteristicName,
+                customBeatmaps
+            );
         }
 
         return customSaveData;

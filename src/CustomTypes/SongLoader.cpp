@@ -180,10 +180,10 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
 
 EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(StringW environmentName, bool allDirections) {
     auto customlevelLoader = GetCustomLevelLoader();
-    EnvironmentInfoSO* environmentInfoSO = customlevelLoader->_environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
+    auto environmentInfoSO = customlevelLoader->_environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
     if(!environmentInfoSO)
         environmentInfoSO = (allDirections ? customlevelLoader->_defaultAllDirectionsEnvironmentInfo : customlevelLoader->_defaultEnvironmentInfo);
-    LOG_DEBUG("LoadEnvironmentInfo: %p", environmentInfoSO);
+    LOG_DEBUG("LoadEnvironmentInfo: %p", environmentInfoSO.convert());
     return environmentInfoSO;
 }
 
@@ -233,12 +233,13 @@ ArrayW<ColorScheme*> SongLoader::LoadColorSchemes(ArrayW<BeatmapLevelColorScheme
 }
 
 CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string const& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
-    if(!standardLevelInfoSaveData)
-        return nullptr;
+    static auto logger = getLogger().WithContext("LoadCustomPreviewBeatmapLevel");
+    RET_0_UNLESS(logger, standardLevelInfoSaveData);
+
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel StandardLevelInfoSaveData: ");
     auto hashOpt = HashUtils::GetCustomLevelHash(standardLevelInfoSaveData, customLevelPath);
-    if(!hashOpt.has_value())
-        return nullptr;
+    RET_0_UNLESS(logger, hashOpt);
+
     outHash = *hashOpt;
     std::string stringLevelID = CustomLevelPrefixID + outHash;
     if(wip)
@@ -274,21 +275,34 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
     ArrayW<EnvironmentInfoSO*> environmentInfos = LoadEnvironmentInfos(standardLevelInfoSaveData->environmentNames);
     ArrayW<ColorScheme*> colorSchemes = LoadColorSchemes(standardLevelInfoSaveData->colorSchemes);
 
+    auto beatmapCharacteristicCollection = BSML::Helpers::GetDiContainer()->TryResolve<BeatmapCharacteristicCollection*>();
+
     auto list = ListW<PreviewDifficultyBeatmapSet*>::New();
-    for(StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet : standardLevelInfoSaveData->difficultyBeatmapSets) {
-        if (!difficultyBeatmapSet)
-            continue;
-        auto beatmapCharacteristicCollection = BSML::Helpers::GetDiContainer()->TryResolve<BeatmapCharacteristicCollection*>();
-        BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
-        LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", static_cast<std::string>(difficultyBeatmapSet->beatmapCharacteristicName).c_str());
-        if(beatmapCharacteristicBySerializedName) {
-            ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.size());
-            for(int j = 0; j < array.size(); j++) {
+    for(auto difficultyBeatmapSet : standardLevelInfoSaveData->difficultyBeatmapSets) {
+        if (!difficultyBeatmapSet) continue;
+
+        auto beatmapCharacteristicBySerializedName = beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
+
+        if (beatmapCharacteristicBySerializedName) {
+            ArrayW<BeatmapDifficulty> difficulties(il2cpp_array_size_t(difficultyBeatmapSet->difficultyBeatmaps.size()));
+
+            for(int j = 0; j < difficulties.size(); j++) {
                 BeatmapDifficulty beatmapDifficulty;
-                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty, beatmapDifficulty);
-                array[j] = beatmapDifficulty;
+
+                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(
+                    difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty,
+                    byref(beatmapDifficulty)
+                );
+
+                difficulties[j] = beatmapDifficulty;
             }
-            list->Add(PreviewDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName, array));
+
+            list->Add(
+                PreviewDifficultyBeatmapSet::New_ctor(
+                    beatmapCharacteristicBySerializedName,
+                    difficulties
+                )
+            );
         }
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
@@ -434,6 +448,7 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
             CustomPreviewBeatmapLevel* level = nullptr;
             auto songPathCS = StringW(songPath);
             bool containsKey = CustomLevels->ContainsKey(songPathCS);
+
             if(containsKey) {
                 level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
             } else {
@@ -441,11 +456,13 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
                 if(containsKey)
                     level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
             }
+
             if(!level) {
                 CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
                 std::string hash;
                 level = LoadCustomPreviewBeatmapLevel(songPath, wip, saveData, hash);
             }
+
             if(level) {
                 std::lock_guard<std::mutex> lock(valuesMutex);
                 if(!containsKey) {
