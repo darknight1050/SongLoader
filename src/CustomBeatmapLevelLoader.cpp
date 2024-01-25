@@ -137,7 +137,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         ArrayW<CustomDifficultyBeatmap*> difficultyBeatmaps = ArrayW<CustomDifficultyBeatmap*>(difficultyBeatmapSetSaveData->difficultyBeatmaps.size());
         CustomDifficultyBeatmapSet* difficultyBeatmapSet = CustomDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName);
         for(int i = 0; i < difficultyBeatmapSetSaveData->difficultyBeatmaps.size(); i++) {
-            auto beatmap = il2cpp_utils::try_cast<CustomJSONData::CustomDifficultyBeatmap>(*difficultyBeatmapSetSaveData->difficultyBeatmaps[i]).value_or(nullptr);
+            auto beatmap = il2cpp_utils::try_cast<CustomJSONData::CustomDifficultyBeatmap>(difficultyBeatmapSetSaveData->difficultyBeatmaps[i]).value_or(nullptr);
             if (!beatmap) continue;
 
             CustomDifficultyBeatmap* customDifficultyBeatmap = LoadDifficultyBeatmap(customLevelPath, customBeatmapLevel, difficultyBeatmapSet, standardLevelInfoSaveData, beatmap);
