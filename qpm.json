@@ -56,12 +56,16 @@
     {
       "id": "fmt",
       "versionRange": "^10.0.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "kaleb",
       "versionRange": "^0.1.7",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     }
   ]
 }
