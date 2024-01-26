@@ -63,7 +63,7 @@
 #include <vector>
 #include <atomic>
 
-#define MAX_THREADS 1
+#define MAX_THREADS 8
 
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
