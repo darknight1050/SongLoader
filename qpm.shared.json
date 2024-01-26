@@ -74,17 +74,17 @@
     {
       "dependency": {
         "id": "bsml",
-        "versionRange": "=0.4.4",
+        "versionRange": "=0.4.5",
         "additionalData": {
-          "soLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.4/libbsml.so",
-          "debugSoLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.4/debug_libbsml.so",
+          "soLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.5/libbsml.so",
+          "debugSoLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.5/debug_libbsml.so",
           "overrideSoName": "libbsml.so",
-          "modLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.4/BSML.qmod",
-          "branchName": "version/v0_4_4",
+          "modLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.5/BSML.qmod",
+          "branchName": "version/v0_4_5",
           "cmake": true
         }
       },
-      "version": "0.4.4"
+      "version": "0.4.5"
     },
     {
       "dependency": {
@@ -129,13 +129,13 @@
     {
       "dependency": {
         "id": "custom-types",
-        "versionRange": "=0.16.13",
+        "versionRange": "=0.16.14",
         "additionalData": {
-          "soLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.13/libcustom-types.so",
-          "debugSoLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.13/debug_libcustom-types.so",
+          "soLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.14/libcustom-types.so",
+          "debugSoLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.14/debug_libcustom-types.so",
           "overrideSoName": "libcustom-types.so",
-          "modLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.13/CustomTypes.qmod",
-          "branchName": "version/v0_16_13",
+          "modLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.14/CustomTypes.qmod",
+          "branchName": "version/v0_16_14",
           "compileOptions": {
             "cppFlags": [
               "-Wno-invalid-offsetof"
@@ -144,7 +144,7 @@
           "cmake": true
         }
       },
-      "version": "0.16.13"
+      "version": "0.16.14"
     },
     {
       "dependency": {
