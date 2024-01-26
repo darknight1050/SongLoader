@@ -1,5 +1,4 @@
 #include "Utils/FindComponentsUtils.hpp"
-#include "questui/shared/ArrayUtil.hpp"
 
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -19,7 +18,7 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     name* _##name = nullptr; \
     name* Get##name() { \
         if(!_##name) \
-            _##name = Resources::FindObjectsOfTypeAll<name*>().FirstOrDefault(); \
+            _##name = Resources::FindObjectsOfTypeAll<name*>()->FirstOrDefault(); \
         if(!_##name) \
             CacheNotFoundWarningLog(_##name) \
         return _##name; \
@@ -28,7 +27,7 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     name* _##name = nullptr; \
     name* Get##name() { \
         if(!_##name) \
-            _##name = Resources::FindObjectsOfTypeAll<name*>().LastOrDefault(); \
+            _##name = Resources::FindObjectsOfTypeAll<name*>()->LastOrDefault(); \
         if(!_##name) \
             CacheNotFoundWarningLog(_##name) \
         return _##name; \
@@ -48,5 +47,5 @@ namespace RuntimeSongLoader::FindComponentsUtils {
         CacheClearComponent(SimpleDialogPromptViewController)
         CacheClearComponent(LevelSelectionNavigationController)
     }
- 
+
 }

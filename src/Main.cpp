@@ -8,7 +8,7 @@
 #include "CustomConfig.hpp"
 
 #include "Paths.hpp"
-#include "Sprites.hpp"
+#include "assets.hpp"
 #include "LevelData.hpp"
 
 #include "CustomBeatmapLevelLoader.hpp"
@@ -25,9 +25,6 @@
 #include "CustomTypes/SongLoader.hpp"
 #include "API.hpp"
 
-#include "questui/shared/QuestUI.hpp"
-#include "questui/shared/BeatSaberUI.hpp"
-
 #include "GlobalNamespace/StandardLevelDetailView.hpp"
 #include "GlobalNamespace/StandardLevelDetailViewController.hpp"
 #include "GlobalNamespace/LoadingControl.hpp"
@@ -35,8 +32,9 @@
 #include "GlobalNamespace/PlayerSaveData.hpp"
 #include "HMUI/ImageView.hpp"
 #include "HMUI/ViewController.hpp"
-#include "HMUI/ViewController_AnimationDirection.hpp"
 #include "HMUI/TitleViewController.hpp"
+#include "TMPro/TextOverflowModes.hpp"
+#include "TMPro/TextAlignmentOptions.hpp"
 #include "VRUIControls/VRGraphicRaycaster.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "UnityEngine/Material.hpp"
@@ -54,11 +52,13 @@
 #include "Zenject/DiContainer.hpp"
 #include "System/Action_1.hpp"
 
-ModInfo modInfo;
+#include "bsml/shared/BSML.hpp"
+
+modloader::ModInfo modInfo{MOD_ID, VERSION, 0};
 
 Logger& getLogger() {
-    static auto logger = new Logger(modInfo, LoggerOptions(false, true)); 
-    return *logger; 
+    static auto logger = new Logger(modInfo, LoggerOptions(false, true));
+    return *logger;
 }
 
 Configuration& getConfig() {
@@ -77,7 +77,6 @@ using namespace VRUIControls;
 using namespace UnityEngine;
 using namespace UnityEngine::UI;
 using namespace UnityEngine::Events;
-using namespace QuestUI;
 using namespace RuntimeSongLoader;
 
 // These don't need to be atomics since they will only ever be called by the main thread
@@ -100,15 +99,15 @@ MAKE_HOOK_MATCH(RichPresenceManager_HandleGameScenesManagerTransitionDidFinish,
     }
     // First, check to make sure both instances are non-null
     // This is mostly just a failsafe
-    if (self == nullptr || self->menuScenesTransitionSetupData == nullptr) [[unlikely]] {
+    if (self == nullptr || self->_menuScenesTransitionSetupData == nullptr) [[unlikely]] {
         LOG_WARN("SHOULD NOT GET TO THIS POINT! " EXPAND_FILE " self: %p, with potentially also null menuScenesTransitionSetupData!", self);
         return;
     }
-    if (setupData == nullptr && self->menuWasLoaded) {
+    if (setupData == nullptr && self->_menuWasLoaded) {
         // We know the menu was loaded once already, so we would be displaying the menu transition at this point.
         // So, we can simply perform a MenuLoad at this point.
         SongLoader::GetInstance()->MenuLoaded();
-    } else if (setupData != nullptr && static_cast<void*>(setupData->m_CachedPtr) == static_cast<void*>(self->menuScenesTransitionSetupData->m_CachedPtr)) {
+    } else if (setupData != nullptr && static_cast<void*>(setupData->m_CachedPtr) == static_cast<void*>(self->_menuScenesTransitionSetupData->m_CachedPtr)) {
         // We check to see if we have transitioned to anything to do with menu
         // We do this by doing a raw unity pointer check
         SongLoader::GetInstance()->MenuLoaded();
@@ -147,25 +146,25 @@ ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
     static TMPro::TextMeshProUGUI* songText = nullptr;
     if(!deleteDialogPromptModal) {
         songText = nullptr;
-        deleteDialogPromptModal = BeatSaberUI::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
-        
+        deleteDialogPromptModal = BSML::Lite::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
+
         static ConstString contentName("Content");
-        auto deleteButton = BeatSaberUI::CreateUIButton(deleteDialogPromptModal->get_transform(), "Delete", Vector2(-15, -8.25), [] {
+        auto deleteButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Delete", Vector2(-15, -8.25), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
-            RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath), 
+            RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath),
                 [] {
                     RuntimeSongLoader::API::RefreshSongs(false);
                 }
             );
         });
         Object::Destroy(deleteButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
-        auto cancelButton = BeatSaberUI::CreateUIButton(deleteDialogPromptModal->get_transform(), "Cancel", Vector2(15, -8.25), [] {
+        auto cancelButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Cancel", Vector2(15, -8.25), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
         });
         Object::Destroy(cancelButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
     }
     if(!songText) {
-        songText = BeatSaberUI::CreateText(deleteDialogPromptModal->get_transform(), u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
+        songText = BSML::Lite::CreateText(deleteDialogPromptModal, u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
         songText->set_enableWordWrapping(true);
         songText->set_overflowMode(TMPro::TextOverflowModes::Ellipsis);
         songText->set_alignment(TMPro::TextAlignmentOptions::Center);
@@ -208,7 +207,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         deleteDialogPromptModal = nullptr;
         deleteLevelButtonGameObject = Object::Instantiate(templateButton->get_gameObject(), parent);
         deleteLevelButtonTransform = deleteLevelButtonGameObject->get_transform();
-        deleteLevelButtonGameObject->set_name(deleteLevelButtonName);        
+        deleteLevelButtonGameObject->set_name(deleteLevelButtonName);
         static ConstString contentName("Content");
         static ConstString textName("Text");
         auto contentTransform = deleteLevelButtonTransform->Find(contentName);
@@ -222,8 +221,8 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto imageView = iconGameObject->AddComponent<ImageView*>();
         auto iconTransform = imageView->get_rectTransform();
         iconTransform->SetParent(contentTransform, false);
-        imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
-        imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
+        imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+        imageView->set_sprite(BSML::Lite::ArrayToSprite(Assets::DeleteLevelButtonIcon_png));
         imageView->set_preserveAspect(true);
 
         float scale = 1.7f;
@@ -241,9 +240,9 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         deleteLevelButtonGameObject->GetComponent<Button*>()->set_interactable(true);
     }
     static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
-    bool customLevel = self->level && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->level)));
+    bool customLevel = self->_level && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->_level)));
     if(customLevel)
-        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->level);
+        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->_level);
     deleteLevelButtonGameObject->SetActive(customLevel);
 }
 
@@ -252,12 +251,12 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
                 void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType contentType, StringW errorText, float downloadingProgress, StringW downloadingText) {
     StandardLevelDetailViewController_ShowContent(self, contentType, errorText, downloadingProgress, downloadingText);
     static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
-    bool customLevel = self->previewBeatmapLevel && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->previewBeatmapLevel)));
+    bool customLevel = self->_previewBeatmapLevel && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->_previewBeatmapLevel)));
     if(customLevel)
-        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->previewBeatmapLevel);
+        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->_previewBeatmapLevel);
     if(contentType == StandardLevelDetailViewController::ContentType::Error) {
         static ConstString deleteLevelButtonName("DeleteLevelButton");
-        auto templateButton = self->loadingControl->refreshButton;
+        auto templateButton = self->_loadingControl->_refreshButton;
         auto parent = templateButton->get_transform()->get_parent();
         auto deleteLevelButtonTransform = parent->Find(deleteLevelButtonName);
         GameObject* deleteLevelButtonGameObject = nullptr;
@@ -269,14 +268,14 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             ContentSizeFitter* parentContentSizeFitter = parent->get_gameObject()->AddComponent<ContentSizeFitter*>();
             parentContentSizeFitter->set_verticalFit(ContentSizeFitter::FitMode::PreferredSize);
 
-            auto layout = BeatSaberUI::CreateHorizontalLayoutGroup(parent);
+            auto layout = BSML::Lite::CreateHorizontalLayoutGroup(parent.unsafePtr());
             GameObject* layoutGameObject = layout->get_gameObject();
             auto layoutTransform = layoutGameObject->get_transform();
 
             layout->set_spacing(1.2f);
             ContentSizeFitter* layoutContentSizeFitter = layoutGameObject->GetComponent<ContentSizeFitter*>();
             layoutContentSizeFitter->set_horizontalFit(ContentSizeFitter::FitMode::PreferredSize);
-            
+
             templateButton->get_transform()->SetParent(layoutTransform, false);
 
             deleteLevelButtonGameObject = Object::Instantiate(templateButton->get_gameObject(), layoutTransform);
@@ -286,8 +285,8 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             static ConstString iconName("Icon");
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
-            imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>().FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
-            imageView->set_sprite(BeatSaberUI::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
+            imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
+            imageView->set_sprite(BSML::Lite::ArrayToSprite(Assets::DeleteLevelButtonIcon_png));
             imageView->set_preserveAspect(true);
 
             float scale = 1.7f;
@@ -306,15 +305,15 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
     }
 }
 
-MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileManagerSO::LoadFromCurrentVersion, PlayerData*, PlayerDataFileManagerSO* self, PlayerSaveData* playerSaveData){
+MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileManagerSO::LoadFromCurrentVersion, PlayerData*, PlayerDataFileManagerSO* self, PlayerSaveData* playerSaveData, BeatmapCharacteristicCollection* beatmapCharacteristicCollection){
     CustomCharacteristics::SetupCustomCharacteristics();
-    return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData);
+    return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData, beatmapCharacteristicCollection);
 }
 
-extern "C" void setup(ModInfo& info) {
-    modInfo.id = "SongLoader";
-    modInfo.version = VERSION;
-    info = modInfo;
+extern "C" void setup(CModInfo* info) {
+    info->id = "SongLoader";
+    info->version = VERSION;
+    info->version_long = 0;
 
     auto baseLevelsPath = GetBaseLevelsPath();
     if(!direxists(baseLevelsPath))
@@ -324,21 +323,19 @@ extern "C" void setup(ModInfo& info) {
     LOG_INFO("Base path is: %s", baseLevelsPath.c_str());
 }
 
-extern "C" void load() {
+extern "C" void late_load() {
     LOG_INFO("Starting SongLoader installation...");
-    il2cpp_functions::Init();
-    QuestUI::Init();
-    
+
+    BSML::Init();
     custom_types::Register::AutoRegister();
-    
-    QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
+    BSML::Register::RegisterSettingsMenu(MOD_ID, DidActivate, false);
 
     INSTALL_HOOK(getLogger(), SceneManager_Internal_ActiveSceneChanged);
     INSTALL_HOOK(getLogger(), StandardLevelDetailView_RefreshContent);
     INSTALL_HOOK(getLogger(), StandardLevelDetailViewController_ShowContent);
     INSTALL_HOOK(getLogger(), PlayerDataFileManagerSO_LoadFromCurrentVersion);
     INSTALL_HOOK(getLogger(), RichPresenceManager_HandleGameScenesManagerTransitionDidFinish);
-    
+
     CustomBeatmapLevelLoader::InstallHooks();
     CustomCharacteristics::InstallHooks();
     LoadingFixHooks::InstallHooks();

@@ -13,36 +13,35 @@
 #include "libcryptopp/shared/hex.h"
 #include "libcryptopp/shared/files.h"
 
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
+#include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
 #include "CustomTypes/CustomLevelInfoSaveData.hpp"
 
 using namespace GlobalNamespace;
 using namespace CryptoPP;
 
 namespace RuntimeSongLoader::HashUtils {
-    
+
     std::optional<std::string> GetCustomLevelHash(CustomJSONData::CustomLevelInfoSaveData* level, std::string const& customLevelPath) {
         auto start = std::chrono::high_resolution_clock::now();
         std::string hashHex;
         LOG_DEBUG("GetCustomLevelHash Start");
 
         auto cacheDataOpt = CacheUtils::GetCacheData(customLevelPath);
-        if(!cacheDataOpt.has_value()) 
+        if(!cacheDataOpt.has_value())
             return std::nullopt;
         auto cacheData = *cacheDataOpt;
         auto cacheSHA1 = cacheData.sha1;
         if(cacheSHA1.has_value())
-        { 
+        {
             hashHex = *cacheSHA1;
             LOG_DEBUG("GetCustomLevelHash Stop Result %s from cache", hashHex.c_str());
             return hashHex;
         }
 
         std::string actualPath = customLevelPath + "/Info.dat";
-        if(!fileexists(actualPath)) 
+        if(!fileexists(actualPath))
             actualPath = customLevelPath + "/info.dat";
-        if(!fileexists(actualPath)) 
+        if(!fileexists(actualPath))
             return std::nullopt;
 
         SHA1 hashType;
@@ -64,7 +63,7 @@ namespace RuntimeSongLoader::HashUtils {
                 if(!fileexists(path)) {
                     LOG_ERROR("GetCustomLevelHash File %s did not exist", path.c_str());
                     continue;
-                } 
+                }
                 FileSource fs(path.c_str(), false);
                 fs.Attach(new Redirector(hashFilter));
                 fs.Pump(LWORD_MAX);
@@ -73,14 +72,14 @@ namespace RuntimeSongLoader::HashUtils {
         }
 
         hashFilter.MessageEnd();
-        
+
         HexEncoder hexEncoder(new StringSink(hashHex));
         hexEncoder.Put((const byte*)hashResult.data(), hashResult.size());
 
         cacheData.sha1 = hashHex;
         CacheUtils::UpdateCacheData(customLevelPath, cacheData);
 
-        std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
+        std::chrono::milliseconds duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
         LOG_DEBUG("GetCustomLevelHash Stop Result %s Time %d", hashHex.c_str(), (int)duration.count());
         return hashHex;
     }
@@ -100,5 +99,5 @@ namespace RuntimeSongLoader::HashUtils {
             return std::nullopt;
         return hash;
     }
-    
+
 }

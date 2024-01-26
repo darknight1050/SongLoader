@@ -6,7 +6,7 @@ using namespace GlobalNamespace;
 DEFINE_TYPE(RuntimeSongLoader, SongLoaderBeatmapLevelPackCollectionSO);
 
 void SongLoaderBeatmapLevelPackCollectionSO::ctor() {
-    customBeatmapLevelPacks = List<GlobalNamespace::CustomBeatmapLevelPack*>::New_ctor();
+    customBeatmapLevelPacks = ListW<GlobalNamespace::CustomBeatmapLevelPack*>::New();
 }
 
 SongLoaderBeatmapLevelPackCollectionSO* SongLoaderBeatmapLevelPackCollectionSO::CreateNew(){
@@ -35,5 +35,5 @@ void SongLoaderBeatmapLevelPackCollectionSO::ClearLevelPacks() {
 }
 
 void SongLoaderBeatmapLevelPackCollectionSO::UpdateArray() {
-    allBeatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(reinterpret_cast<Array<IBeatmapLevelPack*>*>(customBeatmapLevelPacks->ToArray().convert()));
+    _allBeatmapLevelPacks = ArrayW<IBeatmapLevelPack*>(reinterpret_cast<Array<IBeatmapLevelPack*>*>(customBeatmapLevelPacks->ToArray().convert()));
 }

@@ -3,7 +3,7 @@
 #include "Paths.hpp"
 #include "Utils/FindComponentsUtils.hpp"
 
-#include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp" 
+#include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
 
 using namespace RuntimeSongLoader;
 using namespace GlobalNamespace;
@@ -22,28 +22,28 @@ SongLoaderCustomBeatmapLevelPack* SongLoaderCustomBeatmapLevelPack::Make_New(std
 
 void SongLoaderCustomBeatmapLevelPack::ctor(StringW packID, StringW packName, Sprite* coverImage) {
     CustomLevelsCollection = CustomBeatmapLevelCollection::New_ctor(ArrayW<CustomPreviewBeatmapLevel*>());
-    auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->defaultPackCover;
-    CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(packID, packName, packName, newCoverImage, newCoverImage, CustomLevelsCollection);
+    auto newCoverImage = coverImage ? coverImage : FindComponentsUtils::GetCustomLevelLoader()->_defaultPackCover.unsafePtr();
+    CustomLevelsPack = CustomBeatmapLevelPack::New_ctor(packID, packName, packName, newCoverImage, newCoverImage, CustomLevelsCollection, GlobalNamespace::PlayerSensitivityFlag::Unknown);
 }
 
 void SongLoaderCustomBeatmapLevelPack::SortLevels() {
-    auto array = listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->customPreviewBeatmapLevels);
+    auto array = listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels);
     if(!array)
         return;
-    if(array.Length() > 0)
-        std::sort(array.begin(), array.end(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
+    if(array.size() > 0)
+        std::sort(array->begin(), array->end(), [](CustomPreviewBeatmapLevel* first, CustomPreviewBeatmapLevel* second) { return first->songName < second->songName; } );
 }
 
 ArrayW<CustomPreviewBeatmapLevel*> SongLoaderCustomBeatmapLevelPack::GetCustomPreviewBeatmapLevels() {
-    return listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->customPreviewBeatmapLevels);
+    return listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels);
 }
 
 void SongLoaderCustomBeatmapLevelPack::SetCustomPreviewBeatmapLevels(ArrayW<CustomPreviewBeatmapLevel*> customPreviewBeatmapLevels) {
-    CustomLevelsCollection->customPreviewBeatmapLevels = reinterpret_cast<::System::Collections::Generic::IReadOnlyList_1<CustomPreviewBeatmapLevel*>*>(customPreviewBeatmapLevels.convert());
+    CustomLevelsCollection->_customPreviewBeatmapLevels = reinterpret_cast<::System::Collections::Generic::IReadOnlyList_1<CustomPreviewBeatmapLevel*>*>(customPreviewBeatmapLevels.convert());
 }
 
 void SongLoaderCustomBeatmapLevelPack::AddTo(SongLoaderBeatmapLevelPackCollectionSO* customBeatmapLevelPackCollectionSO, bool addIfEmpty) {
-    if(addIfEmpty || listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->customPreviewBeatmapLevels).Length() > 0) {
+    if(addIfEmpty || listToArrayW<CustomPreviewBeatmapLevel*>(CustomLevelsCollection->_customPreviewBeatmapLevels).size() > 0) {
         customBeatmapLevelPackCollectionSO->AddLevelPack(CustomLevelsPack);
     }
 }

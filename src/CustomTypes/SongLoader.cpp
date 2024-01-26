@@ -3,7 +3,7 @@
 #include "CustomLogger.hpp"
 
 #include "Paths.hpp"
-#include "Sprites.hpp"
+#include "assets.hpp"
 
 #include "LoadingUI.hpp"
 
@@ -17,21 +17,20 @@
 #include "Utils/OggVorbisUtils.hpp"
 #include "Utils/FindComponentsUtils.hpp"
 
-#include "questui/shared/BeatSaberUI.hpp"
-#include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
+#include "bsml/shared/BSML/MainThreadScheduler.hpp"
+#include "bsml/shared/Helpers/getters.hpp"
 
 #include "GlobalNamespace/LevelFilteringNavigationController.hpp"
 #include "GlobalNamespace/CustomLevelLoader.hpp"
 #include "GlobalNamespace/BeatmapLevelsModel.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmap.hpp"
-#include "GlobalNamespace/StandardLevelInfoSaveData_DifficultyBeatmapSet.hpp"
 #include "GlobalNamespace/PreviewDifficultyBeatmapSet.hpp"
 #include "GlobalNamespace/BeatmapData.hpp"
-#include "GlobalNamespace/BeatmapDataLoader_BpmTimeProcessor.hpp"
 #include "GlobalNamespace/BeatmapDifficulty.hpp"
 #include "GlobalNamespace/BeatmapDifficultySerializedMethods.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
+#include "GlobalNamespace/BeatmapCharacteristicCollection.hpp"
 #include "GlobalNamespace/CustomBeatmapLevel.hpp"
 #include "GlobalNamespace/CustomDifficultyBeatmap.hpp"
 #include "GlobalNamespace/CustomDifficultyBeatmapSet.hpp"
@@ -44,11 +43,9 @@
 #include "GlobalNamespace/EnvironmentsListSO.hpp"
 #include "GlobalNamespace/CachedMediaAsyncLoader.hpp"
 #include "GlobalNamespace/ISpriteAsyncLoader.hpp"
-#include "GlobalNamespace/HMTask.hpp"
+#include "GlobalNamespace/PlayerSaveData.hpp"
+#include "GlobalNamespace/ColorScheme.hpp"
 #include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
-#include "BeatmapSaveDataVersion3/BeatmapSaveData_ColorNoteData.hpp"
-#include "BeatmapSaveDataVersion3/BeatmapSaveData_BasicEventData.hpp"
-#include "BeatmapSaveDataVersion3/BeatmapSaveData_BpmChangeEventData.hpp"
 #include "UnityEngine/AudioClip.hpp"
 #include "UnityEngine/GameObject.hpp"
 #include "UnityEngine/Rect.hpp"
@@ -61,6 +58,7 @@
 #include "System/IO/Path.hpp"
 #include "System/IO/Directory.hpp"
 #include "System/Threading/Thread.hpp"
+#include "System/Threading/CancellationToken.hpp"
 
 #include <vector>
 #include <atomic>
@@ -79,7 +77,7 @@ using namespace FindComponentsUtils;
 #define FixEmptyString(name) \
 if(!name) { \
     LOG_WARN("Fixed nullptr string \"%s\"! THIS SHOULDN'T HAPPEN!", #name);\
-    name = System::String::_get_Empty(); \
+    name = ""; \
 }
 
 DEFINE_TYPE(RuntimeSongLoader, SongLoader);
@@ -116,18 +114,26 @@ void SongLoader::ctor() {
     LoadingCancelled = false;
     MaxFolders = 0;
     CurrentFolder = 0;
+}
 
+void SongLoader::Awake() {
+    LOG_INFO("SongLoader Awake");
     beatmapDataLoader = BeatmapDataLoader::New_ctor();
 
     CustomLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
     CustomWIPLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels");
-    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", QuestUI::BeatSaberUI::Base64ToSprite(Sprites::CustomWIPLevelsCover));
+    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::ArrayToSprite(Assets::CustomWIPLevelsCover_png));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
-}
+    // precache things we use off main thread
+    BSML::Helpers::GetDiContainer();
+    FindComponentsUtils::GetCustomLevelLoader();
+    FindComponentsUtils::GetBeatmapLevelsModel();
+    FindComponentsUtils::GetSimpleDialogPromptViewController();
+    FindComponentsUtils::GetLevelSelectionNavigationController();
+    FindComponentsUtils::GetCachedMediaAsyncLoader();
 
-void SongLoader::Awake() {
     if(IsLoading)
         LoadingCancelled = true;
 }
@@ -174,20 +180,66 @@ CustomJSONData::CustomLevelInfoSaveData* SongLoader::GetStandardLevelInfoSaveDat
 
 EnvironmentInfoSO* SongLoader::LoadEnvironmentInfo(StringW environmentName, bool allDirections) {
     auto customlevelLoader = GetCustomLevelLoader();
-    EnvironmentInfoSO* environmentInfoSO = customlevelLoader->environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
+    auto environmentInfoSO = customlevelLoader->_environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
     if(!environmentInfoSO)
-        environmentInfoSO = (allDirections ? customlevelLoader->defaultAllDirectionsEnvironmentInfo : customlevelLoader->defaultEnvironmentInfo);
-    LOG_DEBUG("LoadEnvironmentInfo: %p", environmentInfoSO);
+        environmentInfoSO = (allDirections ? customlevelLoader->_defaultAllDirectionsEnvironmentInfo : customlevelLoader->_defaultEnvironmentInfo);
+    LOG_DEBUG("LoadEnvironmentInfo: %p", environmentInfoSO.convert());
     return environmentInfoSO;
 }
 
+ArrayW<EnvironmentInfoSO*> SongLoader::LoadEnvironmentInfos(ArrayW<StringW> environmentNames) {
+    // if null input, just return 0 length
+    if (!environmentNames) return ArrayW<EnvironmentInfoSO*>::Empty();
+
+    auto customlevelLoader = GetCustomLevelLoader();
+    auto envs = ListW<EnvironmentInfoSO*>::New();
+    for (auto environmentName : environmentNames) {
+        auto environmentInfoSO = customlevelLoader->_environmentSceneInfoCollection->GetEnvironmentInfoBySerializedName(environmentName);
+        if (environmentInfoSO) envs->Add(environmentInfoSO);
+    }
+    return envs->ToArray();
+}
+
+ArrayW<ColorScheme*> SongLoader::LoadColorSchemes(ArrayW<BeatmapLevelColorSchemeSaveData*> colorSchemeDatas) {
+    // if null input, just return 0 length
+    if (!colorSchemeDatas) return ArrayW<ColorScheme*>::Empty();
+
+    ListW<ColorScheme*> colorSchemes = ListW<ColorScheme*>::New();
+    for (auto saveData : colorSchemeDatas) {
+        auto colorScheme = saveData->colorScheme;
+        if (colorScheme) {
+            colorSchemes->Add(
+                ColorScheme::New_ctor(
+                    colorScheme->colorSchemeId,
+                    "",
+                    false,
+                    "",
+                    false,
+                    colorScheme->saberAColor,
+                    colorScheme->saberBColor,
+                    colorScheme->environmentColor0,
+                    colorScheme->environmentColor1,
+                    {1, 1, 1, 1},
+                    true,
+                    colorScheme->environmentColor0Boost,
+                    colorScheme->environmentColor1Boost,
+                    {1, 1, 1, 1},
+                    colorScheme->obstaclesColor
+                )
+            );
+        }
+    }
+    return colorSchemes->ToArray();
+}
+
 CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string const& customLevelPath, bool wip, CustomJSONData::CustomLevelInfoSaveData* standardLevelInfoSaveData, std::string& outHash) {
-    if(!standardLevelInfoSaveData) 
-        return nullptr;
+    static auto logger = getLogger().WithContext("LoadCustomPreviewBeatmapLevel");
+    RET_0_UNLESS(logger, standardLevelInfoSaveData);
+
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel StandardLevelInfoSaveData: ");
     auto hashOpt = HashUtils::GetCustomLevelHash(standardLevelInfoSaveData, customLevelPath);
-    if(!hashOpt.has_value())
-        return nullptr;
+    RET_0_UNLESS(logger, hashOpt);
+
     outHash = *hashOpt;
     std::string stringLevelID = CustomLevelPrefixID + outHash;
     if(wip)
@@ -220,25 +272,63 @@ CustomPreviewBeatmapLevel* SongLoader::LoadCustomPreviewBeatmapLevel(std::string
 
     EnvironmentInfoSO* environmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->environmentName, false);
     EnvironmentInfoSO* allDirectionsEnvironmentInfo = LoadEnvironmentInfo(standardLevelInfoSaveData->allDirectionsEnvironmentName, true);
-    List<PreviewDifficultyBeatmapSet*>* list = List<PreviewDifficultyBeatmapSet*>::New_ctor();
-    for(StandardLevelInfoSaveData::DifficultyBeatmapSet* difficultyBeatmapSet : standardLevelInfoSaveData->difficultyBeatmapSets) {
-        if (!difficultyBeatmapSet)
-            continue;
+    ArrayW<EnvironmentInfoSO*> environmentInfos = LoadEnvironmentInfos(standardLevelInfoSaveData->environmentNames);
+    ArrayW<ColorScheme*> colorSchemes = LoadColorSchemes(standardLevelInfoSaveData->colorSchemes);
 
-        BeatmapCharacteristicSO* beatmapCharacteristicBySerializedName = GetCustomLevelLoader()->beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
-        LOG_DEBUG("beatmapCharacteristicBySerializedName: %s", static_cast<std::string>(difficultyBeatmapSet->beatmapCharacteristicName).c_str());
-        if(beatmapCharacteristicBySerializedName) {
-            ArrayW<BeatmapDifficulty> array = ArrayW<BeatmapDifficulty>(difficultyBeatmapSet->difficultyBeatmaps.Length());
-            for(int j = 0; j < array.Length(); j++) {
+    auto beatmapCharacteristicCollection = BSML::Helpers::GetDiContainer()->TryResolve<BeatmapCharacteristicCollection*>();
+
+    auto list = ListW<PreviewDifficultyBeatmapSet*>::New();
+    for(auto difficultyBeatmapSet : standardLevelInfoSaveData->difficultyBeatmapSets) {
+        if (!difficultyBeatmapSet) continue;
+
+        auto beatmapCharacteristicBySerializedName = beatmapCharacteristicCollection->GetBeatmapCharacteristicBySerializedName(difficultyBeatmapSet->beatmapCharacteristicName);
+
+        if (beatmapCharacteristicBySerializedName) {
+            ArrayW<BeatmapDifficulty> difficulties(il2cpp_array_size_t(difficultyBeatmapSet->difficultyBeatmaps.size()));
+
+            for(int j = 0; j < difficulties.size(); j++) {
                 BeatmapDifficulty beatmapDifficulty;
-                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty, beatmapDifficulty);
-                array[j] = beatmapDifficulty;
+
+                BeatmapDifficultySerializedMethods::BeatmapDifficultyFromSerializedName(
+                    difficultyBeatmapSet->difficultyBeatmaps[j]->difficulty,
+                    byref(beatmapDifficulty)
+                );
+
+                difficulties[j] = beatmapDifficulty;
             }
-            list->Add(PreviewDifficultyBeatmapSet::New_ctor(beatmapCharacteristicBySerializedName, array));
+
+            list->Add(
+                PreviewDifficultyBeatmapSet::New_ctor(
+                    beatmapCharacteristicBySerializedName,
+                    difficulties
+                )
+            );
         }
     }
     LOG_DEBUG("LoadCustomPreviewBeatmapLevel Stop");
-    auto result = CustomPreviewBeatmapLevel::New_ctor(GetCustomLevelLoader()->defaultPackCover, standardLevelInfoSaveData, customLevelPath, reinterpret_cast<ISpriteAsyncLoader*>(GetCachedMediaAsyncLoader()), stringLevelID, songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime, previewDuration, environmentInfo, allDirectionsEnvironmentInfo, reinterpret_cast<IReadOnlyList_1<PreviewDifficultyBeatmapSet*>*>(list));
+    auto result = CustomPreviewBeatmapLevel::New_ctor(
+        GetCustomLevelLoader()->_defaultPackCover,
+        standardLevelInfoSaveData,
+        customLevelPath,
+        *GetCachedMediaAsyncLoader(),
+        stringLevelID,
+        songName,
+        songSubName,
+        songAuthorName,
+        levelAuthorName,
+        beatsPerMinute,
+        songTimeOffset,
+        shuffle,
+        shufflePeriod,
+        previewStartTime,
+        previewDuration,
+        environmentInfo,
+        allDirectionsEnvironmentInfo,
+        environmentInfos,
+        colorSchemes,
+        ::GlobalNamespace::PlayerSensitivityFlag::Unknown,
+        reinterpret_cast<IReadOnlyList_1<PreviewDifficultyBeatmapSet*>*>(list.convert())
+    );
     UpdateSongDuration(result, customLevelPath);
     return result;
 }
@@ -260,18 +350,32 @@ void SongLoader::UpdateSongDuration(CustomPreviewBeatmapLevel* level, std::strin
     }
     if(length < 0.0f || length == INFINITY)
         length = 0.0f;
-    level->songDuration = length;
+    level->_songDuration_k__BackingField = length;
     cacheData.songDuration = length;
     CacheUtils::UpdateCacheData(customLevelPath, cacheData);
 }
 
+template<typename Out, typename T, class Predicate>
+static inline Out Max(ArrayW<T> array, Predicate pred) {
+    Out max = std::numeric_limits<Out>::min();
+    for (auto item : array) {
+        auto value = pred(item);
+        if (value > max) max = value;
+    }
+    return max;
+}
+
 float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string const& customLevelPath) {
     std::string diffFile = "";
-    try
-    {
-        diffFile = static_cast<std::string>(level->standardLevelInfoSaveData->difficultyBeatmapSets.First()->difficultyBeatmaps.Last()->beatmapFilename);
-    } catch (std::runtime_error e)
-    {
+    try {
+        auto saveData = level->standardLevelInfoSaveData;
+        auto sets = saveData ? saveData->difficultyBeatmapSets : nullptr;
+        auto firstSet = sets ? sets->First() : nullptr;
+        auto maps = firstSet ? firstSet->get_difficultyBeatmaps() : nullptr;
+        auto lastMap = maps ? maps->Last() : nullptr;
+        auto filename = lastMap ? lastMap->beatmapFilename : nullptr;
+        diffFile = static_cast<std::string>(filename ? filename : "");
+    } catch (std::runtime_error e) {
         LOG_ERROR("GetLengthFromMap Error finding diffFile: %s", e.what());
     }
     std::string path = customLevelPath + "/" + diffFile;
@@ -287,9 +391,9 @@ float SongLoader::GetLengthFromMap(CustomPreviewBeatmapLevel* level, std::string
         }
         float highestBeat = 0.0f;
         if(beatmapSaveData->colorNotes->get_Count() > 0) {
-            highestBeat = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->colorNotes->ToArray(), [](BeatmapSaveData::ColorNoteData* x){ return x->b; });
+            highestBeat = Max<float>(beatmapSaveData->colorNotes->ToArray(), [](BeatmapSaveData::ColorNoteData* x){ return x->b; });
         } else if(beatmapSaveData->basicBeatmapEvents->get_Count() > 0) {
-            highestBeat = QuestUI::ArrayUtil::Max<float>(beatmapSaveData->basicBeatmapEvents->ToArray(), [](BeatmapSaveData::BasicEventData* x){ return x->b; });
+            highestBeat = Max<float>(beatmapSaveData->basicBeatmapEvents->ToArray(), [](BeatmapSaveData::BasicEventData* x){ return x->b; });
         }
         return BeatmapDataLoader::BpmTimeProcessor::New_ctor(level->beatsPerMinute, beatmapSaveData->bpmEvents)->ConvertBeatToTime(highestBeat);
     } catch(const std::runtime_error& e) {
@@ -322,22 +426,166 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
     }
 
     auto beatmapLevelsModel = GetBeatmapLevelsModel();
-    beatmapLevelsModel->customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
+    beatmapLevelsModel->_customLevelPackCollection = reinterpret_cast<IBeatmapLevelPackCollection*>(CustomBeatmapLevelPackCollectionSO);
     beatmapLevelsModel->UpdateLoadedPreviewLevels();
     static SafePtrUnity<LevelFilteringNavigationController> levelFilteringNavigationController;
     if (!levelFilteringNavigationController)
-        levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>().FirstOrDefault();
+        levelFilteringNavigationController = Resources::FindObjectsOfTypeAll<LevelFilteringNavigationController*>()->FirstOrDefault();
 
     if(levelFilteringNavigationController)
         levelFilteringNavigationController->UpdateCustomSongs();
 }
 
+void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& threadsFinished, std::vector<std::string>& customLevelsFolders, std::vector<std::string>& loadedPaths, std::mutex& valuesMutex) {
+    int i = index++;
+    while(i < MaxFolders) {
+        std::string const& songPath = customLevelsFolders.at(i);
+        LOG_INFO("Loading %s ...", songPath.c_str());
+        try {
+            auto startLevel = std::chrono::high_resolution_clock::now();
+            bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
+
+            CustomPreviewBeatmapLevel* level = nullptr;
+            auto songPathCS = StringW(songPath);
+            bool containsKey = CustomLevels->ContainsKey(songPathCS);
+
+            if(containsKey) {
+                level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
+            } else {
+                containsKey = CustomWIPLevels->ContainsKey(songPathCS);
+                if(containsKey)
+                    level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
+            }
+
+            if(!level) {
+                CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
+                std::string hash;
+                level = LoadCustomPreviewBeatmapLevel(songPath, wip, saveData, hash);
+            }
+
+            if(level) {
+                std::lock_guard<std::mutex> lock(valuesMutex);
+                if(!containsKey) {
+                    if(wip) {
+                        CustomWIPLevels->Add(songPathCS, level);
+                    } else {
+                        CustomLevels->Add(songPathCS, level);
+                    }
+                }
+                loadedPaths.push_back(songPath);
+                CurrentFolder++;
+                std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel);
+                LOG_INFO("Loaded %s in %dms!", songPath.c_str(), (int)durationLevel.count());
+            } else {
+                LOG_ERROR("Failed loading %s, null level returned!", songPath.c_str());
+            }
+        } catch(il2cpp_utils::RunMethodException const& e) {
+            LOG_ERROR("RunMethodException thrown while loading %s: %s", songPath.c_str(), e.what());
+            e.log_backtrace();
+        } catch (std::exception const& e) {
+            LOG_ERROR("Exception thrown while loading %s: %s", songPath.c_str(), e.what());
+        } catch (...) {
+            LOG_ERROR("Unknown exception thrown while loading %s!", songPath.c_str());
+        }
+        i = index++;
+    }
+    threadsFinished++;
+}
+
+void SongLoader::RefreshSongs_internal(bool fullRefresh, std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)> songsLoaded) {
+    LOG_INFO("RefreshSongs_internal");
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    if(fullRefresh) {
+        CustomLevels->Clear();
+        CustomWIPLevels->Clear();
+    }
+
+    std::mutex valuesMutex;
+    std::vector<std::string> loadedPaths;
+
+    std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(API::GetCustomLevelsPath());
+    std::vector<std::string> customWIPLevelsFolders = FileUtils::GetFolders(API::GetCustomWIPLevelsPath());
+    customLevelsFolders.insert(std::end(customLevelsFolders), std::begin(customWIPLevelsFolders), std::end(customWIPLevelsFolders));
+
+    MaxFolders = customLevelsFolders.size();
+    std::atomic_int threadsFinished = 0;
+    std::atomic_int index = 0;
+    int threadsCount = std::min(MaxFolders, MAX_THREADS);
+
+    std::vector<il2cpp_utils::il2cpp_aware_thread> refresh_threads;
+    for(int threadIndex = 0; threadIndex < threadsCount; threadIndex++) {
+        LOG_INFO("creating thread %d", threadIndex);
+
+        refresh_threads.emplace_back(
+            [&](){
+                SongLoader::RefreshSong_thread(
+                    index,
+                    threadsFinished,
+                    customLevelsFolders,
+                    loadedPaths,
+                    valuesMutex
+                );
+            }
+        );
+    }
+
+    //Wait for threads to finish
+    for (auto& thread : refresh_threads) {
+        thread.join();
+    }
+
+    auto customPreviewLevels = GetDictionaryValues(CustomLevels);
+    auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
+
+    CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
+    CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);
+
+    int levelsCount = customPreviewLevels.size() + customWIPPreviewLevels.size();
+
+    auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+
+    LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
+    LOG_INFO("Loaded %d songs in %dms!", levelsCount, (int)duration.count());
+
+    LoadedLevels.clear();
+    LoadedLevels.insert(LoadedLevels.end(), customPreviewLevels.begin(), customPreviewLevels.end());
+    LoadedLevels.insert(LoadedLevels.end(), customWIPPreviewLevels.begin(), customWIPPreviewLevels.end());
+
+    BSML::MainThreadScheduler::Schedule(
+        [this, songsLoaded] {
+            LOG_INFO("Loading songs done, invoking levelpack load");
+
+            RefreshLevelPacks(true);
+
+            IsLoading = false;
+            HasLoaded = true;
+
+            if(songsLoaded)
+                songsLoaded(LoadedLevels);
+
+            std::lock_guard<std::mutex> lock(LoadedEventsMutex);
+            for (auto& event : LoadedEvents) {
+                event(LoadedLevels);
+            }
+        }
+    );
+
+    CacheUtils::SaveToFile(loadedPaths);
+}
+
 void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
     if(IsLoading)
         return;
-    SceneManagement::Scene activeScene = SceneManagement::SceneManager::GetActiveScene();
-    
+
+    auto activeScene = SceneManagement::SceneManager::GetActiveScene();
+    std::string activeSceneName = "Invalid";
+    if (activeScene.IsValid()) activeSceneName = static_cast<std::string>(activeScene.get_name());
+    LOG_INFO("Active scene: %s", activeSceneName.c_str());
+
     if(!activeScene.IsValid() || static_cast<std::string>(activeScene.get_name()).find("Menu") == std::string::npos) {
+        LOG_INFO("Queueing refresh for later");
         queuedRefresh = queuedRefresh.value_or(fullRefresh) | fullRefresh;
         if(songsLoaded) {
             queuedCallback = [songsLoaded = std::move(songsLoaded), queuedCallback = std::move(queuedCallback)](std::vector<CustomPreviewBeatmapLevel*> const& levels) {
@@ -353,132 +601,26 @@ void SongLoader::RefreshSongs(bool fullRefresh, std::function<void(std::vector<C
     HasLoaded = false;
     CurrentFolder = 0;
 
-    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
-        (std::function<void()>)[=] {
+    LOG_INFO("Creating bound func");
 
-            auto start = std::chrono::high_resolution_clock::now();
 
-            if(fullRefresh) {
-                CustomLevels->Clear();
-                CustomWIPLevels->Clear();
-            }
-
-            std::mutex valuesMutex;
-            std::vector<std::string> loadedPaths;
-
-            std::vector<std::string> customLevelsFolders = FileUtils::GetFolders(API::GetCustomLevelsPath());
-            std::vector<std::string> customWIPLevelsFolders = FileUtils::GetFolders(API::GetCustomWIPLevelsPath());
-            customLevelsFolders.insert(std::end(customLevelsFolders), std::begin(customWIPLevelsFolders), std::end(customWIPLevelsFolders));
-
-            MaxFolders = customLevelsFolders.size();
-            std::atomic_int threadsFinished = 0;
-            std::atomic_int index = 0;
-            int threadsCount = std::min(MaxFolders, MAX_THREADS);
-            for(int threadIndex = 0; threadIndex < threadsCount; threadIndex++) {
-                HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
-                    (std::function<void()>)[this, &index, &customLevelsFolders, &threadsFinished, &loadedPaths, &valuesMutex] {
-                        int i = index++;
-                        while(i < MaxFolders) {
-                            std::string const& songPath = customLevelsFolders[i];
-                            LOG_INFO("Loading %s ...", songPath.c_str());
-                            try {
-                                auto startLevel = std::chrono::high_resolution_clock::now(); 
-                                bool wip = songPath.find(CustomWIPLevelsFolder) != std::string::npos;
-                                
-                                CustomPreviewBeatmapLevel* level = nullptr;
-                                auto songPathCS = StringW(songPath);
-                                bool containsKey = CustomLevels->ContainsKey(songPathCS);
-                                if(containsKey) {
-                                    level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomLevels->get_Item(songPathCS));
-                                } else {
-                                    containsKey = CustomWIPLevels->ContainsKey(songPathCS);
-                                    if(containsKey) 
-                                        level = reinterpret_cast<CustomPreviewBeatmapLevel*>(CustomWIPLevels->get_Item(songPathCS));
-                                }
-                                if(!level) {
-                                    CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
-                                    std::string hash;
-                                    level = LoadCustomPreviewBeatmapLevel(songPath, wip, saveData, hash);
-                                }
-                                if(level) { 
-                                    std::lock_guard<std::mutex> lock(valuesMutex);
-                                    if(!containsKey) {
-                                        if(wip) {
-                                            CustomWIPLevels->Add(songPathCS, level);
-                                        } else {
-                                            CustomLevels->Add(songPathCS, level);
-                                        }
-                                    }
-                                    loadedPaths.push_back(songPath);
-                                    CurrentFolder++;
-                                    std::chrono::milliseconds durationLevel = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startLevel);
-                                    LOG_INFO("Loaded %s in %dms!", songPath.c_str(), (int)durationLevel.count());
-                                } else {
-                                    LOG_ERROR("Failed loading %s!", songPath.c_str());
-                                }
-                            } catch (...) {
-                                LOG_ERROR("Failed loading %s!", songPath.c_str());
-                            }
-                            i = index++;
-                        }
-                        threadsFinished++;
-                    }
-                ), nullptr)->Run();
-            }
-            //Wait for threads to finish
-            while(threadsFinished < threadsCount) {
-                Thread::Yield();
-            }
-
-            auto customPreviewLevels = GetDictionaryValues(CustomLevels);
-            auto customWIPPreviewLevels = GetDictionaryValues(CustomWIPLevels);
-
-            CustomLevelsPack->SetCustomPreviewBeatmapLevels(customPreviewLevels);
-            CustomWIPLevelsPack->SetCustomPreviewBeatmapLevels(customWIPPreviewLevels);
-
-            int levelsCount = customPreviewLevels.Length() + customWIPPreviewLevels.Length();
-            
-            auto duration = duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start); 
-            
-            LoadingUI::UpdateLoadedProgress(levelsCount, duration.count());
-            LOG_INFO("Loaded %d songs in %dms!", levelsCount, (int)duration.count());
-            
-            LoadedLevels.clear();
-            LoadedLevels.insert(LoadedLevels.end(), customPreviewLevels.begin(), customPreviewLevels.end());
-            LoadedLevels.insert(LoadedLevels.end(), customWIPPreviewLevels.begin(), customWIPPreviewLevels.end());
-            
-            QuestUI::MainThreadScheduler::Schedule(
-                [this, songsLoaded] {
-                    
-                    RefreshLevelPacks(true);
-
-                    IsLoading = false;
-                    HasLoaded = true;
-
-                    if(songsLoaded)
-                        songsLoaded(LoadedLevels);
-
-                    std::lock_guard<std::mutex> lock(LoadedEventsMutex);
-                    for (auto& event : LoadedEvents) {
-                        event(LoadedLevels);
-                    }
-                }
-            );
-
-            CacheUtils::SaveToFile(loadedPaths);
-        }
-    ), nullptr)->Run();
+    il2cpp_utils::il2cpp_aware_thread(
+        &SongLoader::RefreshSongs_internal,
+        this,
+        fullRefresh,
+        songsLoaded
+    ).detach();
 }
 
 void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& finished) {
-    HMTask::New_ctor(custom_types::MakeDelegate<System::Action*>(
-        (std::function<void()>)[this, path, finished] {
+    il2cpp_utils::il2cpp_aware_thread(
+        [this, path, finished] {
             FileUtils::DeleteFolder(path);
             auto songPathCS = StringW(path);
             CustomLevels->Remove(songPathCS);
             CustomWIPLevels->Remove(songPathCS);
             LOG_INFO("Deleted Song %s!", path.data());
-            QuestUI::MainThreadScheduler::Schedule(
+            BSML::MainThreadScheduler::Schedule(
                 [this, &finished] {
                     std::lock_guard<std::mutex> lock(SongDeletedEventsMutex);
                     for (auto& event : SongDeletedEvents) {
@@ -488,5 +630,5 @@ void SongLoader::DeleteSong(std::string_view path, std::function<void()> const& 
                 }
             );
         }
-    ), nullptr)->Run();
+    ).detach();
 }
