@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
@@ -7,9 +8,12 @@
     "version": "0.11.0",
     "url": "https://github.com/darknight1050/SongLoader",
     "additionalData": {
-      "cmake": true,
-      "overrideSoName": "libsongloader.so"
+      "overrideSoName": "libsongloader.so",
+      "cmake": true
     }
+  },
+  "workspace": {
+    "scripts": {}
   },
   "dependencies": [
     {
@@ -19,7 +23,7 @@
     },
     {
       "id": "bs-cordl",
-      "versionRange": "^3402.*",
+      "versionRange": "3402.*",
       "additionalData": {}
     },
     {
@@ -53,7 +57,11 @@
       "id": "fmt",
       "versionRange": "^10.0.0",
       "additionalData": {}
+    },
+    {
+      "id": "kaleb",
+      "versionRange": "^0.1.7",
+      "additionalData": {}
     }
-  ],
-  "workspace": null
+  ]
 }
