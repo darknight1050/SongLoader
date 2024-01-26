@@ -14,7 +14,13 @@
       }
     },
     "workspace": {
-      "scripts": {}
+      "scripts": {
+        "qmod": [
+          "pwsh ./build.ps1 -clean",
+          "qpm qmod build",
+          "pwsh ./createqmod.ps1 SongLoader -clean"
+        ]
+      }
     },
     "dependencies": [
       {
