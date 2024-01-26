@@ -3,7 +3,7 @@
 #include "CustomLogger.hpp"
 
 #include "Paths.hpp"
-#include "Sprites.hpp"
+#include "assets.hpp"
 
 #include "LoadingUI.hpp"
 
@@ -124,7 +124,7 @@ void SongLoader::Awake() {
     CustomWIPLevels = Dictionary_2<StringW, CustomPreviewBeatmapLevel*>::New_ctor();
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels");
-    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::Base64ToSprite(Sprites::CustomWIPLevelsCover));
+    CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::ArrayToSprite(Assets::CustomWIPLevelsCover_png));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelPackCollectionSO::CreateNew();
     // precache things we use off main thread
     BSML::Helpers::GetDiContainer();

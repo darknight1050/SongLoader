@@ -8,7 +8,7 @@
 
 #include "bsml/shared/BSML-Lite.hpp"
 
-#include "Sprites.hpp"
+#include "assets.hpp"
 
 #include "GlobalNamespace/MainSystemInit.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollection.hpp"
@@ -101,10 +101,9 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         if(!created) {
             created = true;
 
-            static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::Base64ToSprite(Sprites::CustomCharacteristics::MissingBase64), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
-            static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::Base64ToSprite(Sprites::CustomCharacteristics::LightshowBase64), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
-            static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::Base64ToSprite(Sprites::CustomCharacteristics::LawlessBase64), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
-            static SafePtrUnity<BeatmapCharacteristicSO> legacy = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::Base64ToSprite(Sprites::CustomCharacteristics::LegacyBase64), "Legacy", "Legacy - 1.31 Backport", "Legacy", "Legacy", false, false, 2);
+            static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Missing_png), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
+            static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lightshow_png), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
+            static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lawless_png), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
         }
     }
 

@@ -8,7 +8,7 @@
 #include "CustomConfig.hpp"
 
 #include "Paths.hpp"
-#include "Sprites.hpp"
+#include "assets.hpp"
 #include "LevelData.hpp"
 
 #include "CustomBeatmapLevelLoader.hpp"
@@ -222,7 +222,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto iconTransform = imageView->get_rectTransform();
         iconTransform->SetParent(contentTransform, false);
         imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->First([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
-        imageView->set_sprite(BSML::Lite::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
+        imageView->set_sprite(BSML::Lite::ArrayToSprite(Assets::DeleteLevelButtonIcon_png));
         imageView->set_preserveAspect(true);
 
         float scale = 1.7f;
@@ -286,7 +286,7 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
             auto iconTransform = deleteLevelButtonTransform->Find(iconName);
             auto imageView = iconTransform->GetComponent<ImageView*>();
             imageView->set_material(Resources::FindObjectsOfTypeAll<Material*>()->FirstOrDefault([] (Material* x) { return x->get_name() == u"UINoGlow"; }));
-            imageView->set_sprite(BSML::Lite::Base64ToSprite(Sprites::DeleteLevelButtonIcon));
+            imageView->set_sprite(BSML::Lite::ArrayToSprite(Assets::DeleteLevelButtonIcon_png));
             imageView->set_preserveAspect(true);
 
             float scale = 1.7f;
