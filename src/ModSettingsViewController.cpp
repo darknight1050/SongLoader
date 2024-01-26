@@ -14,10 +14,10 @@ using namespace RuntimeSongLoader;
 
 void DidActivate(ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
     if(firstActivation) {
-        self->get_gameObject()->AddComponent<Touchable*>();
+        self->gameObject->AddComponent<Touchable*>();
 
-        GameObject* container = BSML::Lite::CreateScrollableSettingsContainer(self->transform.unsafePtr());
-        Transform* parent = container->get_transform();
+        auto container = BSML::Lite::CreateScrollableSettingsContainer(self->transform);
+        auto parent = container->transform;
 
         BSML::Lite::CreateUIButton(parent, "Reload New Songs", [] {
                 API::RefreshSongs(false);
