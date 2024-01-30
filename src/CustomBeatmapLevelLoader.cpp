@@ -251,9 +251,11 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                                 [=] {
                                     try {
                                         self->_loadedBeatmapLevels->PutToCache(levelID, reinterpret_cast<IBeatmapLevel*>(customBeatmapLevel));
-                                    } catch (std::runtime_error const& e) {
+                                    } catch (std::exception const& e) {
                                         getLogger().Backtrace(20);
                                         LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync Failed to put (%s) to cache: %s!", static_cast<std::string>(levelID).c_str(), e.what());
+                                    } catch (...) {
+                                        LOG_ERROR("CustomBeatmapLevelLoader_GetBeatmapLevelAsync Failed to put (%s) to cache! unknown exception (not std::exception) with no known what() method!", static_cast<std::string>(levelID).c_str());
                                     }
                                 }
                             );
