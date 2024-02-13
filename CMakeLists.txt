@@ -16,8 +16,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# stop symbol leaking
+add_link_options(-Wl,--exclude-libs,ALL)
 # compile options used
-add_compile_options(-frtti -fPIE -fPIC -fexceptions -O3 -Wno-invalid-offsetof)
+add_compile_options(-frtti -fPIE -fPIC -fexceptions -O3 -Wno-invalid-offsetof -fvisibility=hidden)
 # compile definitions used
 add_compile_definitions(VERSION=\"${MOD_VERSION}\")
 add_compile_definitions(MOD_ID=\"${MOD_ID}\")

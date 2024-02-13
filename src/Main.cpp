@@ -310,7 +310,9 @@ MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileM
     return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData, beatmapCharacteristicCollection);
 }
 
-extern "C" void setup(CModInfo* info) {
+SONGLOADER_EXPORT_FUNC void setup(CModInfo* info) {
+    LOG_INFO("Starting SongLoader installation...");
+
     info->id = "SongLoader";
     info->version = VERSION;
     info->version_long = 0;
@@ -323,7 +325,7 @@ extern "C" void setup(CModInfo* info) {
     LOG_INFO("Base path is: %s", baseLevelsPath.c_str());
 }
 
-extern "C" void late_load() {
+SONGLOADER_EXPORT_FUNC void late_load() {
     LOG_INFO("Starting SongLoader installation...");
 
     BSML::Init();
