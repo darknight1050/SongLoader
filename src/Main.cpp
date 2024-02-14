@@ -305,11 +305,6 @@ MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
     }
 }
 
-MAKE_HOOK_MATCH(PlayerDataFileManagerSO_LoadFromCurrentVersion, &PlayerDataFileManagerSO::LoadFromCurrentVersion, PlayerData*, PlayerDataFileManagerSO* self, PlayerSaveData* playerSaveData, BeatmapCharacteristicCollection* beatmapCharacteristicCollection){
-    CustomCharacteristics::SetupCustomCharacteristics();
-    return PlayerDataFileManagerSO_LoadFromCurrentVersion(self, playerSaveData, beatmapCharacteristicCollection);
-}
-
 SONGLOADER_EXPORT_FUNC void setup(CModInfo* info) {
     LOG_INFO("Starting SongLoader installation...");
 
@@ -335,7 +330,6 @@ SONGLOADER_EXPORT_FUNC void late_load() {
     INSTALL_HOOK(getLogger(), SceneManager_Internal_ActiveSceneChanged);
     INSTALL_HOOK(getLogger(), StandardLevelDetailView_RefreshContent);
     INSTALL_HOOK(getLogger(), StandardLevelDetailViewController_ShowContent);
-    INSTALL_HOOK(getLogger(), PlayerDataFileManagerSO_LoadFromCurrentVersion);
     INSTALL_HOOK(getLogger(), RichPresenceManager_HandleGameScenesManagerTransitionDidFinish);
 
     CustomBeatmapLevelLoader::InstallHooks();

@@ -35,13 +35,31 @@ static inline UnityEngine::HideFlags operator |(UnityEngine::HideFlags a, UnityE
 }
 
 namespace RuntimeSongLoader::CustomCharacteristics {
+    SafePtr<System::Collections::Generic::List_1<UnityW<BeatmapCharacteristicSO>>> characteristicsList = nullptr;
 
-    ListW<UnityW<BeatmapCharacteristicSO>> characteristicsList = nullptr;
+    void RegisterCharacteristics(BeatmapCharacteristicCollectionSO* collection, std::span<BeatmapCharacteristicSO*> characteristics) {
+        if(!characteristicsList) {
+            // manual creation
+            characteristicsList.emplace(ListW<UnityW<BeatmapCharacteristicSO>>::New());
 
-    BeatmapCharacteristicSO* RegisterCustomCharacteristic(Sprite *icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder)
-    {
-        SafePtrUnity<BeatmapCharacteristicSO> characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
-        characteristic->set_hideFlags(characteristic->get_hideFlags() | UnityEngine::HideFlags::DontUnloadUnusedAsset);
+            auto originalCharacteristics = collection->_beatmapCharacteristics;
+            characteristicsList->EnsureCapacity(originalCharacteristics.size() + characteristics.size());
+
+            for (auto characteristic : originalCharacteristics)
+                characteristicsList->Add(characteristic);
+
+            for (auto characteristic : characteristics)
+                characteristicsList->Add(characteristic);
+        }
+
+        collection->_beatmapCharacteristics = characteristicsList->ToArray();
+    }
+
+    BeatmapCharacteristicSO* CreateCharacteristic(Sprite* icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder) {
+        icon->texture->wrapMode = UnityEngine::TextureWrapMode::Clamp;
+
+        auto characteristic = ScriptableObject::CreateInstance<BeatmapCharacteristicSO*>();
+        characteristic->hideFlags = characteristic->hideFlags | UnityEngine::HideFlags::DontUnloadUnusedAsset;
         characteristic->_icon = icon;
         characteristic->_descriptionLocalizationKey = hintText;
         characteristic->_serializedName = serializedName;
@@ -51,60 +69,89 @@ namespace RuntimeSongLoader::CustomCharacteristics {
         characteristic->_containsRotationEvents = containsRotationEvents;
         characteristic->_sortingOrder = sortingOrder;
 
-        static SafePtrUnity<MainSystemInit> mainSystemInit;
-        if (!mainSystemInit)
-            mainSystemInit = Resources::FindObjectsOfTypeAll<MainSystemInit*>()->FirstOrDefault();
-
-        if(!characteristicsList) {
-            // manual creation
-            characteristicsList = ListW<UnityW<BeatmapCharacteristicSO>>::New<il2cpp_utils::CreationType::Manual>();
-
-            if(mainSystemInit) {
-                auto beatmapCharacteristics = mainSystemInit->_beatmapCharacteristicCollection->_beatmapCharacteristics;
-                characteristicsList->EnsureCapacity(beatmapCharacteristics.size());
-                for (auto characteristic : beatmapCharacteristics) characteristicsList->Add(characteristic);
-            }
-        }
-        characteristicsList->Add(characteristic.ptr());
-        if(mainSystemInit)
-            mainSystemInit->_beatmapCharacteristicCollection->_beatmapCharacteristics = characteristicsList->ToArray();
-
-        return characteristic.ptr();
+        return characteristic;
     }
 
     GlobalNamespace::BeatmapCharacteristicSO* FindByName(StringW characteristicName) {
         if(!characteristicsList)
             return nullptr;
+
         for(int i = 0; i < characteristicsList->get_Count(); i++){
             auto characteristic = characteristicsList->get_Item(i);
             if(characteristic && characteristic->serializedName)
                 if(characteristic->serializedName == characteristicName)
                     return characteristic;
         }
+
         return nullptr;
     }
 
-    MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, UnityW<BeatmapCharacteristicSO>, BeatmapCharacteristicCollection* self, StringW serializedName)
-    {
+    static bool registeredCharacteristics = false;
+    MAKE_HOOK_MATCH(MainSystemInit_InstallBindings, &MainSystemInit::InstallBindings, void, MainSystemInit* self, ::Zenject::DiContainer * container, bool isRunningFromTests) {
+        if (!registeredCharacteristics) {
+            registeredCharacteristics = true;
+            static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::CreateCharacteristic(
+                BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Missing_png),
+                "Missing Characteristic",
+                "Missing Characteristic",
+                "MissingCharacteristic",
+                "MissingCharacteristic",
+                false,
+                false,
+                1000
+            );
+
+            SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::CreateCharacteristic(
+                BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lightshow_png),
+                "Lightshow",
+                "Lightshow",
+                "Lightshow",
+                "Lightshow",
+                false,
+                false,
+                100
+            );
+
+            static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::CreateCharacteristic(
+                BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lawless_png),
+                "Lawless",
+                "Lawless - Anything Goes",
+                "Lawless",
+                "Lawless",
+                false,
+                false,
+                101
+            );
+
+            BeatmapCharacteristicSO* characteristics[3] = {
+                missingCharacteristic.ptr(),
+                lightshow.ptr(),
+                lawless.ptr()
+            };
+
+            RegisterCharacteristics(self->_beatmapCharacteristicCollection, std::span<BeatmapCharacteristicSO*>(characteristics));
+        }
+
+        MainSystemInit_InstallBindings(self, container, isRunningFromTests);
+    }
+
+    MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, UnityW<BeatmapCharacteristicSO>, BeatmapCharacteristicCollection* self, StringW serializedName) {
         UnityW<BeatmapCharacteristicSO> result = BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName(self, serializedName);
-        if(!result)
-            result = FindByName("MissingCharacteristic");
+        if(!result) {
+            std::string cppChar(serializedName);
+            LOG_WARN("Could not find characteristic with identifier %s, Attempting to find it manually", cppChar.c_str());
+            result = FindByName(serializedName);
+
+            if (!result) {
+                LOG_WARN("STILL couldn't find characteristic, returning missing characteristic");
+                result = FindByName("MissingCharacteristic");
+            }
+        }
         return result;
     }
 
     void InstallHooks() {
         INSTALL_HOOK(getLogger(), BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName);
+        INSTALL_HOOK(getLogger(), MainSystemInit_InstallBindings);
     }
-
-    void SetupCustomCharacteristics() {
-        static bool created = false;
-        if(!created) {
-            created = true;
-
-            static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Missing_png), "Missing Characteristic", "Missing Characteristic", "MissingCharacteristic", "MissingCharacteristic", false, false, 1000);
-            static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lightshow_png), "Lightshow", "Lightshow", "Lightshow", "Lightshow", false, false, 100);
-            static SafePtrUnity<BeatmapCharacteristicSO> lawless = CustomCharacteristics::RegisterCustomCharacteristic(BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lawless_png), "Lawless", "Lawless - Anything Goes", "Lawless", "Lawless", false, false, 101);
-        }
-    }
-
 }
