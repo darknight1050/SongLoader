@@ -101,7 +101,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
                 1000
             );
 
-            SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::CreateCharacteristic(
+            static SafePtrUnity<BeatmapCharacteristicSO> lightshow = CustomCharacteristics::CreateCharacteristic(
                 BSML::Lite::ArrayToSprite(Assets::CustomCharacteristics::Lightshow_png),
                 "Lightshow",
                 "Lightshow",
