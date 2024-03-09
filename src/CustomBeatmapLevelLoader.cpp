@@ -6,6 +6,7 @@
 #include "custom-types/shared/delegate.hpp"
 
 #include "CustomLogger.hpp"
+#include "tasks.hpp"
 
 #include "Utils/FileUtils.hpp"
 #include "Utils/FindComponentsUtils.hpp"
@@ -193,39 +194,6 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
         return customBeatmapLevel;
     }
 
-    template<typename Ret, typename T>
-    requires(std::is_invocable_r_v<Ret, T>)
-    void task_func(System::Threading::Tasks::Task_1<Ret>* task, T func) {
-        task->TrySetResult(std::invoke(func));
-    }
-
-    template<typename Ret, typename T>
-    requires(std::is_invocable_r_v<Ret, T>)
-    void task_cancel_func(System::Threading::Tasks::Task_1<Ret>* task, T func, System::Threading::CancellationToken cancelToken) {
-        auto value = std::invoke(func);
-        if (!cancelToken.IsCancellationRequested) {
-            task->TrySetResult(std::invoke(func));
-        } else {
-            task->TrySetCanceled(cancelToken);
-        }
-    }
-
-    template<typename Ret, typename T>
-    requires(!std::is_same_v<Ret, void> && std::is_invocable_r_v<Ret, T>)
-    System::Threading::Tasks::Task_1<Ret>* StartTask(T func) {
-        auto t = System::Threading::Tasks::Task_1<Ret>::New_ctor();
-        il2cpp_utils::il2cpp_aware_thread(&task_func<Ret, T>, t, func).detach();
-        return t;
-    }
-
-    template<typename Ret, typename T>
-    requires(!std::is_same_v<Ret, void> && std::is_invocable_r_v<Ret, T>)
-    System::Threading::Tasks::Task_1<Ret>* StartTask(T func, System::Threading::CancellationToken cancelToken) {
-        auto t = System::Threading::Tasks::Task_1<Ret>::New_ctor();
-        il2cpp_utils::il2cpp_aware_thread(&task_cancel_func<Ret, T>, t, func, cancelToken).detach();
-        return t;
-    }
-
     MAKE_HOOK_MATCH(BeatmapLevelsModel_GetBeatmapLevelAsync, &BeatmapLevelsModel::GetBeatmapLevelAsync, Task_1<BeatmapLevelsModel::GetBeatmapLevelResult>*, BeatmapLevelsModel* self, StringW levelID, CancellationToken cancellationToken) {
         auto cppLevelId = levelID ? static_cast<std::string>(levelID) : "";
 
@@ -239,7 +207,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
 
                 LOG_DEBUG("BeatmapLevelsModel_GetBeatmapLevelAsync previewBeatmapLevel %p", previewBeatmapLevel);
                 if (customPreviewBeatmapLevel) {
-                    return StartTask<BeatmapLevelsModel::GetBeatmapLevelResult>([=]{
+                    return SongLoader::StartTask<BeatmapLevelsModel::GetBeatmapLevelResult>([=](SongLoader::CancellationToken token){
                         LOG_INFO("BeatmapLevelsModel_GetBeatmapLevelAsync Thread Start");
                         CustomBeatmapLevel* customBeatmapLevel = CustomBeatmapLevelLoader::LoadCustomBeatmapLevel(customPreviewBeatmapLevel);
                         auto result = BeatmapLevelsModel::GetBeatmapLevelResult(true, nullptr);
@@ -263,7 +231,7 @@ namespace RuntimeSongLoader::CustomBeatmapLevelLoader {
                         }
 
                         return BeatmapLevelsModel::GetBeatmapLevelResult(false, customBeatmapLevel->i___GlobalNamespace__IBeatmapLevel());
-                    }, cancellationToken);
+                    }, std::forward<SongLoader::CancellationToken>(cancellationToken));
                 }
             }
         }
