@@ -10,11 +10,16 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Get Home dir
+      id: home-dir
+      run: echo "path=${HOME}" >> ${GITHUB_OUTPUT}
+      shell: bash
+
     - name: NDK cache
       id: cache
       uses: actions/cache@v3
       with:
-        path: ${HOME}/android-ndk-r27-canary/
+        path: ${{ steps.home-dir.outputs.path }}/android-ndk-r27-canary/
         key: ${{ runner.os }}-ndk-r27-canary
 
     - name: Download canary ndk
