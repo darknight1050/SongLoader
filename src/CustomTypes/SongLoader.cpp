@@ -132,12 +132,7 @@ void SongLoader::Awake() {
     int month = aTime->tm_mon + 1;
 
     bool aprilFools = day == 1 && month == 4;
-    bool EVIL = aprilFools || false;
-    if(!aprilFools) {
-        if (!(rand() % 20)) {
-            EVIL = true;
-        }
-    }
+    bool EVIL = aprilfools || !(rand() % 20);
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels", EVIL ? BSML::Lite::ArrayToSprite(Assets::EVILCustomLevelsCover_png) : BSML::Lite::ArrayToSprite(Assets::CustomLevelsCover_png));
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::ArrayToSprite(Assets::CustomWIPLevelsCover_png));
