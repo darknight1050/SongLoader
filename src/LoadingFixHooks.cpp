@@ -164,18 +164,17 @@ namespace RuntimeSongLoader::LoadingFixHooks {
         if(LevelData::gameplayCoreSceneSetupData) {
             auto gameplayCoreSceneSetupData = LevelData::gameplayCoreSceneSetupData;
             auto dict = gameplayCoreSceneSetupData->beatmapLevel->beatmapBasicData;
-            auto collection = dict->i___System__Collections__Generic__IReadOnlyCollection_1___System__Collections__Generic__KeyValuePair_2_TKey_TValue__();
-            auto enumerable = collection->i___System__Collections__Generic__IEnumerable_1_T_();
-            auto enumerator_1 = enumerable->GetEnumerator();
-            auto enumerator = enumerator_1->i___System__Collections__IEnumerator();
+            auto keys = ListW<System::ValueTuple_2<UnityW<BeatmapCharacteristicSO>, BeatmapDifficulty>>(dict->Keys);
 
             BeatmapBasicData* beatmapData = nullptr;
-            while(enumerator->MoveNext())
+            for (size_t i = 0; i < keys.size(); i++)
             {
-                auto current = enumerator_1->get_Current();
-                if(current.key.Equals(System::ValueTuple_2(gameplayCoreSceneSetupData->beatmapKey.beatmapCharacteristic, gameplayCoreSceneSetupData->beatmapKey.difficulty)))
+                auto key = keys[i];
+                auto characteristic = gameplayCoreSceneSetupData->beatmapKey.beatmapCharacteristic;
+                auto difficulty = gameplayCoreSceneSetupData->beatmapKey.difficulty;
+                if(key.Equals(System::ValueTuple_2(characteristic, difficulty)))
                 {
-                    beatmapData = current.value;
+                    beatmapData = dict->get_Item(key);
                 }
             }
 
