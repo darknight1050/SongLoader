@@ -61,6 +61,7 @@
 
 #include <vector>
 #include <atomic>
+#include <time.h>
 
 #define MAX_THREADS 8
 
@@ -124,7 +125,21 @@ void SongLoader::Awake() {
 
     LevelDatas = Dictionary_2<StringW, IBeatmapLevelData*>::New_ctor();
 
-    CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels", BSML::Lite::ArrayToSprite(Assets::CustomLevelsCover_png));
+    time_t theTime = time(NULL);
+    struct tm *aTime = localtime(&theTime);
+
+    int day = aTime->tm_mday;
+    int month = aTime->tm_mon + 1;
+
+    bool aprilFools = day == 1 && month == 4;
+    bool EVIL = aprilFools || false;
+    if(!aprilFools) {
+        if (!(rand() % 20)) {
+            EVIL = true;
+        }
+    }
+
+    CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels", EVIL ? BSML::Lite::ArrayToSprite(Assets::EVILCustomLevelsCover_png) : BSML::Lite::ArrayToSprite(Assets::CustomLevelsCover_png));
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::ArrayToSprite(Assets::CustomWIPLevelsCover_png));
     CustomBeatmapLevelPackCollectionSO = RuntimeSongLoader::SongLoaderBeatmapLevelsRepository::CreateNew();
 

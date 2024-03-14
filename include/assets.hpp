@@ -7,3 +7,4 @@ DECLARE_FILE(_binary_CustomCharacteristics_Missing_png, Assets::CustomCharacteri
 DECLARE_FILE(_binary_CustomLevelsCover_png, Assets, CustomLevelsCover_png);
 DECLARE_FILE(_binary_CustomWIPLevelsCover_png, Assets, CustomWIPLevelsCover_png);
 DECLARE_FILE(_binary_DeleteLevelButtonIcon_png, Assets, DeleteLevelButtonIcon_png);
+DECLARE_FILE(_binary_EVILCustomLevelsCover_png, Assets, EVILCustomLevelsCover_png);
