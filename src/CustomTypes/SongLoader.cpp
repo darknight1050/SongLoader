@@ -124,6 +124,7 @@ void SongLoader::Awake() {
     CustomWIPLevels = Dictionary_2<StringW, BeatmapLevel*>::New_ctor();
 
     LevelDatas = Dictionary_2<StringW, IBeatmapLevelData*>::New_ctor();
+    LevelSaveDatas = Dictionary_2<StringW, CustomJSONData::CustomLevelInfoSaveData*>::New_ctor();
 
     time_t theTime = time(NULL);
     struct tm *aTime = localtime(&theTime);
@@ -132,7 +133,7 @@ void SongLoader::Awake() {
     int month = aTime->tm_mon + 1;
 
     bool aprilFools = day == 1 && month == 4;
-    bool EVIL = aprilfools || !(rand() % 20);
+    bool EVIL = aprilFools || !(rand() % 20);
 
     CustomLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomLevelsFolder, "Custom Levels", EVIL ? BSML::Lite::ArrayToSprite(Assets::EVILCustomLevelsCover_png) : BSML::Lite::ArrayToSprite(Assets::CustomLevelsCover_png));
     CustomWIPLevelsPack = SongLoaderCustomBeatmapLevelPack::Make_New(CustomWIPLevelsFolder, "WIP Levels", BSML::Lite::ArrayToSprite(Assets::CustomWIPLevelsCover_png));
@@ -441,6 +442,8 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
 
             BeatmapLevel* level = nullptr;
             IBeatmapLevelData* levelData = nullptr;
+            CustomJSONData::CustomLevelInfoSaveData* saveData = nullptr;
+            
             auto songPathCS = StringW(songPath);
             bool containsKey = CustomLevels->ContainsKey(songPathCS);
 
@@ -453,7 +456,7 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
             }
 
             if(!level) {
-                CustomJSONData::CustomLevelInfoSaveData* saveData = GetStandardLevelInfoSaveData(songPath);
+                saveData = GetStandardLevelInfoSaveData(songPath);
                 std::string hash;
                 auto pair = LoadBeatmapLevel(songPath, wip, saveData, hash);
                 level = pair.Item1;
@@ -472,6 +475,10 @@ void SongLoader::RefreshSong_thread(std::atomic_int& index, std::atomic_int& thr
 
                 if(levelData != nullptr) {
                     LevelDatas->Add(level->levelID, levelData);
+                }
+
+                if(saveData != nullptr) {
+                    LevelSaveDatas->Add(level->levelID, saveData);
                 }
 
                 loadedPaths.push_back(songPath);

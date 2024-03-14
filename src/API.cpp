@@ -65,6 +65,27 @@ namespace RuntimeSongLoader::API {
         return std::nullopt;
     }
 
+    std::optional<std::string> GetLevelPathByHash(std::string hash) {
+        try {
+            auto levelData = SongLoader::GetInstance()->LevelDatas->get_Item(hash);
+            auto fileSystemLevelData = reinterpret_cast<GlobalNamespace::FileSystemBeatmapLevelData*>(levelData);
+            std::string audioPath = fileSystemLevelData->_audioClipPath;
+            auto directory = audioPath.substr(0, audioPath.find_last_of('/'));
+            return directory;
+        } catch(...) {
+            return std::nullopt;
+        }
+    }
+
+    std::optional<CustomJSONData::CustomLevelInfoSaveData*> GetCustomSaveDataByHash(std::string hash) {
+        try {
+            auto saveData = SongLoader::GetInstance()->LevelSaveDatas->get_Item(hash);
+            return saveData;
+        } catch(...) {
+            return std::nullopt;
+        }
+    }
+
     std::string GetCustomLevelsPrefix() {
         return CustomLevelPrefixID;
     }

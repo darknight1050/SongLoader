@@ -4,6 +4,7 @@
 #include <string>
 
 #include "GlobalNamespace/BeatmapLevel.hpp"
+#include "GlobalNamespace/FileSystemBeatmapLevelData.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
 #include "GlobalNamespace/BeatmapDataBasicInfo.hpp"
 #include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
@@ -53,6 +54,10 @@ namespace RuntimeSongLoader::API {
     SONGLOADER_EXPORT std::optional<GlobalNamespace::BeatmapLevel*> GetLevelByHash(std::string hash);
 
     SONGLOADER_EXPORT std::optional<GlobalNamespace::BeatmapLevel*> GetLevelById(std::string_view levelID);
+
+    SONGLOADER_EXPORT std::optional<std::string> GetLevelPathByHash(std::string hash);
+
+    SONGLOADER_EXPORT std::optional<CustomJSONData::CustomLevelInfoSaveData*> GetCustomSaveDataByHash(std::string hash);
 
     SONGLOADER_EXPORT std::string GetCustomLevelsPrefix();
 

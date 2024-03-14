@@ -24,8 +24,9 @@
 #include <vector>
 
 namespace RuntimeSongLoader {
-    using DictionaryType = ::System::Collections::Generic::Dictionary_2<StringW, ::GlobalNamespace::BeatmapLevel*>*;
-    using DictionaryDataType = ::System::Collections::Generic::Dictionary_2<StringW, ::GlobalNamespace::IBeatmapLevelData*>*;
+    using DictionaryType = System::Collections::Generic::Dictionary_2<StringW, GlobalNamespace::BeatmapLevel*>*;
+    using DictionaryDataType = System::Collections::Generic::Dictionary_2<StringW, GlobalNamespace::IBeatmapLevelData*>*;
+    using DictionarySaveDataType = System::Collections::Generic::Dictionary_2<StringW, CustomJSONData::CustomLevelInfoSaveData*>*;
 }
 
 DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
@@ -34,6 +35,7 @@ DECLARE_CLASS_CODEGEN(RuntimeSongLoader, SongLoader, UnityEngine::MonoBehaviour,
         DECLARE_INSTANCE_FIELD(DictionaryType, CustomWIPLevels);
 
         DECLARE_INSTANCE_FIELD(DictionaryDataType, LevelDatas);
+        DECLARE_INSTANCE_FIELD(DictionarySaveDataType, LevelSaveDatas);
 
         DECLARE_INSTANCE_FIELD(GlobalNamespace::BeatmapDataLoader*, beatmapDataLoader);
 
