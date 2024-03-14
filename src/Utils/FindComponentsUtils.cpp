@@ -34,17 +34,9 @@ namespace RuntimeSongLoader::FindComponentsUtils {
     }
     #define CacheClearComponent(name) _##name = nullptr;
 
-    CacheFindComponentDefineFirst(CustomLevelLoader)
-    CacheFindComponentDefineFirst(BeatmapLevelsModel)
-    CacheFindComponentDefineFirst(CachedMediaAsyncLoader)
-    CacheFindComponentDefineLast(SimpleDialogPromptViewController)
     CacheFindComponentDefineFirst(LevelSelectionNavigationController)
 
     void ClearCache() {
-        CacheClearComponent(CustomLevelLoader)
-        CacheClearComponent(BeatmapLevelsModel)
-        CacheClearComponent(CachedMediaAsyncLoader)
-        CacheClearComponent(SimpleDialogPromptViewController)
         CacheClearComponent(LevelSelectionNavigationController)
     }
 

@@ -10,8 +10,10 @@
 
 #include "assets.hpp"
 
-#include "GlobalNamespace/MainSystemInit.hpp"
+#include "CustomTypes/SongLoader.hpp"
+
 #include "GlobalNamespace/BeatmapCharacteristicCollection.hpp"
+#include "GlobalNamespace/BeatmapCharacteristicInstaller.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
 #include "UnityEngine/ScriptableObject.hpp"
 #include "UnityEngine/Vector4.hpp"
@@ -24,6 +26,7 @@
 #include "UnityEngine/ImageConversion.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "UnityEngine/HideFlags.hpp"
+#include "Zenject/DiContainer.hpp"
 #include "System/Convert.hpp"
 
 
@@ -87,7 +90,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
     }
 
     static bool registeredCharacteristics = false;
-    MAKE_HOOK_MATCH(MainSystemInit_InstallBindings, &MainSystemInit::InstallBindings, void, MainSystemInit* self, ::Zenject::DiContainer * container, bool isRunningFromTests) {
+    MAKE_HOOK_MATCH(BeatmapCharacteristicInstaller_InstallBindings, &BeatmapCharacteristicInstaller::InstallBindings, void, BeatmapCharacteristicInstaller* self) {
         if (!registeredCharacteristics) {
             registeredCharacteristics = true;
             static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::CreateCharacteristic(
@@ -129,10 +132,14 @@ namespace RuntimeSongLoader::CustomCharacteristics {
                 lawless.ptr()
             };
 
-            RegisterCharacteristics(self->_beatmapCharacteristicCollection, std::span<BeatmapCharacteristicSO*>(characteristics));
+            //RegisterCharacteristics(self->_instance, std::span<BeatmapCharacteristicSO*>(characteristics));
         }
 
-        MainSystemInit_InstallBindings(self, container, isRunningFromTests);
+        BeatmapCharacteristicInstaller_InstallBindings(self);
+
+        auto collection = self->Container->Resolve<BeatmapCharacteristicCollection*>();
+        RuntimeSongLoader::SongLoader::GetInstance()->beatmapCharacteristicCollection = collection;
+        LOG_DEBUG("char coll %p", RuntimeSongLoader::SongLoader::GetInstance()->beatmapCharacteristicCollection);
     }
 
     MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, UnityW<BeatmapCharacteristicSO>, BeatmapCharacteristicCollection* self, StringW serializedName) {
@@ -152,6 +159,6 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     void InstallHooks() {
         INSTALL_HOOK(getLogger(), BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName);
-        INSTALL_HOOK(getLogger(), MainSystemInit_InstallBindings);
+        INSTALL_HOOK(getLogger(), BeatmapCharacteristicInstaller_InstallBindings);
     }
 }

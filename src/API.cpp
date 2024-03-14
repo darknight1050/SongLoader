@@ -3,7 +3,6 @@
 #include "Paths.hpp"
 
 #include "CustomTypes/SongLoader.hpp"
-#include "CustomBeatmapLevelLoader.hpp"
 
 namespace RuntimeSongLoader::API {
 
@@ -11,7 +10,7 @@ namespace RuntimeSongLoader::API {
         RefreshSongs(true, nullptr);
     }
 
-    void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded) {
+    void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::BeatmapLevel*> const&)> const& songsLoaded) {
         SongLoader::GetInstance()->RefreshSongs(fullRefresh, songsLoaded);
     }
 
@@ -19,16 +18,12 @@ namespace RuntimeSongLoader::API {
         SongLoader::GetInstance()->RefreshLevelPacks(includeDefault);
     }
 
-    void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& event) {
+    void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::BeatmapLevel*> const&)> const& event) {
         SongLoader::AddSongsLoadedEvent(event);
     }
 
-    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event) {
+    void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelsRepository*)> const& event) {
         SongLoader::AddRefreshLevelPacksEvent(event);
-    }
-
-    void AddBeatmapDataBasicInfoLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveDataVersion3::BeatmapSaveData*, GlobalNamespace::BeatmapDataBasicInfo*)> const& event) {
-        CustomBeatmapLevelLoader::AddBeatmapDataBasicInfoLoadedEvent(event);
     }
 
     void AddSongDeletedEvent(std::function<void()> const& event) {
@@ -39,7 +34,7 @@ namespace RuntimeSongLoader::API {
         SongLoader::GetInstance()->DeleteSong(path, finished);
     }
 
-    std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs() {
+    std::vector<GlobalNamespace::BeatmapLevel*> GetLoadedSongs() {
         return SongLoader::GetInstance()->GetLoadedLevels();
     }
 
@@ -53,7 +48,7 @@ namespace RuntimeSongLoader::API {
         return (float)instance->CurrentFolder / (float)instance->MaxFolders;
     }
 
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash) {
+    std::optional<GlobalNamespace::BeatmapLevel*> GetLevelByHash(std::string hash) {
         std::transform(hash.begin(), hash.end(), hash.begin(), toupper);
         for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
             if(song->levelID.ends_with(hash))
@@ -62,7 +57,7 @@ namespace RuntimeSongLoader::API {
         return std::nullopt;
     }
 
-    std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID) {
+    std::optional<GlobalNamespace::BeatmapLevel*> GetLevelById(std::string_view levelID) {
         for(auto& song : RuntimeSongLoader::API::GetLoadedSongs()) {
             if(song->levelID == levelID)
                 return song;

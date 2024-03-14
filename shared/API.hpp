@@ -3,11 +3,11 @@
 #include "./_config.h"
 #include <string>
 
-#include "GlobalNamespace/CustomPreviewBeatmapLevel.hpp"
+#include "GlobalNamespace/BeatmapLevel.hpp"
 #include "GlobalNamespace/StandardLevelInfoSaveData.hpp"
 #include "GlobalNamespace/BeatmapDataBasicInfo.hpp"
 #include "BeatmapSaveDataVersion3/BeatmapSaveData.hpp"
-#include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
+#include "CustomTypes/SongLoaderBeatmapLevelsRepository.hpp"
 #include "CustomTypes/CustomLevelInfoSaveData.hpp"
 #include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
 
@@ -19,7 +19,7 @@ namespace RuntimeSongLoader::API {
     /// @brief Loads Songs on disk
     /// @tparam fullRefresh If it should reload already loaded songs
     /// @tparam songsLoaded gets called after songs got loaded
-    SONGLOADER_EXPORT void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& songsLoaded = nullptr);
+    SONGLOADER_EXPORT void RefreshSongs(bool fullRefresh, std::function<void(std::vector<GlobalNamespace::BeatmapLevel*> const&)> const& songsLoaded = nullptr);
 
     /// @brief Loads Packs on disk
     /// @tparam includeDefault If the default custom levels playlists should be added
@@ -27,15 +27,11 @@ namespace RuntimeSongLoader::API {
 
     /// @brief Add a loading callback that gets called after songs got loaded
     /// @tparam event Callback event
-    SONGLOADER_EXPORT void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> const&)> const& event);
+    SONGLOADER_EXPORT void AddSongsLoadedEvent(std::function<void(std::vector<GlobalNamespace::BeatmapLevel*> const&)> const& event);
 
     /// @brief Add a callback that gets called before level packs get refreshed
     /// @tparam event Callback event
-    SONGLOADER_EXPORT void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelPackCollectionSO*)> const& event);
-
-    /// @brief Add a callback that gets called after it tried to load a BeatmapData
-    /// @tparam event Callback event
-    SONGLOADER_EXPORT void AddBeatmapDataBasicInfoLoadedEvent(std::function<void(CustomJSONData::CustomLevelInfoSaveData*, std::string const&, BeatmapSaveDataVersion3::BeatmapSaveData*, GlobalNamespace::BeatmapDataBasicInfo*)> const& event);
+    SONGLOADER_EXPORT void AddRefreshLevelPacksEvent(std::function<void(SongLoaderBeatmapLevelsRepository*)> const& event);
 
     /// @brief Add a callback that gets called when a song is deleted
     /// @tparam event Callback event
@@ -46,7 +42,7 @@ namespace RuntimeSongLoader::API {
     /// @tparam finished Callback once done
     SONGLOADER_EXPORT void DeleteSong(std::string_view path, std::function<void()> const& finished = nullptr);
 
-    SONGLOADER_EXPORT std::vector<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLoadedSongs();
+    SONGLOADER_EXPORT std::vector<GlobalNamespace::BeatmapLevel*> GetLoadedSongs();
 
     /// @brief If songs did get loaded
     SONGLOADER_EXPORT bool HasLoadedSongs();
@@ -54,9 +50,9 @@ namespace RuntimeSongLoader::API {
     /// @brief gets how far along the loading progress the songloader is
     SONGLOADER_EXPORT float GetLoadingProgress();
 
-    SONGLOADER_EXPORT std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelByHash(std::string hash);
+    SONGLOADER_EXPORT std::optional<GlobalNamespace::BeatmapLevel*> GetLevelByHash(std::string hash);
 
-    SONGLOADER_EXPORT std::optional<GlobalNamespace::CustomPreviewBeatmapLevel*> GetLevelById(std::string_view levelID);
+    SONGLOADER_EXPORT std::optional<GlobalNamespace::BeatmapLevel*> GetLevelById(std::string_view levelID);
 
     SONGLOADER_EXPORT std::string GetCustomLevelsPrefix();
 
