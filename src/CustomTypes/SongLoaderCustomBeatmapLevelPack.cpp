@@ -38,6 +38,7 @@ ArrayW<BeatmapLevel*> SongLoaderCustomBeatmapLevelPack::GetCustomBeatmapLevels()
 
 void SongLoaderCustomBeatmapLevelPack::SetCustomBeatmapLevels(ArrayW<BeatmapLevel*> customBeatmapLevels) {
     CustomLevelsCollection = customBeatmapLevels;
+    CustomLevelsPack->beatmapLevels = CustomLevelsCollection;
 }
 
 void SongLoaderCustomBeatmapLevelPack::AddTo(SongLoaderBeatmapLevelsRepository* customBeatmapLevelsRepository, bool addIfEmpty) {

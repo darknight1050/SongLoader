@@ -413,9 +413,6 @@ void SongLoader::RefreshLevelPacks(bool includeDefault) const {
         CustomWIPLevelsPack->AddTo(CustomBeatmapLevelPackCollectionSO);
     }
 
-    CustomLevelsPack->CustomLevelsPack->beatmapLevels = CustomLevelsPack->CustomLevelsCollection;
-    CustomWIPLevelsPack->CustomLevelsPack->beatmapLevels = CustomWIPLevelsPack->CustomLevelsCollection;
-
     std::lock_guard<std::mutex> lock(RefreshLevelPacksEventsMutex);
     for (auto& event : RefreshLevelPacksEvents) {
         event(CustomBeatmapLevelPackCollectionSO);
