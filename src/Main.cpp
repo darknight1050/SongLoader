@@ -11,7 +11,6 @@
 #include "assets.hpp"
 #include "LevelData.hpp"
 
-#include "CustomBeatmapLevelLoader.hpp"
 #include "CustomCharacteristics.hpp"
 #include "LoadingFixHooks.hpp"
 #include "LoadingUI.hpp"
@@ -20,7 +19,7 @@
 #include "Utils/CacheUtils.hpp"
 
 #include "ModSettingsViewController.hpp"
-#include "CustomTypes/SongLoaderBeatmapLevelPackCollectionSO.hpp"
+#include "CustomTypes/SongLoaderBeatmapLevelsRepository.hpp"
 #include "CustomTypes/SongLoaderCustomBeatmapLevelPack.hpp"
 #include "CustomTypes/SongLoader.hpp"
 #include "API.hpp"
@@ -49,6 +48,7 @@
 #include "GlobalNamespace/RichPresenceManager.hpp"
 #include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
 #include "GlobalNamespace/MenuScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/FileSystemBeatmapLevelData.hpp"
 #include "Zenject/DiContainer.hpp"
 #include "System/Action_1.hpp"
 
@@ -93,6 +93,7 @@ MAKE_HOOK_MATCH(RichPresenceManager_HandleGameScenesManagerTransitionDidFinish,
     if (shouldRefresh) {
         shouldRefresh = false;
         hasInited = false;
+        SongLoader::GetInstance()->MenuOpened = true;
         FindComponentsUtils::ClearCache();
         API::RefreshSongs(false);
         return;
@@ -129,7 +130,7 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
             hasInited = true;
         }
         if(nextSceneName.find(u"Menu") != std::string::npos) {
-            LevelData::difficultyBeatmap = nullptr;
+            LevelData::gameplayCoreSceneSetupData = nullptr;
             if(hasInited && prevSceneName == u"EmptyTransition") {
                 shouldRefresh = true;
             }
@@ -140,7 +141,7 @@ MAKE_HOOK_MATCH(SceneManager_Internal_ActiveSceneChanged,
 }
 
 ModalView* deleteDialogPromptModal = nullptr;
-CustomPreviewBeatmapLevel* selectedlevel = nullptr;
+BeatmapLevel* selectedlevel = nullptr;
 
 ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
     static TMPro::TextMeshProUGUI* songText = nullptr;
@@ -148,28 +149,35 @@ ModalView* getDeleteDialogPromptModal(std::u16string const& songName) {
         songText = nullptr;
         deleteDialogPromptModal = BSML::Lite::CreateModal(FindComponentsUtils::GetLevelSelectionNavigationController(), Vector2(60, 30), nullptr);
 
+        auto vertical = BSML::Lite::CreateVerticalLayoutGroup(deleteDialogPromptModal);
+
+        songText = BSML::Lite::CreateText(vertical, u"Do you really want to delete \n\"" + songName + u"\"?", 3.0f, {0, 0}, {55, 20});
+        songText->set_enableWordWrapping(true);
+        songText->set_overflowMode(TMPro::TextOverflowModes::Ellipsis);
+        songText->set_alignment(TMPro::TextAlignmentOptions::Center);
+
         static ConstString contentName("Content");
-        auto deleteButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Delete", Vector2(-15, -8.25), [] {
+        auto deleteButton = BSML::Lite::CreateUIButton(vertical, "Delete", Vector2(0, 0), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
-            RuntimeSongLoader::API::DeleteSong(static_cast<std::string>(selectedlevel->customLevelPath),
+            auto levelData = SongLoader::GetInstance()->LevelDatas->get_Item(selectedlevel->levelID);
+            auto fileSystemLevelData = reinterpret_cast<FileSystemBeatmapLevelData*>(levelData);
+            std::string audioPath = fileSystemLevelData->_audioClipPath;
+            auto directory = audioPath.substr(0, audioPath.find_last_of('/'));
+
+            RuntimeSongLoader::API::DeleteSong(directory,
                 [] {
                     RuntimeSongLoader::API::RefreshSongs(false);
                 }
             );
         });
         Object::Destroy(deleteButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
-        auto cancelButton = BSML::Lite::CreateUIButton(deleteDialogPromptModal, "Cancel", Vector2(15, -8.25), [] {
+        auto cancelButton = BSML::Lite::CreateUIButton(vertical, "Cancel", Vector2(0, 0), [] {
             deleteDialogPromptModal->Hide(true, nullptr);
         });
         Object::Destroy(cancelButton->get_transform()->Find(contentName)->GetComponent<LayoutElement*>());
     }
-    if(!songText) {
-        songText = BSML::Lite::CreateText(deleteDialogPromptModal, u"Do you really want to delete \"" + songName + u"\"?", false, {0, 5}, {55, 20});
-        songText->set_enableWordWrapping(true);
-        songText->set_overflowMode(TMPro::TextOverflowModes::Ellipsis);
-        songText->set_alignment(TMPro::TextAlignmentOptions::Center);
-    } else
-        songText->set_text(u"Do you really want to delete \"" + songName + u"\"?");
+    if(songText)
+        songText->set_text(u"Do you really want to delete \n\"" + songName + u"\"?");
     deleteDialogPromptModal->get_transform()->SetAsLastSibling();
     return deleteDialogPromptModal;
 }
@@ -213,8 +221,6 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         auto contentTransform = deleteLevelButtonTransform->Find(contentName);
         Object::Destroy(contentTransform->Find(textName)->get_gameObject());
         Object::Destroy(contentTransform->GetComponent<LayoutElement*>());
-        static ConstString underlineName("Underline");
-        Object::Destroy(deleteLevelButtonTransform->Find(underlineName)->get_gameObject());
 
         static ConstString iconName("Icon");
         auto iconGameObject = GameObject::New_ctor(iconName);
@@ -239,21 +245,20 @@ MAKE_HOOK_MATCH(StandardLevelDetailView_RefreshContent,
         deleteLevelButtonGameObject->GetComponent<Button*>()->set_onClick(createDeleteOnClick());
         deleteLevelButtonGameObject->GetComponent<Button*>()->set_interactable(true);
     }
-    static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
-    bool customLevel = self->_level && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->_level)));
+
+    bool customLevel = self->_beatmapLevel && self->_beatmapLevel->levelID.starts_with(CustomLevelPrefixID);
     if(customLevel)
-        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->_level);
+        selectedlevel = self->_beatmapLevel;
     deleteLevelButtonGameObject->SetActive(customLevel);
 }
 
 MAKE_HOOK_MATCH(StandardLevelDetailViewController_ShowContent,
                 &StandardLevelDetailViewController::ShowContent,
-                void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType contentType, StringW errorText, float downloadingProgress, StringW downloadingText) {
-    StandardLevelDetailViewController_ShowContent(self, contentType, errorText, downloadingProgress, downloadingText);
-    static Il2CppClass* customPreviewBeatmapLevelClass = classof(CustomPreviewBeatmapLevel*);
-    bool customLevel = self->_previewBeatmapLevel && il2cpp_functions::class_is_assignable_from(customPreviewBeatmapLevelClass, il2cpp_functions::object_get_class(reinterpret_cast<Il2CppObject*>(self->_previewBeatmapLevel)));
+                void, StandardLevelDetailViewController* self, StandardLevelDetailViewController::ContentType contentType, StringW errorText) {
+    StandardLevelDetailViewController_ShowContent(self, contentType, errorText);
+    bool customLevel = self->_beatmapLevel && self->_beatmapLevel->levelID.starts_with(CustomLevelPrefixID);
     if(customLevel)
-        selectedlevel = reinterpret_cast<CustomPreviewBeatmapLevel*>(self->_previewBeatmapLevel);
+        selectedlevel = self->_beatmapLevel;
     if(contentType == StandardLevelDetailViewController::ContentType::Error) {
         static ConstString deleteLevelButtonName("DeleteLevelButton");
         auto templateButton = self->_loadingControl->_refreshButton;
@@ -332,7 +337,6 @@ SONGLOADER_EXPORT_FUNC void late_load() {
     INSTALL_HOOK(getLogger(), StandardLevelDetailViewController_ShowContent);
     INSTALL_HOOK(getLogger(), RichPresenceManager_HandleGameScenesManagerTransitionDidFinish);
 
-    CustomBeatmapLevelLoader::InstallHooks();
     CustomCharacteristics::InstallHooks();
     LoadingFixHooks::InstallHooks();
 

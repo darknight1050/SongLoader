@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GlobalNamespace/IDifficultyBeatmap.hpp"
+#include "GlobalNamespace/GameplayCoreSceneSetupData.hpp"
 
 namespace RuntimeSongLoader::LevelData {
 
-    extern GlobalNamespace::IDifficultyBeatmap* difficultyBeatmap;
+    extern GlobalNamespace::GameplayCoreSceneSetupData* gameplayCoreSceneSetupData;
 
 }

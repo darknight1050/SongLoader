@@ -10,8 +10,10 @@
 
 #include "assets.hpp"
 
-#include "GlobalNamespace/MainSystemInit.hpp"
+#include "CustomTypes/SongLoader.hpp"
+
 #include "GlobalNamespace/BeatmapCharacteristicCollection.hpp"
+#include "GlobalNamespace/BeatmapCharacteristicInstaller.hpp"
 #include "GlobalNamespace/BeatmapCharacteristicCollectionSO.hpp"
 #include "UnityEngine/ScriptableObject.hpp"
 #include "UnityEngine/Vector4.hpp"
@@ -24,6 +26,7 @@
 #include "UnityEngine/ImageConversion.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "UnityEngine/HideFlags.hpp"
+#include "Zenject/DiContainer.hpp"
 #include "System/Convert.hpp"
 
 
@@ -37,12 +40,13 @@ static inline UnityEngine::HideFlags operator |(UnityEngine::HideFlags a, UnityE
 namespace RuntimeSongLoader::CustomCharacteristics {
     SafePtr<System::Collections::Generic::List_1<UnityW<BeatmapCharacteristicSO>>> characteristicsList = nullptr;
 
-    void RegisterCharacteristics(BeatmapCharacteristicCollectionSO* collection, std::span<BeatmapCharacteristicSO*> characteristics) {
+    void RegisterCharacteristics(BeatmapCharacteristicCollection* collection, std::span<BeatmapCharacteristicSO*> characteristics) {
         if(!characteristicsList) {
             // manual creation
             characteristicsList.emplace(ListW<UnityW<BeatmapCharacteristicSO>>::New());
 
-            auto originalCharacteristics = collection->_beatmapCharacteristics;
+
+            auto originalCharacteristics = ListW<UnityW<BeatmapCharacteristicSO>>(collection->beatmapCharacteristics);
             characteristicsList->EnsureCapacity(originalCharacteristics.size() + characteristics.size());
 
             for (auto characteristic : originalCharacteristics)
@@ -52,7 +56,7 @@ namespace RuntimeSongLoader::CustomCharacteristics {
                 characteristicsList->Add(characteristic);
         }
 
-        collection->_beatmapCharacteristics = characteristicsList->ToArray();
+        collection->beatmapCharacteristics = characteristicsList->i___System__Collections__Generic__IReadOnlyList_1_T_();
     }
 
     BeatmapCharacteristicSO* CreateCharacteristic(Sprite* icon, StringW characteristicName, StringW hintText, StringW serializedName, StringW compoundIdPartName, bool requires360Movement, bool containsRotationEvents, int sortingOrder) {
@@ -87,7 +91,13 @@ namespace RuntimeSongLoader::CustomCharacteristics {
     }
 
     static bool registeredCharacteristics = false;
-    MAKE_HOOK_MATCH(MainSystemInit_InstallBindings, &MainSystemInit::InstallBindings, void, MainSystemInit* self, ::Zenject::DiContainer * container, bool isRunningFromTests) {
+    MAKE_HOOK_MATCH(BeatmapCharacteristicInstaller_InstallBindings, &BeatmapCharacteristicInstaller::InstallBindings, void, BeatmapCharacteristicInstaller* self) {
+        BeatmapCharacteristicInstaller_InstallBindings(self);
+
+        auto collection = self->Container->Resolve<BeatmapCharacteristicCollection*>();
+        RuntimeSongLoader::SongLoader::GetInstance()->beatmapCharacteristicCollection = collection;
+        LOG_DEBUG("char coll %p", RuntimeSongLoader::SongLoader::GetInstance()->beatmapCharacteristicCollection);
+
         if (!registeredCharacteristics) {
             registeredCharacteristics = true;
             static SafePtrUnity<BeatmapCharacteristicSO> missingCharacteristic = CustomCharacteristics::CreateCharacteristic(
@@ -129,10 +139,8 @@ namespace RuntimeSongLoader::CustomCharacteristics {
                 lawless.ptr()
             };
 
-            RegisterCharacteristics(self->_beatmapCharacteristicCollection, std::span<BeatmapCharacteristicSO*>(characteristics));
+            RegisterCharacteristics(collection, std::span<BeatmapCharacteristicSO*>(characteristics));
         }
-
-        MainSystemInit_InstallBindings(self, container, isRunningFromTests);
     }
 
     MAKE_HOOK_MATCH(BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName, &BeatmapCharacteristicCollection::GetBeatmapCharacteristicBySerializedName, UnityW<BeatmapCharacteristicSO>, BeatmapCharacteristicCollection* self, StringW serializedName) {
@@ -152,6 +160,6 @@ namespace RuntimeSongLoader::CustomCharacteristics {
 
     void InstallHooks() {
         INSTALL_HOOK(getLogger(), BeatmapCharacteristicCollection_GetBeatmapCharacteristicBySerializedName);
-        INSTALL_HOOK(getLogger(), MainSystemInit_InstallBindings);
+        INSTALL_HOOK(getLogger(), BeatmapCharacteristicInstaller_InstallBindings);
     }
 }

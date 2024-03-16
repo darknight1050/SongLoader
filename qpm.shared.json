@@ -6,7 +6,7 @@
     "info": {
       "name": "SongLoader",
       "id": "songloader",
-      "version": "0.11.0",
+      "version": "0.12.0",
       "url": "https://github.com/darknight1050/SongLoader",
       "additionalData": {
         "overrideSoName": "libsongloader.so",
@@ -30,7 +30,7 @@
       },
       {
         "id": "bs-cordl",
-        "versionRange": "3402.*",
+        "versionRange": "3500.*",
         "additionalData": {}
       },
       {
@@ -40,7 +40,7 @@
       },
       {
         "id": "bsml",
-        "versionRange": "^0.4.2",
+        "versionRange": "^0.5.0",
         "additionalData": {
           "private": true
         }
@@ -80,17 +80,13 @@
     {
       "dependency": {
         "id": "bsml",
-        "versionRange": "=0.4.7",
+        "versionRange": "=0.5.0",
         "additionalData": {
-          "soLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.7/libbsml.so",
-          "debugSoLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.7/debug_libbsml.so",
           "overrideSoName": "libbsml.so",
-          "modLink": "https://github.com/RedBrumbler/Quest-BSML/releases/download/v0.4.7/BSML.qmod",
-          "branchName": "version/v0_4_7",
           "cmake": true
         }
       },
-      "version": "0.4.7"
+      "version": "0.5.0"
     },
     {
       "dependency": {
@@ -105,19 +101,19 @@
     {
       "dependency": {
         "id": "kaleb",
-        "versionRange": "=0.1.7",
+        "versionRange": "=0.1.9",
         "additionalData": {
           "headersOnly": true,
-          "branchName": "version/v0_1_7",
+          "branchName": "version/v0_1_9",
           "compileOptions": {
             "cppFlags": [
-              "-DKALEB_VERSION=\"0.1.7\""
+              "-DKALEB_VERSION=\"0.1.9\""
             ]
           },
           "cmake": false
         }
       },
-      "version": "0.1.7"
+      "version": "0.1.9"
     },
     {
       "dependency": {
@@ -135,13 +131,13 @@
     {
       "dependency": {
         "id": "custom-types",
-        "versionRange": "=0.16.17",
+        "versionRange": "=0.16.18",
         "additionalData": {
-          "soLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.17/libcustom-types.so",
-          "debugSoLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.17/debug_libcustom-types.so",
+          "soLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.18/libcustom-types.so",
+          "debugSoLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.18/debug_libcustom-types.so",
           "overrideSoName": "libcustom-types.so",
-          "modLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.17/CustomTypes.qmod",
-          "branchName": "version/v0_16_17",
+          "modLink": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/download/v0.16.18/CustomTypes.qmod",
+          "branchName": "version/v0_16_18",
           "compileOptions": {
             "cppFlags": [
               "-Wno-invalid-offsetof"
@@ -150,15 +146,15 @@
           "cmake": true
         }
       },
-      "version": "0.16.17"
+      "version": "0.16.18"
     },
     {
       "dependency": {
         "id": "bs-cordl",
-        "versionRange": "=3402.1.2",
+        "versionRange": "=3500.0.0",
         "additionalData": {
           "headersOnly": true,
-          "branchName": "version/v3402_1_2",
+          "branchName": "version/v3500_0_0",
           "compileOptions": {
             "includePaths": [
               "include"
@@ -173,7 +169,7 @@
           }
         }
       },
-      "version": "3402.1.2"
+      "version": "3500.0.0"
     },
     {
       "dependency": {

@@ -2,6 +2,6 @@
 
 namespace RuntimeSongLoader::LevelData {
 
-    GlobalNamespace::IDifficultyBeatmap* difficultyBeatmap;
+    GlobalNamespace::GameplayCoreSceneSetupData* gameplayCoreSceneSetupData;
 
 }
