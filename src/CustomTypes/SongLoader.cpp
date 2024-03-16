@@ -359,7 +359,7 @@ ValueTuple_2<BeatmapLevel*, IBeatmapLevelData*> SongLoader::LoadBeatmapLevel(std
                 }
             }
         }
-        levelData = FileSystemBeatmapLevelData::New_ctor(standardLevelInfoSaveData->songName, customLevelPath + "/" + static_cast<std::string>(standardLevelInfoSaveData->songFilename), "", dataDictionary)->i___GlobalNamespace__IBeatmapLevelData();
+        levelData = FileSystemBeatmapLevelData::New_ctor(result->levelID, customLevelPath + "/" + static_cast<std::string>(standardLevelInfoSaveData->songFilename), "", dataDictionary)->i___GlobalNamespace__IBeatmapLevelData();
     }
 
     return ValueTuple_2<BeatmapLevel*, IBeatmapLevelData*>(result, levelData);
